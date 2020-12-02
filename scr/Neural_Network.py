@@ -2,7 +2,6 @@ import numpy as np
 import time as tm
 
 
-
 class CreateNeuralNetwork:
     def __init__(self, shape, initializer, activation, activation_output=None):
         self.shape = shape
@@ -115,6 +114,20 @@ class Initializer:
             biases = [np.random.uniform(start_, stop_, (self.shape[i], 1)) for i in range(1, self.layers)]
 
             return np.array(weights, dtype=np.object), np.array(biases, dtype=np.object)
+
+        return initializer
+
+    @staticmethod
+    def xavier(start=-1, stop=1, he=1):
+        def initializer(self, start_=start, stop_=stop):
+            weights = [np.random.uniform(start_ * (he / self.shape[i - 1])**0.5, stop_ * (he / self.shape[i - 1])**0.5,
+                                         (self.shape[i], self.shape[i - 1]))
+                       for i in range(1, self.layers)]
+            biases = [np.random.uniform(start_ * (he / self.shape[i - 1])**0.5, stop_ * (he / self.shape[i - 1])**0.5,
+                                        (self.shape[i], 1))
+                      for i in range(1, self.layers)]
+
+            return np.array(weights, dtype=np.object), np.array(biases, dtype=np.object) / he
 
         return initializer
 

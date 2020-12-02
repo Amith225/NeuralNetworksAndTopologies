@@ -45,10 +45,15 @@ class CreateNeuralNetwork:
         output = self.activation_output(output)
         self.activated_outputs[l + 2] = output
 
-    def back_propagation(self, b):
+    def back_propagation(self, b):   # improve
         cost_derivative, cost = self.loss_function(self, b)
 
-        for l in range(self.layers - 1, 0, -1):
+        delta_b = cost_derivative * self.activated_output_derivative(self.activated_outputs[self.layers - 1])
+        delta_w = delta_b @ self.activated_outputs[self.layers - 1 - 1].transpose()
+        cost_derivative = self.weights[self.layers - 1 - 1].transpose() @ cost_derivative
+
+        self.delta_biases[self.layers - 1 - 1], self.delta_weights[self.layers - 1 - 1] = delta_b, delta_w
+        for l in range(self.layers - 1 - 1, 0, -1):
             delta_b = cost_derivative * self.activated_derivative(self.activated_outputs[l])
             delta_w = delta_b @ self.activated_outputs[l - 1].transpose()
             cost_derivative = self.weights[l - 1].transpose() @ cost_derivative
@@ -65,7 +70,7 @@ class CreateNeuralNetwork:
               vectorize=True):
         if vectorize is True and training_set is not None:
             training_set = np.array([[np.array(t[0]).reshape((len(t[0]), 1)), np.array(t[1]).reshape((len(t[1]), 1))]
-                                     for t in training_set])
+                                     for t in training_set], dtype=np.object)
         if training_set is not None: self.training_set = training_set
         if epochs is not None: self.epochs = epochs
         if batch_size is not None: self.batch_size = batch_size
@@ -139,6 +144,18 @@ class ActivationFunction:
         def activated_derivative(sigmoid_x):
 
             return alpha * (sigmoid_x * (1 - sigmoid_x))
+
+        return activation, activated_derivative
+
+    @staticmethod
+    def relu():
+        def activation(x):
+
+            return np.where(x < 0, 0, x)
+
+        def activated_derivative(sigmoid_x):
+
+            return np.where(sigmoid_x < 0, 0, 1)
 
         return activation, activated_derivative
 

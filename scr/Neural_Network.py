@@ -5,17 +5,18 @@ import time as tm
 class CreateNeuralNetwork:
     def __init__(self, shape, initializer, activation, activation_output=None):
         self.shape = shape
+        self.initializer = initializer
         self.layers = len(self.shape)
         if activation_output is None: activation_output = activation
 
-        self.weights, self.biases = initializer(self)
+        self.weights, self.biases = self.initializer(self)
         self.activation, self.activated_derivative = activation
         self.activation_output, self.activated_output_derivative = activation_output
         self.costs = []
         self.t = 0
 
         self.activated_outputs = [i for i in range(self.layers)]
-        self.delta_weights, self.delta_biases = initializer(self)
+        self.delta_weights, self.delta_biases = self.initializer(self)
         self.training_set = None
         self.epochs = None
         self.batch_size = None
@@ -47,20 +48,19 @@ class CreateNeuralNetwork:
     def back_propagation(self, b):   # improve
         cost_derivative, cost = self.loss_function(self, b)
 
-        delta_b = cost_derivative * self.activated_output_derivative(self.activated_outputs[self.layers - 1])
-        delta_w = delta_b @ self.activated_outputs[self.layers - 1 - 1].transpose()
+        delta_biases = cost_derivative * self.activated_output_derivative(self.activated_outputs[self.layers - 1])
+        delta_weights = delta_biases @ self.activated_outputs[self.layers - 1 - 1].transpose()
         cost_derivative = self.weights[self.layers - 1 - 1].transpose() @ cost_derivative
 
-        self.delta_biases[self.layers - 1 - 1], self.delta_weights[self.layers - 1 - 1] = delta_b, delta_w
+        self.delta_biases[self.layers - 1 - 1], self.delta_weights[self.layers - 1 - 1] = delta_biases, delta_weights
         for l in range(self.layers - 1 - 1, 0, -1):
-            delta_b = cost_derivative * self.activated_derivative(self.activated_outputs[l])
-            delta_w = delta_b @ self.activated_outputs[l - 1].transpose()
+            delta_biases = cost_derivative * self.activated_derivative(self.activated_outputs[l])
+            delta_weights = delta_biases @ self.activated_outputs[l - 1].transpose()
             cost_derivative = self.weights[l - 1].transpose() @ cost_derivative
 
-            self.delta_biases[l - 1], self.delta_weights[l - 1] = delta_b, delta_w
+            self.delta_biases[l - 1], self.delta_weights[l - 1] = delta_biases, delta_weights
 
-        learn = self.optimizer()
-        self.weights, self.biases = self.weights - learn * self.delta_weights, self.biases - learn * self.delta_biases
+        self.weights, self.biases = self.optimizer()
 
         return cost
 
@@ -171,14 +171,14 @@ class ActivationFunction:
         return activation, activated_derivative
 
     @staticmethod
-    def tanh():
+    def tanh(alpha=1):
         def activation(x):
 
-            return np.arctan(x)
+            return np.arctan(alpha * x)
 
         def activated_derivative(activated_x):
 
-            return 1 / (1 + np.tan(activated_x)**2)
+            return 1 / (1 + np.tan(activated_x) ** 2)
 
         return activation, activated_derivative
 
@@ -186,10 +186,24 @@ class ActivationFunction:
 
 class Optimizer:
     @staticmethod
-    def learning_rate(lr):
+    def learning_rate(self, lr):
         def optimizer():
 
-            return lr
+            return self.weights - lr * self.delta_weights, self.biases - lr * self.delta_biases
+
+        return optimizer
+
+    @staticmethod
+    def moment(self, lr, alpha):
+        self.prev_delta_weights, self.prev_delta_biases = self.initializer(self)
+
+        def optimizer():
+            self.delta_weights = alpha * self.prev_delta_weights + lr * self.delta_weights
+            self.delta_biases = alpha * self.prev_delta_biases + lr * self.delta_biases
+
+            self.prev_delta_weights, self.prev_delta_biases = self.delta_weights, self.delta_biases
+
+            return self.weights - self.delta_weights, self.biases - self.delta_biases
 
         return optimizer
 

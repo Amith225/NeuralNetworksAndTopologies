@@ -60,7 +60,7 @@ class CreateNeuralNetwork:
 
             self.delta_biases[l - 1], self.delta_weights[l - 1] = delta_biases, delta_weights
 
-        self.weights, self.biases = self.optimizer()
+        self.optimizer()
 
         return cost
 
@@ -189,7 +189,8 @@ class Optimizer:
     def learning_rate(self, lr):
         def optimizer():
 
-            return self.weights - lr * self.delta_weights, self.biases - lr * self.delta_biases
+            self.weights -= lr * self.delta_weights
+            self.biases -= lr * self.delta_biases
 
         return optimizer
 
@@ -203,7 +204,8 @@ class Optimizer:
 
             self.prev_delta_weights, self.prev_delta_biases = self.delta_weights, self.delta_biases
 
-            return self.weights - self.delta_weights, self.biases - self.delta_biases
+            self.weights -= self.delta_weights
+            self.biases -= self.delta_biases
 
         return optimizer
 

@@ -1,4 +1,3 @@
-"C:\Users\Vidya\PycharmProjects\MACHIENE LEARNING\venv\Scripts\python.exe" "C:/Users/Vidya/PycharmProjects/MACHIENE LEARNING/AI_ADV.py"
 epoch: 0  cost: 0.510469611734469 time: 536.7303819656372
          3494555 function calls in 540.579 seconds
 

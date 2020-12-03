@@ -150,11 +150,11 @@ class ActivationFunction:
     def sigmoid(alpha=1, beta=0):
         def activation(x):
 
-            return 1 / (1 + np.e**(-alpha * (x + beta)))
+            return 1 / (1 + np.e ** (-alpha * (x + beta)))
 
-        def activated_derivative(sigmoid_x):
+        def activated_derivative(activated_x):
 
-            return alpha * (sigmoid_x * (1 - sigmoid_x))
+            return alpha * (activated_x * (1 - activated_x))
 
         return activation, activated_derivative
 
@@ -164,9 +164,21 @@ class ActivationFunction:
 
             return np.where(x < 0, 0, x)
 
-        def activated_derivative(sigmoid_x):
+        def activated_derivative(activated_x):
 
-            return np.where(sigmoid_x < 0, 0, 1)
+            return np.where(activated_x == 0, 0, 1)
+
+        return activation, activated_derivative
+
+    @staticmethod
+    def tanh():
+        def activation(x):
+
+            return np.arctan(np.radians(x))
+
+        def activated_derivative(activated_x):
+
+            return 1 / (1 + np.tan(activated_x)**2)
 
         return activation, activated_derivative
 

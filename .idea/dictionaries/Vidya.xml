@@ -2,6 +2,7 @@
   <dictionary name="Vidya">
     <words>
       <w>relu</w>
+      <w>tanh</w>
       <w>vectorize</w>
     </words>
   </dictionary>

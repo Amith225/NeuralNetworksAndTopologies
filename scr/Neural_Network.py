@@ -24,7 +24,7 @@ class CreateNeuralNetwork:
         self.cost = 0
 
     def process(self, input):
-        input = np.array(input).reshape((len(input), 1))
+        input = np.array(input, dtype=np.float32).reshape((len(input), 1))
 
         for l in range(self.layers - 2):
             input = self.activation(self.weights[l] @ input + self.biases[l])
@@ -61,7 +61,8 @@ class CreateNeuralNetwork:
     def train(self, training_set=None, epochs=None, batch_size=None, loss_function=None, optimizer=None,
               vectorize=True):
         if vectorize is True and training_set is not None:
-            training_set = np.array([[np.array(t[0]).reshape((len(t[0]), 1)), np.array(t[1]).reshape((len(t[1]), 1))]
+            training_set = np.array([[np.array(t[0], dtype=np.float32).reshape((len(t[0]), 1)),
+                                      np.array(t[1], dtype=np.float32).reshape((len(t[1]), 1))]
                                      for t in training_set], dtype=np.object)
         if training_set is not None: self.training_set = training_set
         if epochs is not None: self.epochs = epochs
@@ -101,9 +102,12 @@ class Initializer:
     @staticmethod
     def normal(scale=1):
         def initializer(self):
-            weights = [np.random.randn(self.shape[i], self.shape[i - 1]) * scale
+            np.random.default_rng().standard_normal(size=1, dtype='float32')
+            weights = [np.random.default_rng().standard_normal((self.shape[i], self.shape[i - 1]),
+                                                               dtype=np.float32) * scale
                        for i in range(1, self.layers)]
-            biases = [np.random.randn(self.shape[i], 1) for i in range(1, self.layers)]
+            biases = [np.random.default_rng().standard_normal((self.shape[i], 1),
+                                                              dtype=np.float32) for i in range(1, self.layers)]
 
             return np.array(weights, dtype=np.object), np.array(biases, dtype=np.object)
 
@@ -112,9 +116,11 @@ class Initializer:
     @staticmethod
     def xavier(he=1):
         def initializer(self):
-            weights = [np.random.randn(self.shape[i], self.shape[i - 1]) * (he / self.shape[i - 1]) ** 0.5
+            weights = [np.random.default_rng().standard_normal((self.shape[i], self.shape[i - 1]),
+                                                               dtype=np.float32) * (he / self.shape[i - 1]) ** 0.5
                        for i in range(1, self.layers)]
-            biases = [np.random.randn(self.shape[i], 1) * (he / self.shape[i - 1]) ** 0.5
+            biases = [np.random.default_rng().standard_normal((self.shape[i], 1),
+                                                              dtype=np.float32) * (he / self.shape[i - 1]) ** 0.5
                       for i in range(1, self.layers)]
 
             return np.array(weights, dtype=np.object), np.array(biases, dtype=np.object)
@@ -191,10 +197,11 @@ class Optimizer:
         this.prev_delta_weights, this.prev_delta_biases = Initializer.normal(0)(this)
 
         def optimizer():
-            this.delta_weights = alpha * this.prev_delta_weights + lr * this.delta_weights
-            this.delta_biases = alpha * this.prev_delta_biases + lr * this.delta_biases
+            this.delta_weights[:] = alpha * this.prev_delta_weights + lr * this.delta_weights
+            this.delta_biases[:] = alpha * this.prev_delta_biases + lr * this.delta_biases
 
-            this.prev_delta_weights, this.prev_delta_biases = this.delta_weights, this.delta_biases
+            this.prev_delta_weights[:] = this.delta_weights
+            this.prev_delta_biases[:] = this.delta_biases
 
             this.weights -= this.delta_weights
             this.biases -= this.delta_biases

@@ -156,14 +156,14 @@ class ActivationFunction:
         return activation, activated_derivative
 
     @staticmethod
-    def relu():  # can make faster in where
+    def relu():  # can make faster
         def activation(x):
 
-            return np.where(x < 0, 0, x)
+            return x * (x > 0)
 
         def activated_derivative(activated_x):
 
-            return np.where(activated_x == 0, 0, 1)
+            return np.ones_like(activated_x) * (activated_x != 0)
 
         return activation, activated_derivative
 
@@ -196,11 +196,8 @@ class Optimizer:
         this.prev_delta_weights, this.prev_delta_biases = Initializer.normal(0)(this)
 
         def optimizer():
-            this.delta_weights[:] = alpha * this.prev_delta_weights + lr * this.delta_weights
-            this.delta_biases[:] = alpha * this.prev_delta_biases + lr * this.delta_biases
-
-            this.prev_delta_weights[:] = this.delta_weights
-            this.prev_delta_biases[:] = this.delta_biases
+            this.delta_weights = this.prev_delta_weights = alpha * this.prev_delta_weights + lr * this.delta_weights
+            this.delta_biases = this.prev_delta_biases = alpha * this.prev_delta_biases + lr * this.delta_biases
 
             this.weights -= this.delta_weights
             this.biases -= this.delta_biases

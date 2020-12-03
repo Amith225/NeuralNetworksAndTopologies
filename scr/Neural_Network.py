@@ -107,27 +107,25 @@ class CreateNeuralNetwork:
 
 class Initializer:
     @staticmethod
-    def normal(start=-1, stop=1):
-        def initializer(self, start_=start, stop_=stop):
-            weights = [np.random.uniform(start_, stop_, (self.shape[i], self.shape[i - 1]))
+    def normal(scale=1):
+        def initializer(self, scale_=scale):
+            weights = [np.random.randn(self.shape[i], self.shape[i - 1]) * scale_
                        for i in range(1, self.layers)]
-            biases = [np.random.uniform(start_, stop_, (self.shape[i], 1)) for i in range(1, self.layers)]
+            biases = [np.random.randn(self.shape[i], 1) for i in range(1, self.layers)]
 
             return np.array(weights, dtype=np.object), np.array(biases, dtype=np.object)
 
         return initializer
 
     @staticmethod
-    def xavier(start=-1, stop=1, he=1):
-        def initializer(self, start_=start, stop_=stop):
-            weights = [np.random.uniform(start_ * (he / self.shape[i - 1])**0.5, stop_ * (he / self.shape[i - 1])**0.5,
-                                         (self.shape[i], self.shape[i - 1]))
+    def xavier(he=1):
+        def initializer(self, he_=he):
+            weights = [np.random.randn(self.shape[i], self.shape[i - 1]) * (he_ / self.shape[i - 1]) ** 0.5
                        for i in range(1, self.layers)]
-            biases = [np.random.uniform(start_ * (he / self.shape[i - 1])**0.5, stop_ * (he / self.shape[i - 1])**0.5,
-                                        (self.shape[i], 1))
+            biases = [np.random.randn(self.shape[i], 1) * (he_ / self.shape[i - 1]) ** 0.5
                       for i in range(1, self.layers)]
 
-            return np.array(weights, dtype=np.object), np.array(biases, dtype=np.object) / he
+            return np.array(weights, dtype=np.object), np.array(biases, dtype=np.object) / he_
 
         return initializer
 

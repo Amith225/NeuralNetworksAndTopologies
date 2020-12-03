@@ -7,61 +7,56 @@ class CreateNeuralNetwork:
         self.shape = shape
         self.layers = len(self.shape)
         if activation_output is None: activation_output = activation
-
         self.weights, self.biases = initializer(self)
         self.activation, self.activated_derivative = activation
-        self.activation_output, self.activated_output_derivative = activation_output
-        self.costs = []
-        self.t = 0
-
+        self.output_activation, self.activated_output_derivative = activation_output
         self.activated_outputs = [i for i in range(self.layers)]
         self.delta_weights, self.delta_biases = Initializer.normal(0)(self)
+
+        self.costs = []
+        self.t = 0
         self.training_set = None
         self.epochs = None
         self.batch_size = None
         self.loss_function = None
         self.optimizer = None
+        self.cost_derivative = None
+        self.cost = None
 
     def process(self, input):
         input = np.array(input).reshape((len(input), 1))
-        l = None
+
         for l in range(self.layers - 2):
             input = self.activation(self.weights[l] @ input + self.biases[l])
 
-        output = self.activation_output(self.weights[l + 1] @ input + self.biases[l + 1])
-
-        return output
+        return self.output_activation(self.weights[l + 1] @ input + self.biases[l + 1])
 
     def forward_pass(self, input):
         self.activated_outputs[0] = input
 
-        l = None
         for l in range(self.layers - 2):
             input = self.weights[l] @ input + self.biases[l]
             input = self.activation(input)
             self.activated_outputs[l + 1] = input
 
-        self.activated_outputs[l + 2] = self.activation_output(self.weights[l + 1] @ input + self.biases[l + 1])
+        self.activated_outputs[l + 2] = self.output_activation(self.weights[l + 1] @ input + self.biases[l + 1])
 
     def back_propagation(self, b):
-        cost_derivative, cost = self.loss_function(self, b)
+        self.cost_derivative, cost = self.loss_function(self, b)
+        self.cost += cost
 
-        cost_derivative = self.find_delta(self.layers - 1, cost_derivative, self.activated_output_derivative)
+        self.find_delta(self.layers - 1, self.activated_output_derivative)
         for l in range(self.layers - 2, 0, -1):
-            cost_derivative = self.find_delta(l, cost_derivative, self.activated_derivative)
+            self.find_delta(l, self.activated_derivative)
 
         self.optimizer()
 
-        return cost
-
-    def find_delta(self, layer, cost_derivative, activated_derivative):
-        delta_biases = cost_derivative * activated_derivative(self.activated_outputs[layer])
+    def find_delta(self, layer, activated_derivative):
+        delta_biases = self.cost_derivative * activated_derivative(self.activated_outputs[layer])
         delta_weights = delta_biases @ self.activated_outputs[layer - 1].transpose()
-        cost_derivative = self.weights[layer - 1].transpose() @ cost_derivative
-
         self.delta_biases[layer - 1], self.delta_weights[layer - 1] = delta_biases, delta_weights
 
-        return cost_derivative
+        self.cost_derivative = self.weights[layer - 1].transpose() @ self.cost_derivative
 
 
     def train(self, training_set=None, epochs=None, batch_size=None, loss_function=None, optimizer=None,
@@ -83,12 +78,10 @@ class CreateNeuralNetwork:
             print('epoch:', e, end='  ')
             batch_set = self.training_set[np.random.choice(self.training_set.shape[0], batch_size, replace=False)]
 
-            costs = 0
             t = tm.time()
             for b in batch_set:
-                cost = self.back_propagation(b)
-                costs += cost
-            cost = costs / batch_size
+                self.back_propagation(b)
+            cost = self.cost / batch_size
             print('cost:', cost, 'time:', tm.time()-t)
             train_costs.append(cost)
         self.costs.append([self.t, train_costs])

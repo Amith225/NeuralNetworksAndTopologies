@@ -174,7 +174,7 @@ class ActivationFunction:
     def tanh():
         def activation(x):
 
-            return np.arctan(np.radians(x))
+            return np.arctan(x)
 
         def activated_derivative(activated_x):
 

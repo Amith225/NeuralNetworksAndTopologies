@@ -21,7 +21,7 @@ class CreateNeuralNetwork:
         self.loss_function = None
         self.optimizer = None
         self.cost_derivative = None
-        self.cost = None
+        self.cost = 0
 
     def process(self, input):
         input = np.array(input).reshape((len(input), 1))
@@ -79,6 +79,7 @@ class CreateNeuralNetwork:
             batch_set = self.training_set[np.random.choice(self.training_set.shape[0], batch_size, replace=False)]
 
             t = tm.time()
+            self.cost = 0
             for b in batch_set:
                 self.back_propagation(b)
             cost = self.cost / batch_size
@@ -151,7 +152,7 @@ class ActivationFunction:
         return activation, activated_derivative
 
     @staticmethod
-    def relu():
+    def relu():  # can make faster in where
         def activation(x):
 
             return np.where(x < 0, 0, x)

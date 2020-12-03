@@ -102,7 +102,6 @@ class Initializer:
     @staticmethod
     def normal(scale=1):
         def initializer(self):
-            np.random.default_rng().standard_normal(size=1, dtype='float32')
             weights = [np.random.default_rng().standard_normal((self.shape[i], self.shape[i - 1]),
                                                                dtype=np.float32) * scale
                        for i in range(1, self.layers)]

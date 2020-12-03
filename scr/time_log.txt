@@ -1,0 +1,66 @@
+"C:\Users\Vidya\PycharmProjects\MACHIENE LEARNING\venv\Scripts\python.exe" "C:/Users/Vidya/PycharmProjects/MACHIENE LEARNING/AI_ADV.py"
+epoch: 0  cost: 0.510469611734469 time: 536.7303819656372
+         3494555 function calls in 540.579 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        6    0.000    0.000    0.000    0.000 <__array_function__ internals>:2(concatenate)
+        1    0.000    0.000    0.000    0.000 <__array_function__ internals>:2(prod)
+        1    0.000    0.000  540.579  540.579 <string>:1(<module>)
+        1    0.005    0.005  540.579  540.579 AI_ADV.py:15(foo)
+        1    0.000    0.000    0.000    0.000 NeuralNetworks_ADV.py:102(normal)
+        1    0.000    0.000    0.023    0.023 NeuralNetworks_ADV.py:104(initializer)
+        1    0.002    0.002    0.022    0.022 NeuralNetworks_ADV.py:105(<listcomp>)
+        1    0.000    0.000    0.001    0.001 NeuralNetworks_ADV.py:108(<listcomp>)
+        1    0.000    0.000    0.000    0.000 NeuralNetworks_ADV.py:132(mean_square)
+   124799    1.358    0.000   45.059    0.000 NeuralNetworks_ADV.py:134(loss_function)
+   374397   10.215    0.000   10.215    0.000 NeuralNetworks_ADV.py:148(activation)
+   374397    3.246    0.000    3.246    0.000 NeuralNetworks_ADV.py:152(activated_derivative)
+        1    0.000    0.000    0.023    0.023 NeuralNetworks_ADV.py:194(moment)
+   124799  304.106    0.002  304.106    0.002 NeuralNetworks_ADV.py:198(optimizer)
+   124799   30.707    0.000   40.923    0.000 NeuralNetworks_ADV.py:34(forward_pass)
+   124799    2.017    0.000  536.187    0.004 NeuralNetworks_ADV.py:43(back_propagation)
+   374397  181.177    0.000  185.005    0.000 NeuralNetworks_ADV.py:53(find_delta)
+        1    0.600    0.600  540.551  540.551 NeuralNetworks_ADV.py:61(train)
+        1    1.029    1.029    3.282    3.282 NeuralNetworks_ADV.py:64(<listcomp>)
+        1    0.000    0.000    0.000    0.000 NeuralNetworks_ADV.py:91(<listcomp>)
+   124799    0.119    0.000    2.465    0.000 _methods.py:45(_sum)
+       12    0.000    0.000    0.000    0.000 _ufunc_config.py:132(geterr)
+       12    0.000    0.000    0.000    0.000 _ufunc_config.py:32(seterr)
+        6    0.000    0.000    0.000    0.000 _ufunc_config.py:433(__enter__)
+        6    0.000    0.000    0.000    0.000 _ufunc_config.py:438(__exit__)
+        6    0.000    0.000    0.000    0.000 abc.py:137(__instancecheck__)
+        6    0.000    0.000    0.000    0.000 contextlib.py:58(_recreate_cm)
+        6    0.000    0.000    0.001    0.000 contextlib.py:71(inner)
+        1    0.000    0.000    0.000    0.000 fromnumeric.py:2876(_prod_dispatcher)
+        1    0.000    0.000    0.000    0.000 fromnumeric.py:2881(prod)
+        1    0.000    0.000    0.000    0.000 fromnumeric.py:70(_wrapreduction)
+        1    0.000    0.000    0.000    0.000 fromnumeric.py:71(<dictcomp>)
+        6    0.000    0.000    0.000    0.000 multiarray.py:143(concatenate)
+        6    0.000    0.000    0.000    0.000 random.py:681(getrandbits)
+        6    0.000    0.000    0.000    0.000 {built-in method _abc._abc_instancecheck}
+        1    0.000    0.000  540.579  540.579 {built-in method builtins.exec}
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.getattr}
+   249601    0.082    0.000    0.082    0.000 {built-in method builtins.len}
+        2    0.000    0.000    0.000    0.000 {built-in method builtins.print}
+        6    0.000    0.000    0.000    0.000 {built-in method from_bytes}
+        6    0.000    0.000    0.000    0.000 {built-in method nt.urandom}
+   249603    2.225    0.000    2.225    0.000 {built-in method numpy.array}
+        7    0.000    0.000    0.000    0.000 {built-in method numpy.core._multiarray_umath.implement_array_function}
+       24    0.000    0.000    0.000    0.000 {built-in method numpy.geterrobj}
+       12    0.000    0.000    0.000    0.000 {built-in method numpy.seterrobj}
+        2    0.000    0.000    0.000    0.000 {built-in method time.time}
+        2    0.000    0.000    0.000    0.000 {method 'append' of 'list' objects}
+        1    0.016    0.016    0.016    0.016 {method 'choice' of 'numpy.random.mtrand.RandomState' objects}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 {method 'items' of 'dict' objects}
+   124800    2.345    0.000    2.345    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+   249600    0.411    0.000    0.411    0.000 {method 'reshape' of 'numpy.ndarray' objects}
+        6    0.020    0.003    0.020    0.003 {method 'standard_normal' of 'numpy.random._generator.Generator' objects}
+   124799    0.313    0.000    2.778    0.000 {method 'sum' of 'numpy.ndarray' objects}
+   748794    0.582    0.000    0.582    0.000 {method 'transpose' of 'numpy.ndarray' objects}
+        6    0.001    0.000    0.002    0.000 {numpy.random._generator.default_rng}
+
+
+>>>

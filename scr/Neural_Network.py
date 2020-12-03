@@ -5,18 +5,17 @@ import time as tm
 class CreateNeuralNetwork:
     def __init__(self, shape, initializer, activation, activation_output=None):
         self.shape = shape
-        self.initializer = initializer
         self.layers = len(self.shape)
         if activation_output is None: activation_output = activation
 
-        self.weights, self.biases = self.initializer(self)
+        self.weights, self.biases = initializer(self)
         self.activation, self.activated_derivative = activation
         self.activation_output, self.activated_output_derivative = activation_output
         self.costs = []
         self.t = 0
 
         self.activated_outputs = [i for i in range(self.layers)]
-        self.delta_weights, self.delta_biases = self.initializer(self)
+        self.delta_weights, self.delta_biases = Initializer.normal(0)(self)
         self.training_set = None
         self.epochs = None
         self.batch_size = None
@@ -24,6 +23,7 @@ class CreateNeuralNetwork:
         self.optimizer = None
 
     def process(self, input):
+        input = np.array(input).reshape((len(input), 1))
         l = None
         for l in range(self.layers - 2):
             input = self.activation(self.weights[l] @ input + self.biases[l])
@@ -41,28 +41,27 @@ class CreateNeuralNetwork:
             input = self.activation(input)
             self.activated_outputs[l + 1] = input
 
-        output = self.weights[l + 1] @ input + self.biases[l + 1]
-        output = self.activation_output(output)
-        self.activated_outputs[l + 2] = output
+        self.activated_outputs[l + 2] = self.activation_output(self.weights[l + 1] @ input + self.biases[l + 1])
 
-    def back_propagation(self, b):   # improve
+    def back_propagation(self, b):
         cost_derivative, cost = self.loss_function(self, b)
 
-        delta_biases = cost_derivative * self.activated_output_derivative(self.activated_outputs[self.layers - 1])
-        delta_weights = delta_biases @ self.activated_outputs[self.layers - 1 - 1].transpose()
-        cost_derivative = self.weights[self.layers - 1 - 1].transpose() @ cost_derivative
-
-        self.delta_biases[self.layers - 1 - 1], self.delta_weights[self.layers - 1 - 1] = delta_biases, delta_weights
-        for l in range(self.layers - 1 - 1, 0, -1):
-            delta_biases = cost_derivative * self.activated_derivative(self.activated_outputs[l])
-            delta_weights = delta_biases @ self.activated_outputs[l - 1].transpose()
-            cost_derivative = self.weights[l - 1].transpose() @ cost_derivative
-
-            self.delta_biases[l - 1], self.delta_weights[l - 1] = delta_biases, delta_weights
+        cost_derivative = self.find_delta(self.layers - 1, cost_derivative, self.activated_output_derivative)
+        for l in range(self.layers - 2, 0, -1):
+            cost_derivative = self.find_delta(l, cost_derivative, self.activated_derivative)
 
         self.optimizer()
 
         return cost
+
+    def find_delta(self, layer, cost_derivative, activated_derivative):
+        delta_biases = cost_derivative * activated_derivative(self.activated_outputs[layer])
+        delta_weights = delta_biases @ self.activated_outputs[layer - 1].transpose()
+        cost_derivative = self.weights[layer - 1].transpose() @ cost_derivative
+
+        self.delta_biases[layer - 1], self.delta_weights[layer - 1] = delta_biases, delta_weights
+
+        return cost_derivative
 
 
     def train(self, training_set=None, epochs=None, batch_size=None, loss_function=None, optimizer=None,
@@ -186,26 +185,26 @@ class ActivationFunction:
 
 class Optimizer:
     @staticmethod
-    def learning_rate(self, lr):
+    def learning_rate(this, lr):
         def optimizer():
 
-            self.weights -= lr * self.delta_weights
-            self.biases -= lr * self.delta_biases
+            this.weights -= lr * this.delta_weights
+            this.biases -= lr * this.delta_biases
 
         return optimizer
 
     @staticmethod
-    def moment(self, lr, alpha):
-        self.prev_delta_weights, self.prev_delta_biases = self.initializer(self)
+    def moment(this, lr, alpha):
+        this.prev_delta_weights, this.prev_delta_biases = Initializer.normal(0)(this)
 
         def optimizer():
-            self.delta_weights = alpha * self.prev_delta_weights + lr * self.delta_weights
-            self.delta_biases = alpha * self.prev_delta_biases + lr * self.delta_biases
+            this.delta_weights = alpha * this.prev_delta_weights + lr * this.delta_weights
+            this.delta_biases = alpha * this.prev_delta_biases + lr * this.delta_biases
 
-            self.prev_delta_weights, self.prev_delta_biases = self.delta_weights, self.delta_biases
+            this.prev_delta_weights, this.prev_delta_biases = this.delta_weights, this.delta_biases
 
-            self.weights -= self.delta_weights
-            self.biases -= self.delta_biases
+            this.weights -= this.delta_weights
+            this.biases -= this.delta_biases
 
         return optimizer
 

@@ -35,8 +35,7 @@ class CreateNeuralNetwork:
         self.activated_outputs[0] = input
 
         for l in range(self.layers - 2):
-            input = self.weights[l] @ input + self.biases[l]
-            input = self.activation(input)
+            input = self.activation(self.weights[l] @ input + self.biases[l])
             self.activated_outputs[l + 1] = input
 
         self.activated_outputs[l + 2] = self.output_activation(self.weights[l + 1] @ input + self.biases[l + 1])

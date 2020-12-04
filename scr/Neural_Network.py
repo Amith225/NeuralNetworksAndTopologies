@@ -3,13 +3,13 @@ import time as tm
 
 
 class CreateNeuralNetwork:
-    def __init__(self, shape, initializer, activation, activation_output=None):
+    def __init__(self, shape, initializer, activation, output_activation=None):
         self.shape = shape
         self.layers = len(self.shape)
-        if activation_output is None: activation_output = activation
+        if output_activation is None: output_activation = activation
         self.weights, self.biases = initializer(self)
         self.activation, self.activated_derivative = activation
-        self.output_activation, self.activated_output_derivative = activation_output
+        self.output_activation, self.activated_output_derivative = output_activation
         self.activated_outputs = [i for i in range(self.layers)]
         self.delta_weights, self.delta_biases = Initializer.normal(0)(self)
 
@@ -30,7 +30,7 @@ class CreateNeuralNetwork:
             input = self.activated_outputs[l + 1] = \
                 self.activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
 
-        return self.output_activation(self.weights[l + 1] @ input + self.biases[l + 1])
+        return self.output_activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
 
     def forward_pass(self, input):
         self.activated_outputs[0] = input
@@ -39,7 +39,8 @@ class CreateNeuralNetwork:
             input = self.activated_outputs[l + 1] =\
                 self.activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
 
-        self.activated_outputs[l + 2] = self.output_activation(self.weights[l + 1] @ input + self.biases[l + 1])
+        self.activated_outputs[l + 2] =\
+            self.output_activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
 
     def back_propagation(self, b):
         self.cost_derivative, cost = self.loss_function(self, b)
@@ -157,7 +158,7 @@ class ActivationFunction:
         return activation, activated_derivative
 
     @staticmethod
-    def relu():  # can make faster
+    def relu():
         def activation(x):
 
             return x * (x > 0)

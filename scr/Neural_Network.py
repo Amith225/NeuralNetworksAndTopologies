@@ -1,5 +1,6 @@
-import numpy as np
 import time as tm
+
+import numpy as np
 
 
 class CreateNeuralNetwork:
@@ -30,7 +31,7 @@ class CreateNeuralNetwork:
             input = self.activated_outputs[l + 1] = \
                 self.activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
 
-        return self.output_activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
+        return self.output_activation(np.einsum('ij,jk->ik', self.weights[l + 1], input) + self.biases[l + 1])
 
     def forward_pass(self, input):
         self.activated_outputs[0] = input
@@ -39,8 +40,8 @@ class CreateNeuralNetwork:
             input = self.activated_outputs[l + 1] =\
                 self.activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
 
-        self.activated_outputs[l + 2] =\
-            self.output_activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
+        self.activated_outputs[l + 2] = \
+            self.output_activation(np.einsum('ij,jk->ik', self.weights[l + 1], input) + self.biases[l + 1])
 
     def back_propagation(self, b):
         self.cost_derivative, cost = self.loss_function(self, b)

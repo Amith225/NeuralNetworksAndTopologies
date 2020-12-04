@@ -37,7 +37,7 @@ class CreateNeuralNetwork:
         self.activated_outputs[0] = input
 
         for l in range(self.layers - 2):
-            input = self.activated_outputs[l + 1] =\
+            input = self.activated_outputs[l + 1] = \
                 self.activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
 
         self.activated_outputs[l + 2] = \
@@ -72,8 +72,10 @@ class CreateNeuralNetwork:
         if loss_function is not None: self.loss_function = loss_function
         if optimizer is not None: self.optimizer = optimizer
 
-        if self.batch_size < 0: batch_size = len(self.training_set) + self.batch_size
-        else: batch_size = self.batch_size
+        if self.batch_size < 0:
+            batch_size = len(self.training_set) + self.batch_size
+        else:
+            batch_size = self.batch_size
 
         train_costs = []
         for e in range(self.epochs):
@@ -85,7 +87,7 @@ class CreateNeuralNetwork:
             for b in batch_set:
                 self.back_propagation(b)
             cost = self.cost / batch_size
-            print('cost:', cost, 'time:', tm.time()-t)
+            print('cost:', cost, 'time:', tm.time() - t)
             train_costs.append(cost)
         self.costs.append([self.t, train_costs])
 
@@ -97,7 +99,6 @@ class CreateNeuralNetwork:
 
     def test(self):
         pass
-
 
 
 class Initializer:
@@ -129,7 +130,6 @@ class Initializer:
         return initializer
 
 
-
 class LossFunction:
     @staticmethod
     def mean_square():
@@ -143,16 +143,13 @@ class LossFunction:
         return loss_function
 
 
-
 class ActivationFunction:
     @staticmethod
     def sigmoid(alpha=1, beta=0):
         def activation(x):
-
             return 1 / (1 + np.e ** (-alpha * (x + beta)))
 
         def activated_derivative(activated_x):
-
             return alpha * (activated_x * (1 - activated_x))
 
         return activation, activated_derivative
@@ -160,11 +157,9 @@ class ActivationFunction:
     @staticmethod
     def relu():
         def activation(x):
-
             return x * (x > 0)
 
         def activated_derivative(activated_x):
-
             return np.ones_like(activated_x) * (activated_x != 0)
 
         return activation, activated_derivative
@@ -172,22 +167,18 @@ class ActivationFunction:
     @staticmethod
     def tanh(alpha=1):
         def activation(x):
-
             return np.arctan(alpha * x)
 
         def activated_derivative(activated_x):
-
             return 1 / (1 + np.tan(activated_x) ** 2)
 
         return activation, activated_derivative
-
 
 
 class Optimizer:
     @staticmethod
     def learning_rate(this, lr):
         def optimizer():
-
             this.weights -= lr * this.delta_weights
             this.biases -= lr * this.delta_biases
 
@@ -208,15 +199,12 @@ class Optimizer:
         return optimizer
 
 
-
 class LoadNeuralNetwork:
     pass
 
 
-
 class SaveNeuralNetwork:
     pass
-
 
 
 class PlotGraph:

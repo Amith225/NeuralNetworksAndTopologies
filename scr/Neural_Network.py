@@ -27,7 +27,8 @@ class CreateNeuralNetwork:
         input = np.array(input, dtype=np.float32).reshape((len(input), 1))
 
         for l in range(self.layers - 2):
-            input = self.activation(self.weights[l] @ input + self.biases[l])
+            input = self.activated_outputs[l + 1] = \
+                self.activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
 
         return self.output_activation(self.weights[l + 1] @ input + self.biases[l + 1])
 
@@ -35,8 +36,8 @@ class CreateNeuralNetwork:
         self.activated_outputs[0] = input
 
         for l in range(self.layers - 2):
-            input = self.activation(self.weights[l] @ input + self.biases[l])
-            self.activated_outputs[l + 1] = input
+            input = self.activated_outputs[l + 1] =\
+                self.activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
 
         self.activated_outputs[l + 2] = self.output_activation(self.weights[l + 1] @ input + self.biases[l + 1])
 
@@ -52,8 +53,8 @@ class CreateNeuralNetwork:
 
     def find_delta(self, layer, activated_derivative):
         delta_biases = self.cost_derivative * activated_derivative(self.activated_outputs[layer])
-        delta_weights = delta_biases @ self.activated_outputs[layer - 1].transpose()
-        self.delta_biases[layer - 1], self.delta_weights[layer - 1] = delta_biases, delta_weights
+        self.delta_biases[layer - 1] = delta_biases
+        self.delta_weights[layer - 1] = np.einsum('ij,ji->ij', delta_biases, self.activated_outputs[layer - 1])
 
         self.cost_derivative = self.weights[layer - 1].transpose() @ self.cost_derivative
 
@@ -134,9 +135,9 @@ class LossFunction:
         def loss_function(self, b):
             self.forward_pass(b[0])
             cost_derivative = self.activated_outputs[-1] - b[1]
-            cost = cost_derivative ** 2
+            cost = np.einsum('ij,ij->', cost_derivative, cost_derivative)
 
-            return cost_derivative, cost.sum()
+            return cost_derivative, cost
 
         return loss_function
 
@@ -192,7 +193,8 @@ class Optimizer:
         return optimizer
 
     @staticmethod
-    def moment(this, lr, alpha):
+    def moment(this, lr, alpha=None):
+        if alpha is None: alpha = lr
         this.prev_delta_weights, this.prev_delta_biases = Initializer.normal(0)(this)
 
         def optimizer():

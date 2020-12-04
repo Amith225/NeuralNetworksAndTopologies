@@ -58,8 +58,7 @@ class CreateNeuralNetwork:
         self.delta_biases[layer - 1] = delta_biases
         self.delta_weights[layer - 1] = np.einsum('ij,ji->ij', delta_biases, self.activated_outputs[layer - 1])
 
-        self.cost_derivative = self.weights[layer - 1].transpose() @ self.cost_derivative
-
+        self.cost_derivative = np.einsum('ij,ik->jk', self.weights[layer - 1], self.cost_derivative)
 
     def train(self, training_set=None, epochs=None, batch_size=None, loss_function=None, optimizer=None,
               vectorize=True):

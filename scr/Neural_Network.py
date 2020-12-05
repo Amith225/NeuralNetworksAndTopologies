@@ -11,7 +11,8 @@ class CreateNeuralNetwork:
         self.weights, self.biases = initializer(self)
         self.activation, self.activated_derivative = activation
         self.output_activation, self.activated_output_derivative = output_activation
-        self.activated_outputs = np.array([np.zeros((self.shape[i], 1)) for i in range(self.layers)], dtype=np.ndarray)
+        self.activated_outputs = np.array([np.zeros((self.shape[i], 1), dtype=np.float32) for i in range(self.layers)],
+                                          dtype=np.ndarray)
         self.delta_weights, self.delta_biases = Initializer.normal(0)(self)
 
         self.costs = []
@@ -29,19 +30,21 @@ class CreateNeuralNetwork:
 
         for l in range(self.layers - 2):
             input = self.activated_outputs[l + 1] = \
-                self.activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
+                self.activation(np.einsum('ij,jk->ik', self.weights[l], input, dtype=np.float32) + self.biases[l])
 
-        return self.output_activation(np.einsum('ij,jk->ik', self.weights[l + 1], input) + self.biases[l + 1])
+        return self.output_activation(
+            np.einsum('ij,jk->ik', self.weights[l + 1], input, dtype=np.float32) + self.biases[l + 1])
 
     def forward_pass(self, input):
         self.activated_outputs[0] = input
 
         for l in range(self.layers - 2):
             input = self.activated_outputs[l + 1] = \
-                self.activation(np.einsum('ij,jk->ik', self.weights[l], input) + self.biases[l])
+                self.activation(np.einsum('ij,jk->ik', self.weights[l], input, dtype=np.float32) + self.biases[l])
 
         self.activated_outputs[l + 2] = \
-            self.output_activation(np.einsum('ij,jk->ik', self.weights[l + 1], input) + self.biases[l + 1])
+            self.output_activation(
+                np.einsum('ij,jk->ik', self.weights[l + 1], input, dtype=np.float32) + self.biases[l + 1])
 
     def back_propagation(self, b):
         self.cost_derivative, cost = self.loss_function(self, b)
@@ -55,9 +58,10 @@ class CreateNeuralNetwork:
     def find_delta(self, layer, activated_derivative):
         delta_biases = self.cost_derivative * activated_derivative(self.activated_outputs[layer])
         self.delta_biases[layer - 1] = delta_biases
-        self.delta_weights[layer - 1] = np.einsum('ij,ji->ij', delta_biases, self.activated_outputs[layer - 1])
+        self.delta_weights[layer - 1] = np.einsum('ij,ji->ij', delta_biases, self.activated_outputs[layer - 1],
+                                                  dtype=np.float32)
 
-        self.cost_derivative = np.einsum('ij,ik->jk', self.weights[layer - 1], self.cost_derivative)
+        self.cost_derivative = np.einsum('ij,ik->jk', self.weights[layer - 1], self.cost_derivative, dtype=np.float32)
 
     def train(self, training_set=None, epochs=None, batch_size=None, loss_function=None, optimizer=None,
               vectorize=True):
@@ -91,7 +95,8 @@ class CreateNeuralNetwork:
         self.costs.append([self.t, train_costs])
 
         self.t += 1
-        self.activated_outputs = np.zeros_like(self.biases)
+        self.activated_outputs = np.array([np.zeros((self.shape[i], 1), dtype=np.float32) for i in range(self.layers)],
+                                          dtype=np.ndarray)
 
     def quick_train(self):
         pass
@@ -135,10 +140,9 @@ class LossFunction:
     def mean_square():
         def loss_function(self, b):
             self.forward_pass(b[0])
-            cost_derivative = self.activated_outputs[-1] - b[1]  #
-            cost = np.einsum('ij,ij->', cost_derivative, cost_derivative)
+            cost_derivative = self.activated_outputs[-1] - b[1]
 
-            return cost_derivative, cost
+            return cost_derivative, np.einsum('ij,ij->', cost_derivative, cost_derivative, dtype=np.float32)
 
         return loss_function
 
@@ -160,7 +164,7 @@ class ActivationFunction:
             return x * (x > 0)
 
         def activated_derivative(activated_x):
-            return 1 * (activated_x != 0)
+            return np.float32(1) * (activated_x != 0)
 
         return activation, activated_derivative
 

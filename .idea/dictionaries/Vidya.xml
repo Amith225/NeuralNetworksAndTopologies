@@ -2,6 +2,7 @@
   <dictionary name="Vidya">
     <words>
       <w>relu</w>
+      <w>softmax</w>
       <w>tanh</w>
       <w>vectorize</w>
     </words>

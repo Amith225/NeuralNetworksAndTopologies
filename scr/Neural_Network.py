@@ -18,6 +18,7 @@ class CreateNeuralNetwork:
         self.costs = []
         self.t = 0
         self.cost = 0
+        self.e = 0
         self.training_set = None
         self.epochs = None
         self.batch_size = None
@@ -58,10 +59,10 @@ class CreateNeuralNetwork:
     def find_delta(self, layer, activated_derivative):
         delta_biases = self.cost_derivative * activated_derivative(self.activated_outputs[layer])
         self.delta_biases[layer - 1] = delta_biases
-        self.delta_weights[layer - 1] = np.einsum('ij,ji->ij', delta_biases, self.activated_outputs[layer - 1],
-                                                  dtype=np.float32)
+        np.einsum('ij,ji->ij', delta_biases, self.activated_outputs[layer - 1], dtype=np.float32,
+                  out=self.delta_weights[layer - 1])
 
-        self.cost_derivative = np.einsum('ij,ik->jk', self.weights[layer - 1], self.cost_derivative, dtype=np.float32)
+        self.cost_derivative = np.einsum('ij,ik', self.weights[layer - 1], self.cost_derivative, dtype=np.float32)
 
     def train(self, training_set=None, epochs=None, batch_size=None, loss_function=None, optimizer=None,
               vectorize=True):
@@ -92,6 +93,8 @@ class CreateNeuralNetwork:
             cost = self.cost / batch_size
             print('cost:', cost, 'time:', tm.time() - t)
             train_costs.append(cost)
+
+            self.e += e * batch_size / len(self.training_set)
         self.costs.append([self.t, train_costs])
 
         self.t += 1
@@ -178,6 +181,18 @@ class ActivationFunction:
 
         return activation, activated_derivative
 
+    @staticmethod
+    def softmax():
+        def activation(x):
+            numerator = np.e ** (x - x.max())
+
+            return numerator / np.einsum('ij->', numerator, dtype=np.float32)
+
+        def activated_derivative(activated_x):
+            return activated_x * (1 - activated_x)
+
+        return activation, activated_derivative
+
 
 class Optimizer:
     @staticmethod
@@ -199,6 +214,16 @@ class Optimizer:
 
             this.weights -= this.delta_weights
             this.biases -= this.delta_biases
+
+        return optimizer
+
+    @staticmethod
+    def decay(this, lr, alpha=None):
+        if alpha is None: alpha = lr
+
+        def optimizer():
+            this.weights -= (lr / (1 + this.e / alpha)) * this.delta_weights
+            this.biases -= (lr / (1 + this.e / alpha)) * this.delta_biases
 
         return optimizer
 

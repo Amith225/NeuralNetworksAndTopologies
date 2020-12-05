@@ -11,7 +11,7 @@ class CreateNeuralNetwork:
         self.weights, self.biases = initializer(self)
         self.activation, self.activated_derivative = activation
         self.output_activation, self.activated_output_derivative = output_activation
-        self.activated_outputs = np.zeros_like(self.biases)
+        self.activated_outputs = np.array([np.zeros((self.shape[i], 1)) for i in range(self.layers)], dtype=np.object)
         self.delta_weights, self.delta_biases = Initializer.normal(0)(self)
 
         self.costs = []

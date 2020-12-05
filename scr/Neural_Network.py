@@ -11,7 +11,7 @@ class CreateNeuralNetwork:
         self.weights, self.biases = initializer(self)
         self.activation, self.activated_derivative = activation
         self.output_activation, self.activated_output_derivative = output_activation
-        self.activated_outputs = np.array([np.zeros((self.shape[i], 1)) for i in range(self.layers)], dtype=np.object)
+        self.activated_outputs = np.array([np.zeros((self.shape[i], 1)) for i in range(self.layers)], dtype=np.ndarray)
         self.delta_weights, self.delta_biases = Initializer.normal(0)(self)
 
         self.costs = []
@@ -64,7 +64,7 @@ class CreateNeuralNetwork:
         if vectorize is True and training_set is not None:
             training_set = np.array([[np.array(t[0], dtype=np.float32).reshape((len(t[0]), 1)),
                                       np.array(t[1], dtype=np.float32).reshape((len(t[1]), 1))]
-                                     for t in training_set], dtype=np.object)
+                                     for t in training_set], dtype=np.ndarray)
         if training_set is not None: self.training_set = training_set
         if epochs is not None: self.epochs = epochs
         if batch_size is not None: self.batch_size = batch_size
@@ -111,7 +111,7 @@ class Initializer:
                                                               dtype=np.float32)
                       for i in range(1, self.layers)]
 
-            return np.array(weights, dtype=np.object), np.array(biases, dtype=np.object)
+            return np.array(weights, dtype=np.ndarray), np.array(biases, dtype=np.ndarray)
 
         return initializer
 
@@ -125,7 +125,7 @@ class Initializer:
                                                               dtype=np.float32) * (he / self.shape[i - 1]) ** 0.5
                       for i in range(1, self.layers)]
 
-            return np.array(weights, dtype=np.object), np.array(biases, dtype=np.object)
+            return np.array(weights, dtype=np.ndarray), np.array(biases, dtype=np.ndarray)
 
         return initializer
 

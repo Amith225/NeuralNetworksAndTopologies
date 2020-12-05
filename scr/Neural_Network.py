@@ -11,18 +11,18 @@ class CreateNeuralNetwork:
         self.weights, self.biases = initializer(self)
         self.activation, self.activated_derivative = activation
         self.output_activation, self.activated_output_derivative = output_activation
-        self.activated_outputs = [i for i in range(self.layers)]
+        self.activated_outputs = np.zeros_like(self.biases)
         self.delta_weights, self.delta_biases = Initializer.normal(0)(self)
 
         self.costs = []
         self.t = 0
+        self.cost = 0
         self.training_set = None
         self.epochs = None
         self.batch_size = None
         self.loss_function = None
         self.optimizer = None
         self.cost_derivative = None
-        self.cost = 0
 
     def process(self, input):
         input = np.array(input, dtype=np.float32).reshape((len(input), 1))
@@ -48,8 +48,7 @@ class CreateNeuralNetwork:
         self.cost += cost
 
         self.find_delta(self.layers - 1, self.activated_output_derivative)
-        for l in range(self.layers - 2, 0, -1):
-            self.find_delta(l, self.activated_derivative)
+        [self.find_delta(l, self.activated_derivative) for l in range(self.layers - 2, 0, -1)]
 
         self.optimizer()
 
@@ -92,7 +91,7 @@ class CreateNeuralNetwork:
         self.costs.append([self.t, train_costs])
 
         self.t += 1
-        self.activated_outputs = [i for i in range(self.layers)]
+        self.activated_outputs = np.zeros_like(self.biases)
 
     def quick_train(self):
         pass
@@ -109,7 +108,8 @@ class Initializer:
                                                                dtype=np.float32) * scale
                        for i in range(1, self.layers)]
             biases = [np.random.default_rng().standard_normal((self.shape[i], 1),
-                                                              dtype=np.float32) for i in range(1, self.layers)]
+                                                              dtype=np.float32)
+                      for i in range(1, self.layers)]
 
             return np.array(weights, dtype=np.object), np.array(biases, dtype=np.object)
 
@@ -135,7 +135,7 @@ class LossFunction:
     def mean_square():
         def loss_function(self, b):
             self.forward_pass(b[0])
-            cost_derivative = self.activated_outputs[-1] - b[1]
+            cost_derivative = self.activated_outputs[-1] - b[1]  #
             cost = np.einsum('ij,ij->', cost_derivative, cost_derivative)
 
             return cost_derivative, cost
@@ -160,7 +160,7 @@ class ActivationFunction:
             return x * (x > 0)
 
         def activated_derivative(activated_x):
-            return np.ones_like(activated_x) * (activated_x != 0)
+            return 1 * (activated_x != 0)
 
         return activation, activated_derivative
 
@@ -170,7 +170,7 @@ class ActivationFunction:
             return np.arctan(alpha * x)
 
         def activated_derivative(activated_x):
-            return 1 / (1 + np.tan(activated_x) ** 2)
+            return alpha * np.cos(activated_x) ** 2
 
         return activation, activated_derivative
 

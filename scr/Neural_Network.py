@@ -1,6 +1,7 @@
 import time as tm
 
 import numpy as np
+from matplotlib import collections as mc, pyplot as plt
 
 
 class CreateNeuralNetwork:
@@ -16,7 +17,6 @@ class CreateNeuralNetwork:
         self.delta_weights, self.delta_biases = Initializer.normal(0)(self)
 
         self.costs = []
-        self.t = 0
         self.cost = 0
         self.e = 0
         self.training_set = None
@@ -51,18 +51,15 @@ class CreateNeuralNetwork:
         self.cost_derivative, cost = self.loss_function(self, b)
         self.cost += cost
 
-        self.find_delta(self.layers - 1, self.activated_output_derivative)
-        [self.find_delta(l, self.activated_derivative) for l in range(self.layers - 2, 0, -1)]
-
         self.optimizer()
 
-    def find_delta(self, layer, activated_derivative):
+    def find_delta(self, layer, activated_derivative, theta):
         delta_biases = self.cost_derivative * activated_derivative(self.activated_outputs[layer])
         self.delta_biases[layer - 1] = delta_biases
         np.einsum('ij,ji->ij', delta_biases, self.activated_outputs[layer - 1], dtype=np.float32,
                   out=self.delta_weights[layer - 1])
 
-        self.cost_derivative = np.einsum('ij,ik', self.weights[layer - 1], self.cost_derivative, dtype=np.float32)
+        self.cost_derivative = np.einsum('ij,ik', theta, self.cost_derivative, dtype=np.float32)
 
     def train(self, training_set=None, epochs=None, batch_size=None, loss_function=None, optimizer=None,
               vectorize=True):
@@ -95,14 +92,10 @@ class CreateNeuralNetwork:
             train_costs.append(cost)
 
             self.e += e * batch_size / len(self.training_set)
-        self.costs.append([self.t, train_costs])
+        self.costs.append(train_costs)
 
-        self.t += 1
         self.activated_outputs = np.array([np.zeros((self.shape[i], 1), dtype=np.float32) for i in range(self.layers)],
                                           dtype=np.ndarray)
-
-    def quick_train(self):
-        pass
 
     def test(self):
         pass
@@ -146,6 +139,13 @@ class LossFunction:
             cost_derivative = self.activated_outputs[-1] - b[1]
 
             return cost_derivative, np.einsum('ij,ij->', cost_derivative, cost_derivative, dtype=np.float32)
+
+        return loss_function
+
+    @staticmethod
+    def cross_entropy():
+        def loss_function(self, b):
+            pass
 
         return loss_function
 
@@ -198,6 +198,9 @@ class Optimizer:
     @staticmethod
     def learning_rate(this, lr):
         def optimizer():
+            this.find_delta(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
+            [this.find_delta(l, this.activated_derivative, this.weights[l - 1]) for l in range(this.layers - 2, 0, -1)]
+
             this.weights -= lr * this.delta_weights
             this.biases -= lr * this.delta_biases
 
@@ -209,6 +212,9 @@ class Optimizer:
         this.prev_delta_weights, this.prev_delta_biases = Initializer.normal(0)(this)
 
         def optimizer():
+            this.find_delta(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
+            [this.find_delta(l, this.activated_derivative, this.weights[l - 1]) for l in range(this.layers - 2, 0, -1)]
+
             this.delta_weights = this.prev_delta_weights = alpha * this.prev_delta_weights + lr * this.delta_weights
             this.delta_biases = this.prev_delta_biases = alpha * this.prev_delta_biases + lr * this.delta_biases
 
@@ -222,8 +228,31 @@ class Optimizer:
         if alpha is None: alpha = lr
 
         def optimizer():
-            this.weights -= (lr / (1 + this.e / alpha)) * this.delta_weights
-            this.biases -= (lr / (1 + this.e / alpha)) * this.delta_biases
+            this.find_delta(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
+            [this.find_delta(l, this.activated_derivative, this.weights[l - 1]) for l in range(this.layers - 2, 0, -1)]
+
+            k = lr / (1 + this.e / alpha)
+            this.weights -= k * this.delta_weights
+            this.biases -= k * this.delta_biases
+
+        return optimizer
+
+    @staticmethod
+    def nesterov(this, lr, alpha=None):
+        if alpha is None: alpha = lr
+        this.prev_delta_weights, this.prev_delta_biases = Initializer.normal(0)(this)
+
+        def optimizer():
+            this.find_delta(this.layers - 1, this.activated_output_derivative,
+                            this.weights[this.layers - 2] - this.prev_delta_weights[this.layers - 2])
+            [this.find_delta(l, this.activated_derivative, this.weights[l - 1] - this.prev_delta_weights[l - 1]) for l
+             in range(this.layers - 2, 0, -1)]
+
+            this.delta_weights = this.prev_delta_weights = alpha * this.prev_delta_weights + lr * this.delta_weights
+            this.delta_biases = this.prev_delta_biases = alpha * this.prev_delta_biases + lr * this.delta_biases
+
+            this.weights -= this.delta_weights
+            this.biases -= this.delta_biases
 
         return optimizer
 
@@ -237,5 +266,18 @@ class SaveNeuralNetwork:
 
 
 class PlotGraph:
-    def plot_cost_graph(self, nn):
-        pass
+    @staticmethod
+    def plot_cost_graph(nn):
+        costs = []
+        i = 0
+        for cs in nn.costs:
+            costs.append([(c + i, j) for c, j in enumerate(cs)])
+            i += len(cs) - 1
+
+        lc = mc.LineCollection(costs, colors=['red', 'green'], linewidths=1)
+        sp = plt.subplot()
+        sp.add_collection(lc)
+
+        sp.autoscale()
+        sp.margins(0.1)
+        plt.show()

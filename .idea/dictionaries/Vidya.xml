@@ -1,6 +1,8 @@
 <component name="ProjectDictionaryState">
   <dictionary name="Vidya">
     <words>
+      <w>adadelta</w>
+      <w>adagrad</w>
       <w>nesterov</w>
       <w>relu</w>
       <w>softmax</w>

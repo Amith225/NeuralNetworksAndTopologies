@@ -284,8 +284,7 @@ class Optimizer:
         return optimizer, opt
 
     @staticmethod
-    def adagrad(this, lr):
-        e = np.float32(np.e)
+    def adagrad(this, lr=0.01, epsilon=np.e ** -8):
         this.gti_w, this.gti_b = Initializer.normal(0)(this)
 
         def opt(l):
@@ -293,8 +292,8 @@ class Optimizer:
             this.gti_w[l] += np.square(d_w)
             this.gti_b[l] += np.square(d_b)
 
-            this.delta_weights[l] = lr * d_w / np.sqrt(e ** -8 + this.gti_w[l])
-            this.delta_biases[l] = lr * d_b / np.sqrt(e ** -8 + this.gti_b[l])
+            this.delta_weights[l] = lr * d_w / np.sqrt(epsilon + this.gti_w[l])
+            this.delta_biases[l] = lr * d_b / np.sqrt(epsilon + this.gti_b[l])
 
         def optimizer():
             this.find_delta(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
@@ -304,22 +303,51 @@ class Optimizer:
 
     # Know some what how this work, but not sure
     @staticmethod
-    def adadelta(this, lr=0.01, alpha=0.95, epsilon=np.e ** -6):
-        this.vt_w, this.vt_b = Initializer.uniform(0, 1)(this)
-        this.wt_w, this.wt_b = Initializer.uniform(0, 1)(this)
+    def adadelta(this, lr=1, alpha=0.95, epsilon=np.e ** -16):
+        alpha_bar = 1 - alpha
+        this.vt_w, this.vt_b = Initializer.normal(0)(this)
+        this.wt_w, this.wt_b = Initializer.normal(0)(this)
 
         def opt(l):
-            this.vt_w[l] = alpha * this.vt_w[l] + (1 - alpha) * np.square(this.delta_weights[l])
-            this.vt_b[l] = alpha * this.vt_b[l] + (1 - alpha) * np.square(this.delta_biases[l])
-            this.delta_weights[l] = np.sqrt(epsilon + this.wt_w[l]) * this.delta_weights[l] / np.sqrt(
-                epsilon + this.vt_w[l])
-            this.delta_biases[l] = np.sqrt(epsilon + this.wt_b[l]) * this.delta_biases[l] / np.sqrt(
-                epsilon + this.vt_b[l])
-            this.wt_w[l] = alpha * this.wt_w[l] + (1 - alpha) * np.square(this.delta_biases[l])
-            this.wt_b[l] = alpha * this.wt_b[l] + (1 - alpha) * np.square(this.delta_biases[l])
+            this.vt_w[l] = alpha * this.vt_w[l] + alpha_bar * np.square(this.delta_weights[l])
+            this.vt_b[l] = alpha * this.vt_b[l] + alpha_bar * np.square(this.delta_biases[l])
+            this.delta_weights[l] = np.sqrt((epsilon + this.wt_w[l]) / (epsilon + this.vt_w[l])) * this.delta_weights[l]
+            this.delta_biases[l] = np.sqrt((epsilon + this.wt_b[l]) / (epsilon + this.vt_b[l])) * this.delta_biases[l]
+            this.wt_w[l] = alpha * this.wt_w[l] + alpha_bar * np.square(this.delta_biases[l])
+            this.wt_b[l] = alpha * this.wt_b[l] + alpha_bar * np.square(this.delta_biases[l])
 
             this.delta_weights[l] = lr * this.delta_weights[l]
             this.delta_biases[l] = lr * this.delta_biases[l]
+
+        def optimizer():
+            this.find_delta(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
+            [this.find_delta(l, this.activated_derivative, this.weights[l - 1]) for l in range(this.layers - 2, 0, -1)]
+
+        return optimizer, opt
+
+    # no understanding at all
+    @staticmethod
+    def adam(this, lr=0.005, alpha=0.9, beta=0.999, epsilon=np.e ** -16):
+        alpha_bar = 1 - alpha
+        beta_bar = 1 - beta
+        this.mt_w, this.mt_b = Initializer.normal(0)(this)
+        this.vt_w, this.vt_b = Initializer.normal(0)(this)
+        this.t = 0
+
+        def opt(l):
+            this.t += 1
+            this.mt_w[l] = alpha * this.mt_w[l] + alpha_bar * this.delta_weights[l]
+            this.mt_b[l] = alpha * this.mt_b[l] + alpha_bar * this.delta_biases[l]
+            this.vt_w[l] = beta * this.vt_w[l] + beta_bar * (this.delta_weights[l] ** 2)
+            this.vt_b[l] = beta * this.vt_b[l] + beta_bar * (this.delta_biases[l] ** 2)
+
+            m_dw_corr = this.mt_w[l] / (1 - alpha ** this.t)
+            m_db_corr = this.mt_b[l] / (1 - alpha ** this.t)
+            v_dw_corr = this.vt_w[l] / (1 - beta ** this.t)
+            v_db_corr = this.vt_b[l] / (1 - beta ** this.t)
+
+            this.delta_weights[l] = lr * (m_dw_corr / (np.sqrt(v_dw_corr) + epsilon))
+            this.delta_biases[l] = lr * (m_db_corr / (np.sqrt(v_db_corr) + epsilon))
 
         def optimizer():
             this.find_delta(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])

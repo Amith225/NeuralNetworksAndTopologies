@@ -35,28 +35,29 @@ class CreateNeuralNetwork:
                 np.einsum('ij,jk->ik', self.weights[l], self.activated_outputs[l],
                           dtype=np.float32) + self.biases[l])
 
-        return self.activation(np.einsum('ij,jk->ik', self.weights[l + 1], self.activated_outputs[l + 1],
-                                         dtype=np.float32) + self.biases[l])
+        return self.output_activation(np.einsum('ij,jk->ik', self.weights[l + 1], self.activated_outputs[l + 1],
+                                                dtype=np.float32) + self.biases[l])
 
     def forward_pass(self, input):
         self.activated_outputs[0] = input
 
         for l in range(self.layers - 2):
             self.activated_outputs[l + 1] = self.activation(
-                np.einsum('ij,jk->ik', self.weights[l], self.activated_outputs[l],
+                np.einsum('ij,ljk->lik', self.weights[l], self.activated_outputs[l],
                           dtype=np.float32) + self.biases[l])
 
         self.activated_outputs[l + 2] = self.output_activation(
-            np.einsum('ij,jk->ik', self.weights[l + 1], self.activated_outputs[l + 1],
+            np.einsum('ij,ljk->lik', self.weights[l + 1], self.activated_outputs[l + 1],
                       dtype=np.float32) + self.biases[l + 1])
 
     def delta_update(self, layer, activated_derivative, theta):
         layer = layer - 1
-        self.delta_biases[layer] = self.cost_derivative * activated_derivative(self.activated_outputs[layer + 1])
-        np.einsum('ij,ji->ij', self.delta_biases[layer], self.activated_outputs[layer], dtype=np.float32,
-                  out=self.delta_weights[layer])
+        delta_biases = self.cost_derivative * activated_derivative(self.activated_outputs[layer + 1])
+        self.delta_biases[layer] = delta_biases.mean(axis=0)
+        self.delta_weights[layer] = np.einsum('lij,lji->lij', delta_biases, self.activated_outputs[layer],
+                                              dtype=np.float32).mean(axis=0)
 
-        self.cost_derivative = np.einsum('ij,ik', theta, self.cost_derivative, dtype=np.float32)
+        self.cost_derivative = np.einsum('ij,lik->ljk', theta, self.cost_derivative, dtype=np.float32)
 
         self.opt(layer)
         self.weights[layer] -= self.delta_weights[layer]
@@ -72,11 +73,11 @@ class CreateNeuralNetwork:
         train_costs = []
         for e in range(self.epochs):
             print('epoch:', e, end='  ')
-            batch_set = self.train_database.mini_batch(self.batch_size)
+            self.train_database.set_batch_size(self.batch_size)
             t = tm.time()
             self.cost = 0
-            for b in zip(*batch_set):
-                self.optimizer(b)
+            for b in range(self.train_database.shape[0] // self.train_database.batch_size):
+                self.optimizer(self.train_database.next_mini_batch())
             cost = self.cost / self.train_database.batch_size
             print('cost:', cost, 'time:', tm.time() - t)
             train_costs.append(cost)
@@ -140,7 +141,7 @@ class LossFunction:
             self.forward_pass(b[0])
             cost_derivative = self.activated_outputs[-1] - b[1]
 
-            return cost_derivative, np.einsum('ij,ij->', cost_derivative, cost_derivative, dtype=np.float32)
+            return cost_derivative, np.einsum('lij,lij->', cost_derivative, cost_derivative, dtype=np.float32)
 
         return loss_function
 
@@ -377,13 +378,17 @@ class CreateDatabase:
         self.mini_batch_i = 0
 
     def set_batch_size(self, batch_size=-1):
+        self.batch_size = -1
+        self.mini_batch_i = 0
+
         if batch_size < 0:
-            self.batch_size = self.shape[0] + batch_size
+            self.batch_size = self.shape[0]
         else:
             self.batch_size = batch_size
 
         batch_i = np.random.choice(self.shape[0], self.shape[0], replace=False)
         self.input_data, self.labels = self.input_data[batch_i], self.labels[batch_i]
+
 
     def next_mini_batch(self):
         start = self.mini_batch_i * self.batch_size
@@ -395,16 +400,6 @@ class CreateDatabase:
         self.mini_batch_i += 1
 
         return self.input_data[start: stop], self.labels[start: stop]
-
-    def mini_batch(self, batch_size):
-        if batch_size < 0:
-            self.batch_size = self.shape[0] + batch_size
-        else:
-            self.batch_size = batch_size
-
-        batch_i = np.random.choice(self.shape[0], self.batch_size, replace=False)
-
-        return self.input_data[batch_i], self.labels[batch_i]
 
 
 class LoadNeuralNetwork:

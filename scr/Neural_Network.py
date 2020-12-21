@@ -193,13 +193,15 @@ class ActivationFunction:
         def activation(x):
             numerator = e ** (x - x.max())
 
-            return numerator / np.einsum('ij->', numerator, dtype=np.float32)
+            return numerator / np.einsum('lij->l', numerator.transpose(), dtype=np.float32)
 
         def activated_derivative(activated_x):
-            j = -np.einsum('ij,kj', activated_x, activated_x)
-            j[np.diag_indices_from(j)] = np.einsum('ij,ij->ji', activated_x, (1 - activated_x))
+            j = -np.einsum('lij,lkj->lik', activated_x, activated_x)
 
-            return j.sum(axis=1, keepdims=1)
+            d_i = np.diag_indices_from(j[0])
+            j[:, d_i[0], d_i[1]] = np.einsum('lij,lij->li', activated_x, (1 - activated_x))
+
+            return j.sum(axis=2, keepdims=1)
 
         return activation, activated_derivative
 
@@ -369,8 +371,8 @@ class Optimizer:
 
 class CreateDatabase:
     def __init__(self, input_data, labels):
-        self.input_data = np.array(input_data, dtype=np.float32).reshape((len(input_data), len(input_data[0]), 1))
-        self.labels = np.array(labels, dtype=np.float32).reshape((len(labels), len(labels[0]), 1))
+        self.input_data = np.array(list(input_data), dtype=np.float32).reshape((len(input_data), len(input_data[0]), 1))
+        self.labels = np.array(list(labels), dtype=np.float32).reshape((len(labels), len(labels[0]), 1))
 
         self.shape = self.input_data.shape
 

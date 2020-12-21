@@ -35,7 +35,7 @@ class CreateNeuralNetwork:
                 np.einsum('ij,jk->ik', self.weights[l], self.activated_outputs[l],
                           dtype=np.float32) + self.biases[l])
 
-        return self.activation(np.einsum('ij,jk->ik', self.weights[l], self.activated_outputs[l],
+        return self.activation(np.einsum('ij,jk->ik', self.weights[l + 1], self.activated_outputs[l + 1],
                                          dtype=np.float32) + self.biases[l])
 
     def forward_pass(self, input):
@@ -117,21 +117,21 @@ class Initializer:
             biases = [np.random.uniform(start, stop, (self.shape[i], 1)).astype(dtype=np.float32)
                       for i in range(1, self.layers)]
 
-            return np.array(weights, dtype=np.ndarray), np.array(biases, dtype=np.ndarray)
+            return weights, biases
 
         return initializer
 
     @staticmethod
     def normal(scale=1):
         def initializer(self):
-            weights = [np.random.default_rng().standard_normal((self.shape[i], self.shape[i - 1]),
-                                                               dtype=np.float32)
+            weights = [(np.random.default_rng().standard_normal((self.shape[i], self.shape[i - 1]),
+                                                                dtype=np.float32)) * scale
                        for i in range(1, self.layers)]
-            biases = [np.random.default_rng().standard_normal((self.shape[i], 1),
-                                                              dtype=np.float32)
+            biases = [(np.random.default_rng().standard_normal((self.shape[i], 1),
+                                                               dtype=np.float32)) * scale
                       for i in range(1, self.layers)]
 
-            return np.array(weights, dtype=np.ndarray) * scale, np.array(biases, dtype=np.ndarray) * scale
+            return weights, biases
 
         return initializer
 
@@ -145,7 +145,7 @@ class Initializer:
                                                               dtype=np.float32) * (he / self.shape[i - 1]) ** 0.5
                       for i in range(1, self.layers)]
 
-            return np.array(weights, dtype=np.ndarray), np.array(biases, dtype=np.ndarray)
+            return weights, biases
 
         return initializer
 

@@ -19,7 +19,7 @@ class CreateNeuralNetwork:
         self.costs = []
         self.cost = 0
         self.e = 0
-        self.training_set = None
+        self.train_database = None
         self.epochs = None
         self.batch_size = None
         self.loss_function = None
@@ -50,16 +50,10 @@ class CreateNeuralNetwork:
             np.einsum('ij,jk->ik', self.weights[l + 1], self.activated_outputs[l + 1],
                       dtype=np.float32) + self.biases[l + 1])
 
-    def back_propagation(self, b):
-        self.cost_derivative, cost = self.loss_function(self, b)
-        self.cost += cost
-
-        self.optimizer()
-
-    def find_delta(self, layer, activated_derivative, theta):
+    def delta_update(self, layer, activated_derivative, theta):
         layer = layer - 1
-        delta_biases = self.cost_derivative * activated_derivative(self.activated_outputs[layer + 1])
-        np.einsum('ij,ji->ij', delta_biases, self.activated_outputs[layer], dtype=np.float32,
+        self.delta_biases[layer] = self.cost_derivative * activated_derivative(self.activated_outputs[layer + 1])
+        np.einsum('ij,ji->ij', self.delta_biases[layer], self.activated_outputs[layer], dtype=np.float32,
                   out=self.delta_weights[layer])
 
         self.cost_derivative = np.einsum('ij,ik', theta, self.cost_derivative, dtype=np.float32)
@@ -68,37 +62,26 @@ class CreateNeuralNetwork:
         self.weights[layer] -= self.delta_weights[layer]
         self.biases[layer] -= self.delta_biases[layer]
 
-    def train(self, training_set=None, epochs=None, batch_size=None, loss_function=None, optimizer=None,
-              vectorize=True):
-        if vectorize is True and training_set is not None:
-            training_set = np.array([[np.array(t[0], dtype=np.float32).reshape((len(t[0]), 1)),
-                                      np.array(t[1], dtype=np.float32).reshape((len(t[1]), 1))]
-                                     for t in training_set], dtype=np.ndarray)
-        if training_set is not None: self.training_set = training_set
+    def train(self, train_database=None, epochs=None, batch_size=None, loss_function=None, optimizer=None):
+        if train_database is not None: self.train_database = train_database
         if epochs is not None: self.epochs = epochs
         if batch_size is not None: self.batch_size = batch_size
         if loss_function is not None: self.loss_function = loss_function
         if optimizer is not None: self.optimizer, self.opt = optimizer
 
-        if self.batch_size < 0:
-            batch_size = len(self.training_set) + self.batch_size
-        else:
-            batch_size = self.batch_size
-
         train_costs = []
         for e in range(self.epochs):
             print('epoch:', e, end='  ')
-            batch_set = self.training_set[np.random.choice(self.training_set.shape[0], batch_size, replace=False)]
-
+            batch_set = self.train_database.mini_batch(self.batch_size)
             t = tm.time()
             self.cost = 0
-            for b in batch_set:
-                self.back_propagation(b)
-            cost = self.cost / batch_size
+            for b in zip(*batch_set):
+                self.optimizer(b)
+            cost = self.cost / self.train_database.batch_size
             print('cost:', cost, 'time:', tm.time() - t)
             train_costs.append(cost)
 
-            self.e += e * batch_size / len(self.training_set)
+            self.e += e * self.train_database.batch_size / self.train_database.shape[0]
         self.costs.append(train_costs)
 
         self.activated_outputs = np.array([np.zeros((self.shape[i], 1), dtype=np.float32) for i in range(self.layers)],
@@ -226,9 +209,13 @@ class Optimizer:
         def opt(l):
             this.delta_weights[l], this.delta_biases[l] = lr * this.delta_weights[l], lr * this.delta_biases[l]
 
-        def optimizer():
-            this.find_delta(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
-            [this.find_delta(l, this.activated_derivative, this.weights[l - 1]) for l in range(this.layers - 2, 0, -1)]
+        def optimizer(b):
+            this.cost_derivative, cost = this.loss_function(this, b)
+            this.cost += cost
+
+            this.delta_update(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
+            [this.delta_update(l, this.activated_derivative, this.weights[l - 1]) for l in
+             range(this.layers - 2, 0, -1)]
 
         return optimizer, opt
 
@@ -243,9 +230,13 @@ class Optimizer:
             this.delta_biases[l] = this.prev_delta_biases[l] = alpha * this.prev_delta_biases[l] + lr * \
                                                                this.delta_biases[l]
 
-        def optimizer():
-            this.find_delta(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
-            [this.find_delta(l, this.activated_derivative, this.weights[l - 1]) for l in range(this.layers - 2, 0, -1)]
+        def optimizer(b):
+            this.cost_derivative, cost = this.loss_function(this, b)
+            this.cost += cost
+
+            this.delta_update(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
+            [this.delta_update(l, this.activated_derivative, this.weights[l - 1]) for l in
+             range(this.layers - 2, 0, -1)]
 
         return optimizer, opt
 
@@ -258,9 +249,13 @@ class Optimizer:
             this.delta_weights[l] = k * this.delta_weights[l]
             this.delta_biases[l] = k * this.delta_biases[l]
 
-        def optimizer():
-            this.find_delta(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
-            [this.find_delta(l, this.activated_derivative, this.weights[l - 1]) for l in range(this.layers - 2, 0, -1)]
+        def optimizer(b):
+            this.cost_derivative, cost = this.loss_function(this, b)
+            this.cost += cost
+
+            this.delta_update(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
+            [this.delta_update(l, this.activated_derivative, this.weights[l - 1]) for l in
+             range(this.layers - 2, 0, -1)]
 
         return optimizer, opt
 
@@ -275,10 +270,13 @@ class Optimizer:
             this.delta_biases[l] = this.prev_delta_biases[l] = alpha * this.prev_delta_biases[l] + lr * \
                                                                this.delta_biases[l]
 
-        def optimizer():
-            this.find_delta(this.layers - 1, this.activated_output_derivative,
-                            this.weights[this.layers - 2] - this.prev_delta_weights[this.layers - 2])
-            [this.find_delta(l, this.activated_derivative, this.weights[l - 1] - this.prev_delta_weights[l - 1])
+        def optimizer(b):
+            this.cost_derivative, cost = this.loss_function(this, b)
+            this.cost += cost
+
+            this.delta_update(this.layers - 1, this.activated_output_derivative,
+                              this.weights[this.layers - 2] - this.prev_delta_weights[this.layers - 2])
+            [this.delta_update(l, this.activated_derivative, this.weights[l - 1] - this.prev_delta_weights[l - 1])
              for l in range(this.layers - 2, 0, -1)]
 
         return optimizer, opt
@@ -295,9 +293,13 @@ class Optimizer:
             this.delta_weights[l] = lr * d_w / np.sqrt(epsilon + this.gti_w[l])
             this.delta_biases[l] = lr * d_b / np.sqrt(epsilon + this.gti_b[l])
 
-        def optimizer():
-            this.find_delta(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
-            [this.find_delta(l, this.activated_derivative, this.weights[l - 1]) for l in range(this.layers - 2, 0, -1)]
+        def optimizer(b):
+            this.cost_derivative, cost = this.loss_function(this, b)
+            this.cost += cost
+
+            this.delta_update(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
+            [this.delta_update(l, this.activated_derivative, this.weights[l - 1]) for l in
+             range(this.layers - 2, 0, -1)]
 
         return optimizer, opt
 
@@ -319,9 +321,13 @@ class Optimizer:
             this.delta_weights[l] = lr * this.delta_weights[l]
             this.delta_biases[l] = lr * this.delta_biases[l]
 
-        def optimizer():
-            this.find_delta(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
-            [this.find_delta(l, this.activated_derivative, this.weights[l - 1]) for l in range(this.layers - 2, 0, -1)]
+        def optimizer(b):
+            this.cost_derivative, cost = this.loss_function(this, b)
+            this.cost += cost
+
+            this.delta_update(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
+            [this.delta_update(l, this.activated_derivative, this.weights[l - 1]) for l in
+             range(this.layers - 2, 0, -1)]
 
         return optimizer, opt
 
@@ -349,11 +355,56 @@ class Optimizer:
             this.delta_weights[l] = lr * (m_dw_corr / (np.sqrt(v_dw_corr) + epsilon))
             this.delta_biases[l] = lr * (m_db_corr / (np.sqrt(v_db_corr) + epsilon))
 
-        def optimizer():
-            this.find_delta(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
-            [this.find_delta(l, this.activated_derivative, this.weights[l - 1]) for l in range(this.layers - 2, 0, -1)]
+        def optimizer(b):
+            this.cost_derivative, cost = this.loss_function(this, b)
+            this.cost += cost
+
+            this.delta_update(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
+            [this.delta_update(l, this.activated_derivative, this.weights[l - 1]) for l in
+             range(this.layers - 2, 0, -1)]
 
         return optimizer, opt
+
+
+class CreateDatabase:
+    def __init__(self, input_data, labels):
+        self.input_data = np.array(input_data, dtype=np.float32).reshape((len(input_data), len(input_data[0]), 1))
+        self.labels = np.array(labels, dtype=np.float32).reshape((len(labels), len(labels[0]), 1))
+
+        self.shape = self.input_data.shape
+
+        self.batch_size = -1
+        self.mini_batch_i = 0
+
+    def set_batch_size(self, batch_size=-1):
+        if batch_size < 0:
+            self.batch_size = self.shape[0] + batch_size
+        else:
+            self.batch_size = batch_size
+
+        batch_i = np.random.choice(self.shape[0], self.shape[0], replace=False)
+        self.input_data, self.labels = self.input_data[batch_i], self.labels[batch_i]
+
+    def next_mini_batch(self):
+        start = self.mini_batch_i * self.batch_size
+        if start + self.batch_size >= self.shape[0]:
+            stop = self.shape[0]
+        else:
+            stop = start + self.batch_size
+
+        self.mini_batch_i += 1
+
+        return self.input_data[start: stop], self.labels[start: stop]
+
+    def mini_batch(self, batch_size):
+        if batch_size < 0:
+            self.batch_size = self.shape[0] + batch_size
+        else:
+            self.batch_size = batch_size
+
+        batch_i = np.random.choice(self.shape[0], self.batch_size, replace=False)
+
+        return self.input_data[batch_i], self.labels[batch_i]
 
 
 class LoadNeuralNetwork:

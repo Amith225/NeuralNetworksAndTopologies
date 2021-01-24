@@ -5,7 +5,7 @@ from matplotlib import collections as mc, pyplot as plt
 
 class Initializer:
     @staticmethod
-    def uniform(start, stop):
+    def uniform(start=-1, stop=1):
         def initializer(self):
             weights = [np.random.uniform(start, stop, (self.shape[i], self.shape[i - 1])).astype(dtype=np.float32)
                        for i in range(1, self.layers)]
@@ -110,7 +110,7 @@ class ActivationFunction:
 
 class Optimizer:
     @staticmethod
-    def traditional_gradient_decent(this, lr):
+    def traditional_gradient_decent(this, lr=0.01):
         def opt(l):
             this.delta_weights[l], this.delta_biases[l] = lr * this.delta_weights[l], lr * this.delta_biases[l]
 
@@ -147,7 +147,7 @@ class Optimizer:
         return optimizer, opt
 
     @staticmethod
-    def decay(this, lr, alpha=None):
+    def decay(this, lr=1, alpha=None):
         if alpha is None:
             alpha = lr
 
@@ -276,13 +276,12 @@ class Optimizer:
 
 class CreateDatabase:
     def __init__(self, input_data, labels):
-        self.input_data = np.stack(list(input_data), dtype=np.float32).reshape((len(input_data), len(input_data[0]), 1))
-        self.labels = np.stack(list(labels), dtype=np.float32).reshape((len(labels), len(labels[0]), 1))
+        self.input_data = np.array(list(input_data), dtype=np.float32).reshape((len(input_data), len(input_data[0]), 1))
+        self.labels = np.array(list(labels), dtype=np.float32).reshape((len(labels), len(labels[0]), 1))
 
         self.shape = self.input_data.shape
 
         self.batch_size = -1
-        self.mini_batch_i = 0
 
     def mini_batch(self, batch_size):
         if batch_size < 0:

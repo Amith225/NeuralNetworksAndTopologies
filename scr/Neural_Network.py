@@ -10,7 +10,7 @@ class CreateNeuralNetwork:
         if shape is None:
             shape = (1, 1)
         if initializer is None:
-            initializer = Tp.Initializer.normal()
+            initializer = Tp.Initializer.xavier(2)
         if activation is None:
             activation = Tp.ActivationFunction.relu()
         if output_activation is None:
@@ -29,12 +29,12 @@ class CreateNeuralNetwork:
         self.e = 0
 
         self.train_database = None
-        self.epochs = None
-        self.batch_size = None
-        self.loss_function = None
-        self.optimizer = None
-        self.opt = None
+        self.epochs = 1
+        self.batch_size = -1
+        self.loss_function = Tp.LossFunction.mean_square()
+        self.optimizer, self.opt = Tp.Optimizer.adadelta(self)
         self.cost_derivative = None
+        self.l = self.layers - 3
 
     def process(self, inp):
         self.activated_outputs[0] = np.array(inp, dtype=np.float32).reshape((len(inp), 1))

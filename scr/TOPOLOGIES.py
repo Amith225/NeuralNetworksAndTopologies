@@ -1,74 +1,105 @@
 import numpy as np
 
-from matplotlib import collections as mc, pyplot as plt
+np.NONE = [np.array([None])]
 
 
 class Initializer:
+    # for custom initializer
+    def __init__(self, initializer, *args, **kwargs):
+        self.initialize = initializer
+        self.args = args
+        self.kwargs = kwargs
+
+    def initialize(self, shape, layers):
+        pass
+
     @staticmethod
     def uniform(start=-1, stop=1):
-        def initializer(self):
-            weights = [np.random.uniform(start, stop, (self.shape[i], self.shape[i - 1])).astype(dtype=np.float32)
-                       for i in range(1, self.layers)]
-            biases = [np.random.uniform(start, stop, (self.shape[i], 1)).astype(dtype=np.float32)
-                      for i in range(1, self.layers)]
+        def initializer(shape, layers):
+            biases = [np.random.uniform(start, stop, (shape[i], 1)).astype(dtype=np.float32)
+                      for i in range(1, layers)]
+            weights = [np.random.uniform(start, stop, (shape[i], shape[i - 1])).astype(dtype=np.float32)
+                       for i in range(1, layers)]
 
-            return weights, biases
+            return np.NONE + biases, np.NONE + weights
 
-        return initializer
+        return Initializer(initializer)
 
     @staticmethod
     def normal(scale=1):
-        def initializer(self):
-            weights = [(np.random.default_rng().standard_normal((self.shape[i], self.shape[i - 1]),
-                                                                dtype=np.float32)) * scale
-                       for i in range(1, self.layers)]
-            biases = [(np.random.default_rng().standard_normal((self.shape[i], 1),
-                                                               dtype=np.float32)) * scale
-                      for i in range(1, self.layers)]
+        def initializer(shape, layers):
+            biases = [(np.random.default_rng().standard_normal((shape[i], 1), dtype=np.float32)) * scale
+                      for i in range(1, layers)]
+            weights = [(np.random.default_rng().standard_normal((shape[i], shape[i - 1]), dtype=np.float32)) * scale
+                       for i in range(1, layers)]
 
-            return weights, biases
+            return np.NONE + biases, np.NONE + weights
 
-        return initializer
+        return Initializer(initializer)
 
     @staticmethod
     def xavier(he=1):
-        def initializer(self):
-            weights = [np.random.default_rng().standard_normal((self.shape[i], self.shape[i - 1]),
-                                                               dtype=np.float32) * (he / self.shape[i - 1]) ** 0.5
-                       for i in range(1, self.layers)]
-            biases = [np.random.default_rng().standard_normal((self.shape[i], 1),
-                                                              dtype=np.float32) * (he / self.shape[i - 1]) ** 0.5
-                      for i in range(1, self.layers)]
+        def initializer(shape, layers):
+            biases = [np.random.default_rng().standard_normal((shape[i], 1),
+                                                              dtype=np.float32) * (he / shape[i - 1]) ** 0.5
+                      for i in range(1, layers)]
+            weights = [np.random.default_rng().standard_normal((shape[i], shape[i - 1]),
+                                                               dtype=np.float32) * (he / shape[i - 1]) ** 0.5
+                       for i in range(1, layers)]
 
-            return weights, biases
+            return np.NONE + biases, np.NONE + weights
 
-        return initializer
+        return Initializer(initializer)
 
-
-class LossFunction:
     @staticmethod
-    def mean_square():
-        def loss_function(this, b):
-            this.forward_pass(b[0])
-            cost_derivative = this.activated_outputs[-1] - b[1]
+    def normalized_xavier(he=6):
+        def initializer(shape, layers):
+            biases = [np.random.default_rng().standard_normal((shape[i], 1), dtype=np.float32) *
+                      (he / (shape[i - 1] + shape[i])) ** 0.5
+                      for i in range(1, layers)]
+            weights = [np.random.default_rng().standard_normal((shape[i], shape[i - 1]), dtype=np.float32) *
+                       (he / (shape[i - 1] + shape[i])) ** 0.5
+                       for i in range(1, layers)]
 
-            return cost_derivative, np.einsum('ij,ij->', cost_derivative, cost_derivative, dtype=np.float32)
+            return np.NONE + biases, np.NONE + weights
 
-        return loss_function
+        return Initializer(initializer)
 
 
 class ActivationFunction:
+    # for custom activation_function
+    def __init__(self, activation, activated_derivative, *args, **kwargs):
+        self.activations = activation, activated_derivative
+        self.args = args
+        self.kwargs = kwargs
+
+    activations = None
+
     @staticmethod
-    def sigmoid(alpha=1, beta=0):
-        e = np.float32(np.e)
+    def sigmoid(smooth=1, offset=0):
+        E = np.float32(np.e)
+        SMOOTH = np.float32(smooth)
+        OFFSET = np.float32(offset)
 
         def activation(x):
-            return 1 / (1 + e ** (-alpha * (x + beta)))
+            return 1 / (1 + E ** (-SMOOTH * (x + OFFSET)))
 
         def activated_derivative(activated_x):
-            return alpha * (activated_x * (1 - activated_x))
+            return SMOOTH * (activated_x * (1 - activated_x))
 
-        return activation, activated_derivative
+        return ActivationFunction(activation, activated_derivative)
+
+    @staticmethod
+    def tanh(alpha=1):
+        ALPHA = np.float32(alpha)
+
+        def activation(x):
+            return np.arctan(ALPHA * x)
+
+        def activated_derivative(activated_x):
+            return ALPHA * np.square(np.cos(activated_x))
+
+        return ActivationFunction(activation, activated_derivative)
 
     @staticmethod
     def relu():
@@ -80,249 +111,255 @@ class ActivationFunction:
         def activated_derivative(activated_x):
             return ONE * (activated_x != 0)
 
-        return activation, activated_derivative
+        return ActivationFunction(activation, activated_derivative)
 
     @staticmethod
-    def tanh(alpha=1):
+    def prelu(leak=0.1):
+        ONE = np.float32(1)
+        LEAK = np.float32(leak)
+
         def activation(x):
-            return np.arctan(alpha * x)
+            return np.where(x > 0, x, LEAK * x)
 
         def activated_derivative(activated_x):
-            return alpha * np.square(np.cos(activated_x))
+            return np.where(activated_x == 0, LEAK, ONE)
 
-        return activation, activated_derivative
+        return ActivationFunction(activation, activated_derivative)
+
+    @staticmethod
+    def elu(alpha=1):
+        ONE = np.float32(1)
+        E = np.e
+        ALPHA = np.float32(alpha)
+
+        def activation(x):
+            return np.where(x > 0, x, ALPHA * (E ** x - 1))
+
+        def activated_derivative(activated_x):
+            return np.where(activated_x != 0, ONE, activated_x + ALPHA)
+
+        return ActivationFunction(activation, activated_derivative)
 
     @staticmethod
     def softmax():
-        e = np.float32(np.e)
+        E = np.float32(np.e)
 
         def activation(x):
-            numerator = e ** (x - x.max())
+            numerator = E ** (x - x.max(axis=1)[:, None])
 
-            return numerator / np.einsum('ij->', numerator, dtype=np.float32)
+            return numerator / np.einsum('lij->lj', numerator)[:, None]
 
         def activated_derivative(activated_x):
-            j = -np.einsum('ij,kj', activated_x, activated_x)
-            j[np.diag_indices_from(j)] = np.einsum('ij,ij->ji', activated_x, (1 - activated_x))
+            jacobian = -np.einsum('lij,lkj->lik', activated_x, activated_x)
+            diag_i = np.diag_indices(jacobian.shape[1])
+            jacobian[:, diag_i[1], diag_i[0]] = np.einsum('lij,lij->li', activated_x, 1 - activated_x)
 
-            return j.sum(axis=1, keepdims=1)
+            return jacobian
 
-        return activation, activated_derivative
+        return ActivationFunction(activation, activated_derivative)
+
+
+class LossFunction:
+    # for custom loss_function
+    def __init__(self, loss_function, *args, **kwargs):
+        self.loss_function = loss_function
+        self.args = args
+        self.kwargs = kwargs
+
+    def loss_function(self, error):
+        pass
+
+    @staticmethod
+    def mean_square():
+        def loss_function(error):
+            return np.einsum('lij,lij->', error, error), error
+
+        return LossFunction(loss_function)
 
 
 class Optimizer:
-    @staticmethod
-    def traditional_gradient_decent(this, lr=0.01):
-        def opt(l):
-            this.delta_weights[l], this.delta_biases[l] = lr * this.delta_weights[l], lr * this.delta_biases[l]
+    # for custom optimizer
+    def __init__(self, optimizer, *args, **kwargs):
+        self.optimize = optimizer
+        self.args = args
+        self.kwargs = kwargs
 
-        def optimizer(b):
-            this.cost_derivative, cost = this.loss_function(this, b)
-            this.cost += cost
-
-            this.delta_update(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
-            [this.delta_update(l, this.activated_derivative, this.weights[l - 1]) for l in
-             range(this.layers - 2, 0, -1)]
-
-        return optimizer, opt
+    def optimize(self, layer):
+        pass
 
     @staticmethod
-    def moment(this, lr, alpha=None):
+    def gradient_decent(this, learning_rate=0.01):
+        LEARNING_RATE = np.float32(learning_rate)
+
+        def optimizer(layer):
+            this.delta_biases[layer] *= LEARNING_RATE
+            this.delta_weights[layer] *= LEARNING_RATE
+
+        return Optimizer(optimizer)
+
+    @staticmethod
+    def moment(this, learning_rate=0.001, alpha=None):
         if alpha is None:
-            alpha = lr
-        this.prev_delta_weights, this.prev_delta_biases = Initializer.normal(0)(this)
+            alpha = learning_rate
+        LEARNING_RATE = np.float32(learning_rate)
+        ALPHA = np.float32(alpha)
+        this.prev_delta_biases, this.prev_delta_weights = this.delta_initializer(1)
 
-        def opt(l):
-            this.delta_weights[l] = this.prev_delta_weights[l] = alpha * this.prev_delta_weights[l] + lr * \
-                                                                 this.delta_weights[l]
-            this.delta_biases[l] = this.prev_delta_biases[l] = alpha * this.prev_delta_biases[l] + lr * \
-                                                               this.delta_biases[l]
+        def optimizer(layer):
+            this.delta_biases[layer] = this.prev_delta_biases[layer] = \
+                ALPHA * this.prev_delta_biases[layer] + LEARNING_RATE * this.delta_biases[layer]
+            this.delta_weights[layer] = this.prev_delta_weights[layer] = \
+                ALPHA * this.prev_delta_weights[layer] + LEARNING_RATE * this.delta_weights[layer]
 
-        def optimizer(b):
-            this.cost_derivative, cost = this.loss_function(this, b)
-            this.cost += cost
-
-            this.delta_update(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
-            [this.delta_update(l, this.activated_derivative, this.weights[l - 1]) for l in
-             range(this.layers - 2, 0, -1)]
-
-        return optimizer, opt
+        return Optimizer(optimizer)
 
     @staticmethod
-    def decay(this, lr=1, alpha=None):
+    def decay(this, learning_rate=0.01, alpha=None):
         if alpha is None:
-            alpha = lr
+            alpha = 1 / learning_rate
+        LEARNING_RATE = np.float32(learning_rate)
+        ALPHA = np.float32(alpha)
 
-        def opt(l):
-            k = lr / (1 + this.e / alpha)
-            this.delta_weights[l] = k * this.delta_weights[l]
-            this.delta_biases[l] = k * this.delta_biases[l]
+        def optimizer(layer):
+            k = LEARNING_RATE / (1 + this.decay_count / ALPHA)
+            this.delta_biases[layer] *= k
+            this.delta_weights[layer] *= k
 
-        def optimizer(b):
-            this.cost_derivative, cost = this.loss_function(this, b)
-            this.cost += cost
+            this.decay_count += 1 / this.batch_length
 
-            this.delta_update(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
-            [this.delta_update(l, this.activated_derivative, this.weights[l - 1]) for l in
-             range(this.layers - 2, 0, -1)]
-
-        return optimizer, opt
+        return Optimizer(optimizer)
 
     @staticmethod
-    def nesterov(this, lr, alpha=None):
+    def nesterov(this, learning_rate=0.001, alpha=None):
         if alpha is None:
-            alpha = lr
-        this.prev_delta_weights, this.prev_delta_biases = Initializer.normal(0)(this)
+            alpha = learning_rate
+        LEARNING_RATE = np.float32(learning_rate)
+        ALPHA = np.float32(alpha)
+        this.prev_delta_biases, this.prev_delta_weights = this.delta_initializer(1)
 
-        def opt(l):
-            this.delta_weights[l] = this.prev_delta_weights[l] = alpha * this.prev_delta_weights[l] + lr * \
-                                                                 this.delta_weights[l]
-            this.delta_biases[l] = this.prev_delta_biases[l] = alpha * this.prev_delta_biases[l] + lr * \
-                                                               this.delta_biases[l]
+        def optimizer(layer):
+            this.theta[layer] = this.weights[layer] - ALPHA * this.prev_delta_weights[layer]
+            this.delta_biases[layer] = this.prev_delta_biases[layer] = \
+                ALPHA * this.prev_delta_biases[layer] + LEARNING_RATE * this.delta_biases[layer]
+            this.delta_weights[layer] = this.prev_delta_weights[layer] = \
+                ALPHA * this.prev_delta_weights[layer] + LEARNING_RATE * this.delta_weights[layer]
 
-        def optimizer(b):
-            this.cost_derivative, cost = this.loss_function(this, b)
-            this.cost += cost
-
-            this.delta_update(this.layers - 1, this.activated_output_derivative,
-                              this.weights[this.layers - 2] - this.prev_delta_weights[this.layers - 2])
-            [this.delta_update(l, this.activated_derivative, this.weights[l - 1] - this.prev_delta_weights[l - 1])
-             for l in range(this.layers - 2, 0, -1)]
-
-        return optimizer, opt
+        return Optimizer(optimizer)
 
     @staticmethod
-    def adagrad(this, lr=0.01, epsilon=np.e ** -8):
-        this.gti_w, this.gti_b = Initializer.normal(0)(this)
+    def adagrad(this, learning_rate=0.01, epsilon=np.e ** -8):
+        LEARNING_RATE = np.float32(learning_rate)
+        EPSILON = np.float32(epsilon)
+        this.initialize = True
 
-        def opt(l):
-            d_w, d_b = this.delta_weights[l], this.delta_biases[l]
-            this.gti_w[l] += np.square(d_w)
-            this.gti_b[l] += np.square(d_b)
+        def optimizer(layer):
+            if this.initialize:
+                this.biases_grad_decay, this.weights_grad_decay = this.delta_initializer()
+                this.initialize = False
 
-            this.delta_weights[l] = lr * d_w / np.sqrt(epsilon + this.gti_w[l])
-            this.delta_biases[l] = lr * d_b / np.sqrt(epsilon + this.gti_b[l])
+            this.biases_grad_decay[layer] += np.einsum('lij,lij->lij', this.delta_biases[layer],
+                                                       this.delta_biases[layer])
+            this.weights_grad_decay[layer] += np.einsum('ij,ij->ij', this.delta_weights[layer],
+                                                        this.delta_weights[layer])
 
-        def optimizer(b):
-            this.cost_derivative, cost = this.loss_function(this, b)
-            this.cost += cost
+            this.delta_biases[layer] *= LEARNING_RATE / (this.biases_grad_decay[layer] + EPSILON) ** 0.5
+            this.delta_weights[layer] *= LEARNING_RATE / (this.weights_grad_decay[layer] + EPSILON) ** 0.5
 
-            this.delta_update(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
-            [this.delta_update(l, this.activated_derivative, this.weights[l - 1]) for l in
-             range(this.layers - 2, 0, -1)]
+        return Optimizer(optimizer)
 
-        return optimizer, opt
-
-    # Know some what how this work, but not sure
     @staticmethod
-    def adadelta(this, lr=1, alpha=0.95, epsilon=np.e ** -16):
-        alpha_bar = 1 - alpha
-        this.vt_w, this.vt_b = Initializer.normal(0)(this)
-        this.wt_w, this.wt_b = Initializer.normal(0)(this)
+    def rmsprop(this, learning_rate=0.001, beta=0.009, epsilon=np.e ** -8):
+        if beta is None:
+            beta = learning_rate
+        LEARNING_RATE = np.float32(learning_rate)
+        EPSILON = np.float32(epsilon)
+        BETA = np.float32(beta)
+        BETA_BAR = np.float32(1 - beta)
+        this.initialize = True
 
-        def opt(l):
-            this.vt_w[l] = alpha * this.vt_w[l] + alpha_bar * np.square(this.delta_weights[l])
-            this.vt_b[l] = alpha * this.vt_b[l] + alpha_bar * np.square(this.delta_biases[l])
-            this.delta_weights[l] = np.sqrt((epsilon + this.wt_w[l]) / (epsilon + this.vt_w[l])) * this.delta_weights[l]
-            this.delta_biases[l] = np.sqrt((epsilon + this.wt_b[l]) / (epsilon + this.vt_b[l])) * this.delta_biases[l]
-            this.wt_w[l] = alpha * this.wt_w[l] + alpha_bar * np.square(this.delta_biases[l])
-            this.wt_b[l] = alpha * this.wt_b[l] + alpha_bar * np.square(this.delta_biases[l])
+        def optimizer(layer):
+            if this.initialize:
+                this.biases_grad_decay, this.weights_grad_decay = this.delta_initializer()
+                this.initialize = False
 
-            this.delta_weights[l] = lr * this.delta_weights[l]
-            this.delta_biases[l] = lr * this.delta_biases[l]
+            this.biases_grad_decay[layer] = BETA * this.biases_grad_decay[layer] + \
+                                            BETA_BAR * np.einsum('lij,lij->lij', this.delta_biases[layer],
+                                                                 this.delta_biases[layer])
+            this.weights_grad_decay[layer] = BETA * this.weights_grad_decay[layer] + \
+                                             BETA_BAR * np.einsum('ij,ij->ij', this.delta_weights[layer],
+                                                                  this.delta_weights[layer])
 
-        def optimizer(b):
-            this.cost_derivative, cost = this.loss_function(this, b)
-            this.cost += cost
+            this.delta_biases[layer] *= LEARNING_RATE / (this.biases_grad_decay[layer] + EPSILON) ** 0.5
+            this.delta_weights[layer] *= LEARNING_RATE / (this.weights_grad_decay[layer] + EPSILON) ** 0.5
 
-            this.delta_update(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
-            [this.delta_update(l, this.activated_derivative, this.weights[l - 1]) for l in
-             range(this.layers - 2, 0, -1)]
-
-        return optimizer, opt
-
-    # no understanding at all
-    @staticmethod
-    def adam(this, lr=0.005, alpha=0.9, beta=0.999, epsilon=np.e ** -16):
-        alpha_bar = 1 - alpha
-        beta_bar = 1 - beta
-        this.mt_w, this.mt_b = Initializer.normal(0)(this)
-        this.vt_w, this.vt_b = Initializer.normal(0)(this)
-        this.t = 0
-
-        def opt(l):
-            this.t += 1
-            this.mt_w[l] = alpha * this.mt_w[l] + alpha_bar * this.delta_weights[l]
-            this.mt_b[l] = alpha * this.mt_b[l] + alpha_bar * this.delta_biases[l]
-            this.vt_w[l] = beta * this.vt_w[l] + beta_bar * (this.delta_weights[l] ** 2)
-            this.vt_b[l] = beta * this.vt_b[l] + beta_bar * (this.delta_biases[l] ** 2)
-
-            m_dw_corr = this.mt_w[l] / (1 - alpha ** this.t)
-            m_db_corr = this.mt_b[l] / (1 - alpha ** this.t)
-            v_dw_corr = this.vt_w[l] / (1 - beta ** this.t)
-            v_db_corr = this.vt_b[l] / (1 - beta ** this.t)
-
-            this.delta_weights[l] = lr * (m_dw_corr / (np.sqrt(v_dw_corr) + epsilon))
-            this.delta_biases[l] = lr * (m_db_corr / (np.sqrt(v_db_corr) + epsilon))
-
-        def optimizer(b):
-            this.cost_derivative, cost = this.loss_function(this, b)
-            this.cost += cost
-
-            this.delta_update(this.layers - 1, this.activated_output_derivative, this.weights[this.layers - 2])
-            [this.delta_update(l, this.activated_derivative, this.weights[l - 1]) for l in
-             range(this.layers - 2, 0, -1)]
-
-        return optimizer, opt
+        return Optimizer(optimizer)
 
 
-class CreateDatabase:
-    def __init__(self, input_data, labels):
-        self.input_data = np.array(list(input_data), dtype=np.float32).reshape((len(input_data), len(input_data[0]), 1))
-        self.labels = np.array(list(labels), dtype=np.float32).reshape((len(labels), len(labels[0]), 1))
+class DataBase:
+    def __init__(self, input_set, output_set):
+        self.input_set = np.array(input_set, dtype=np.float32)
+        self.output_set = np.array(output_set, dtype=np.float32)
 
-        self.shape = self.input_data.shape
+        if (size := len(self.input_set)) != len(self.output_set):
+            raise Exception("Both input_set and output_set should be of same size")
 
-        self.batch_size = -1
-        self.mini_batch_i = 0
+        self.size = size
+        self.pointer = 0
+        self.block = False
+        self.batch_size = None
 
-    def set_batch_size(self, batch_size=-1):
-        self.batch_size = -1
-        self.mini_batch_i = 0
+        self.randomize()
 
-        if batch_size < 0:
-            self.batch_size = self.shape[0]
-        else:
-            self.batch_size = batch_size
+    def normalize(self):
+        input_scale = np.max(self.input_set)
+        output_scale = np.max(self.output_set)
+        self.input_set /= input_scale
+        self.output_set /= output_scale
 
-        batch_i = np.random.choice(self.shape[0], self.shape[0], replace=False)
-        self.input_data, self.labels = self.input_data[batch_i], self.labels[batch_i]
+        return input_scale, output_scale
 
-    def next_mini_batch(self):
-        start = self.mini_batch_i * self.batch_size
-        if start + self.batch_size >= self.shape[0]:
-            stop = self.shape[0]
-        else:
-            stop = start + self.batch_size
+    def randomize(self):
+        indices = [i for i in range(self.size)]
+        np.random.shuffle(indices)
+        self.input_set = self.input_set[indices]
+        self.output_set = self.output_set[indices]
 
-        self.mini_batch_i += 1
+    def batch_generator(self, batch_size):
+        if self.block:
+            raise PermissionError(
+                "Access Denied: DataBase currently in use, end previous generator before creating a new one")
+        self.block = True
+        self.batch_size = batch_size
 
-        return self.input_data[start: stop], self.labels[start: stop]
+        def generator():
+            while 1:
+                i = self.pointer + batch_size
+                if i >= self.size:
+                    i = self.size
+                    r_val = self.batch(i)
+                    self.return_()
 
+                    yield r_val
+                    return
+                signal = yield self.batch(i)
+                if signal == 'end':
+                    return self.return_()
+                self.pointer += batch_size
 
-class PlotGraph:
-    @staticmethod
-    def plot_cost_graph(nn):
-        costs = []
-        i = 0
-        for cs in nn.costs:
-            costs.append([(c + i, j) for c, j in enumerate(cs)])
-            i += len(cs) - 1
+        return generator()
 
-        lc = mc.LineCollection(costs, colors=['red', 'green'], linewidths=1)
-        sp = plt.subplot()
-        sp.add_collection(lc)
+    def batch(self, i):
+        r_val = [self.input_set[self.pointer:i], self.output_set[self.pointer:i]]
+        if (filled := i - self.pointer) != self.batch_size:
+            vacant = self.batch_size - filled
+            r_val[0] = np.append(r_val[0], self.input_set[:vacant]).reshape(
+                [self.batch_size, *self.input_set.shape[1:]])
+            r_val[1] = np.append(r_val[1], self.output_set[:vacant]).reshape(
+                [self.batch_size, *self.output_set.shape[1:]])
+        return r_val
 
-        sp.autoscale()
-        sp.margins(0.1)
-        plt.show()
+    def return_(self):
+        self.pointer = 0
+        self.randomize()
+        self.block = False
+        self.batch_size = None

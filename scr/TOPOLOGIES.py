@@ -72,11 +72,13 @@ class ActivationFunction:
 
     @staticmethod
     def relu():
+        ONE = np.float32(1)
+
         def activation(x):
             return x * (x > 0)
 
         def activated_derivative(activated_x):
-            return np.float32(1) * (activated_x != 0)
+            return ONE * (activated_x != 0)
 
         return activation, activated_derivative
 

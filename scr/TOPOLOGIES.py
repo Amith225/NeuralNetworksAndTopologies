@@ -198,7 +198,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def moment(this, learning_rate=0.001, alpha=None):
+    def momentum(this, learning_rate=0.001, alpha=None):
         if alpha is None:
             alpha = learning_rate
         LEARNING_RATE = np.float32(learning_rate)
@@ -219,6 +219,7 @@ class Optimizer:
             alpha = 1 / learning_rate
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
+        this.decay_count = 0
 
         def optimizer(layer):
             k = LEARNING_RATE / (1 + this.decay_count / ALPHA)
@@ -268,7 +269,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def rmsprop(this, learning_rate=0.001, beta=0.9, epsilon=np.e ** -8):
+    def rmsprop(this, learning_rate=0.001, beta=0.95, epsilon=np.e ** -8):
         if beta is None:
             beta = learning_rate
         LEARNING_RATE = np.float32(learning_rate)
@@ -295,7 +296,8 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def adadelta(this, alpha=0.9, epsilon=np.e ** -8):
+    def adadelta(this, learning_rate=0.1, alpha=0.95, epsilon=np.e ** -8):
+        LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
         ALPHA_BAR = np.float32(1 - alpha)
         EPSILON = np.float32(epsilon)
@@ -314,10 +316,10 @@ class Optimizer:
                                              ALPHA_BAR * np.einsum('ij,ij->ij', this.delta_weights[layer],
                                                                   this.delta_weights[layer])
 
-            this.delta_biases[layer] *=\
-                np.sqrt(this.delta_decay_biases[layer] + EPSILON) / np.sqrt(this.grad_decay_biases[layer] + EPSILON)
-            this.delta_weights[layer] *=\
-                np.sqrt(this.delta_decay_weights[layer] + EPSILON) / np.sqrt(this.grad_decay_weights[layer] + EPSILON)
+            this.delta_biases[layer] *= LEARNING_RATE *\
+                np.sqrt((this.delta_decay_biases[layer] + EPSILON) / (this.grad_decay_biases[layer] + EPSILON))
+            this.delta_weights[layer] *= LEARNING_RATE *\
+                np.sqrt((this.delta_decay_weights[layer] + EPSILON) / (this.grad_decay_weights[layer] + EPSILON))
 
             this.delta_decay_biases[layer] = ALPHA * this.delta_decay_biases[layer] + \
                                              ALPHA_BAR * np.einsum('lij,lij->lij', this.delta_biases[layer],
@@ -325,6 +327,49 @@ class Optimizer:
             this.delta_decay_weights[layer] = ALPHA * this.delta_decay_weights[layer] + \
                                               ALPHA_BAR * np.einsum('ij,ij->ij', this.delta_weights[layer],
                                                                     this.delta_weights[layer])
+
+        return Optimizer(optimizer)
+
+    # not working
+    @staticmethod
+    def adam(this, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=np.e ** -8):
+        LEARNING_RATE = np.float32(learning_rate)
+        BETA1 = np.float32(beta1)
+        BETA1_BAR = np.float32(1 - beta1)
+        BETA2 = np.float32(beta2)
+        BETA2_BAR = np.float32(1 - beta2)
+        EPSILON = np.float32(epsilon)
+        this.decay_count = 0
+        this.initialize = True
+
+        def optimizer(layer):
+            if this.initialize:
+                this.grad_sq_decay_biases, this.grad_sq_decay_weights = this.delta_initializer()
+                this.grad_decay_biases, this.grad_decay_weights = this.delta_initializer()
+                this.initialize = False
+
+            this.grad_decay_biases[layer] = BETA1 * this.grad_decay_biases[layer] + \
+                                            BETA1_BAR * this.delta_biases[layer]
+            this.grad_decay_weights[layer] = BETA1 * this.grad_decay_weights[layer] + \
+                                             BETA1_BAR * this.delta_weights[layer]
+            this.grad_sq_decay_biases[layer] = BETA2 * this.grad_sq_decay_biases[layer] + \
+                                               BETA2_BAR * np.einsum('lij,lij->lij', this.delta_biases[layer],
+                                                                     this.delta_biases[layer])
+            this.grad_sq_decay_weights[layer] = BETA2 * this.grad_sq_decay_weights[layer] + \
+                                                BETA2_BAR * np.einsum('ij,ij->ij', this.delta_weights[layer],
+                                                                      this.delta_weights[layer])
+
+            this.epoch += 1
+            gdb = this.grad_decay_biases[layer] / (1 - BETA1**this.epoch)
+            gdw = this.grad_decay_weights[layer] / (1 - BETA1**this.epoch)
+            gdb_sq = this.grad_sq_decay_biases[layer] / (1 - BETA2**this.epoch)
+            gdw_sq = this.grad_sq_decay_weights[layer] / (1 - BETA2**this.epoch)
+            this.epoch -= 1
+
+            this.delta_biases[layer] *= LEARNING_RATE * gdb / np.sqrt(gdb_sq + EPSILON)
+            this.delta_weights[layer] *= LEARNING_RATE * gdw / np.sqrt(gdw_sq + EPSILON)
+
+            this.decay_count += 1 / this.batch_length
 
         return Optimizer(optimizer)
 

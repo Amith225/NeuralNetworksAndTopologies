@@ -295,7 +295,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def adadelta(this, alpha=0.01, epsilon=np.e ** -8):
+    def adadelta(this, alpha=0.7, epsilon=np.e ** -8):
         ALPHA = np.float32(alpha)
         ALPHA_BAR = np.float32(1 - alpha)
         EPSILON = np.float32(epsilon)
@@ -314,11 +314,9 @@ class Optimizer:
                                              ALPHA_BAR * np.einsum('ij,ij->ij', this.delta_weights[layer],
                                                                   this.delta_weights[layer])
 
-            this.delta_biases[layer] =\
-                this.delta_biases[layer] *\
+            this.delta_biases[layer] *=\
                 np.sqrt(this.delta_decay_biases[layer] + EPSILON) / np.sqrt(this.grad_decay_biases[layer] + EPSILON)
-            this.delta_weights[layer] =\
-                this.delta_weights[layer] *\
+            this.delta_weights[layer] *=\
                 np.sqrt(this.delta_decay_weights[layer] + EPSILON) / np.sqrt(this.grad_decay_weights[layer] + EPSILON)
 
             this.delta_decay_biases[layer] = ALPHA * this.delta_decay_biases[layer] + \

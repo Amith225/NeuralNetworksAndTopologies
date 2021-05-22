@@ -268,7 +268,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def rmsprop(this, learning_rate=0.001, beta=0.009, epsilon=np.e ** -8):
+    def rmsprop(this, learning_rate=0.001, beta=0.9, epsilon=np.e ** -8):
         if beta is None:
             beta = learning_rate
         LEARNING_RATE = np.float32(learning_rate)
@@ -295,7 +295,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def adadelta(this, alpha=0.7, epsilon=np.e ** -8):
+    def adadelta(this, alpha=0.9, epsilon=np.e ** -8):
         ALPHA = np.float32(alpha)
         ALPHA_BAR = np.float32(1 - alpha)
         EPSILON = np.float32(epsilon)

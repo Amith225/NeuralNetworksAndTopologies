@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib import collections as mc, pyplot as plt
 
 import TOPOLOGIES as Tp
-import printer
+import print_vars as pv
 
 np.NONE = [np.array([None])]
 warnings.filterwarnings('ignore')
@@ -28,7 +28,7 @@ class CreateNeuralNetwork:
         self.layers = len(self.shape)
         self.biases, self.weights = self.initializer.initialize(self.shape, self.layers)
         self.theta = self.weights.copy()
-        self.biases_ones = np.NONE + [np.ones_like(bias) for bias in self.biases[1:]]
+        self.biases_ones = np.NONE + [np.ones_like(bias, dtype=np.float32) for bias in self.biases[1:]]
 
         self.delta_weights, self.delta_biases = None, None
         self.train_database = None
@@ -47,6 +47,7 @@ class CreateNeuralNetwork:
         self.loss_derivative = None
         self.costs = []
 
+    # recursive pass
     def forward_pass(self, layer=1):
         if layer == self.layers - 1:
             self.fire(layer, self.output_activation)
@@ -65,12 +66,13 @@ class CreateNeuralNetwork:
             activation(np.einsum('lkj,ik->lij', self.outputs[layer - 1], self.weights[layer]) +
                        self.biases[layer])
 
-    def wire(self, layer=-1):
+    def wire(self, layer):
         # optimization to sum on column(next line only), 5% time reduction
         self.biases[layer] -= (self.delta_biases[layer] * self.biases_ones[layer])[0]
         self.weights[layer] -= self.delta_weights[layer]
         self.theta = self.weights.copy()
 
+    # recursive propagation
     def back_propagation(self, activated_derivative, layer=-1):
         if layer <= -self.layers:
             return
@@ -139,14 +141,11 @@ class CreateNeuralNetwork:
             costs.append(cost)
             tot_time += time
             print(end='\r')
-            print(printer.CBOLD + printer.CBLUE + printer.CURL + f'epoch:{self.epoch}' + printer.CEND,
-                  printer.CYELLOW + f'cost:{cost}',
-                  f'time:{time}' + printer.CEND,
-                  printer.CBOLD,
-                  f'eta:{tot_time / (self.epoch + 1) * (self.epochs - self.epoch - 1)}' + printer.CEND, end='')
+            print(pv.CBOLD + pv.CBLUE + pv.CURL + f'epoch:{self.epoch}' + pv.CEND,
+                  pv.CYELLOW + f'cost:{cost}', f'time:{time}' + pv.CEND,
+                  pv.CBOLD + f'eta:{tot_time / (self.epoch + 1) * (self.epochs - self.epoch - 1)}' + pv.CEND, end='')
         print()
-        print(printer.CBOLD + printer.CRED2 + f'tot_time:{tot_time}',
-              f'avg_time:{tot_time / self.epochs}' + printer.CEND)
+        print(pv.CBOLD + pv.CRED2 + f'tot_time:{tot_time}', f'avg_time:{tot_time / self.epochs}' + pv.CEND)
         self.costs.append(costs[1:])
 
 
@@ -155,11 +154,14 @@ class PlotNeuralNetwork:
     def plot_cost_graph(nn):
         costs = []
         i = 0
-        for cs in nn.costs:
-            costs.append([(c + i, j) for c, j in enumerate(cs)])
-            i += len(cs) - 1
+        for cost_i in range(len(nn.costs)):
+            cost = nn.costs[cost_i]
+            if cost_i > 0:
+                costs.append([costs[-1][-1], (i, cost[0])])
+            costs.append([(c + i, j) for c, j in enumerate(cost)])
+            i += len(cost)
 
-        lc = mc.LineCollection(costs, colors=['red', 'green'], linewidths=1)
+        lc = mc.LineCollection(costs, colors=['red', 'red', 'green', 'green'], linewidths=1)
         sp = plt.subplot()
         sp.add_collection(lc)
 

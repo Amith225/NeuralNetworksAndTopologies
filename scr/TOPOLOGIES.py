@@ -206,10 +206,10 @@ class Optimizer:
         this.prev_delta_biases, this.prev_delta_weights = this.delta_initializer(1)
 
         def optimizer(layer):
-            this.delta_biases[layer] = this.prev_delta_biases[layer] = \
-                ALPHA * this.prev_delta_biases[layer] + LEARNING_RATE * this.delta_biases[layer]
-            this.delta_weights[layer] = this.prev_delta_weights[layer] = \
-                ALPHA * this.prev_delta_weights[layer] + LEARNING_RATE * this.delta_weights[layer]
+            this.delta_biases[layer] = this.prev_delta_biases[layer] = ALPHA * this.prev_delta_biases[layer] + \
+                                                                       LEARNING_RATE * this.delta_biases[layer]
+            this.delta_weights[layer] = this.prev_delta_weights[layer] = ALPHA * this.prev_delta_weights[layer] + \
+                                                                         LEARNING_RATE * this.delta_weights[layer]
 
         return Optimizer(optimizer)
 
@@ -239,10 +239,10 @@ class Optimizer:
 
         def optimizer(layer):
             this.theta[layer] = this.weights[layer] - ALPHA * this.prev_delta_weights[layer]
-            this.delta_biases[layer] = this.prev_delta_biases[layer] = \
-                ALPHA * this.prev_delta_biases[layer] + LEARNING_RATE * this.delta_biases[layer]
-            this.delta_weights[layer] = this.prev_delta_weights[layer] = \
-                ALPHA * this.prev_delta_weights[layer] + LEARNING_RATE * this.delta_weights[layer]
+            this.delta_biases[layer] = this.prev_delta_biases[layer] = ALPHA * this.prev_delta_biases[layer] + \
+                                                                       LEARNING_RATE * this.delta_biases[layer]
+            this.delta_weights[layer] = this.prev_delta_weights[layer] = ALPHA * this.prev_delta_weights[layer] + \
+                                                                         LEARNING_RATE * this.delta_weights[layer]
 
         return Optimizer(optimizer)
 
@@ -254,16 +254,16 @@ class Optimizer:
 
         def optimizer(layer):
             if this.initialize:
-                this.biases_grad_decay, this.weights_grad_decay = this.delta_initializer()
+                this.grad_decay_biases, this.grad_decay_weights = this.delta_initializer()
                 this.initialize = False
 
-            this.biases_grad_decay[layer] += np.einsum('lij,lij->lij', this.delta_biases[layer],
+            this.grad_decay_biases[layer] += np.einsum('lij,lij->lij', this.delta_biases[layer],
                                                        this.delta_biases[layer])
-            this.weights_grad_decay[layer] += np.einsum('ij,ij->ij', this.delta_weights[layer],
+            this.grad_decay_weights[layer] += np.einsum('ij,ij->ij', this.delta_weights[layer],
                                                         this.delta_weights[layer])
 
-            this.delta_biases[layer] *= LEARNING_RATE / (this.biases_grad_decay[layer] + EPSILON) ** 0.5
-            this.delta_weights[layer] *= LEARNING_RATE / (this.weights_grad_decay[layer] + EPSILON) ** 0.5
+            this.delta_biases[layer] *= LEARNING_RATE / np.sqrt(this.grad_decay_biases[layer] + EPSILON)
+            this.delta_weights[layer] *= LEARNING_RATE / np.sqrt(this.grad_decay_weights[layer] + EPSILON)
 
         return Optimizer(optimizer)
 
@@ -279,18 +279,54 @@ class Optimizer:
 
         def optimizer(layer):
             if this.initialize:
-                this.biases_grad_decay, this.weights_grad_decay = this.delta_initializer()
+                this.grad_decay_biases, this.grad_decay_weights = this.delta_initializer()
                 this.initialize = False
 
-            this.biases_grad_decay[layer] = BETA * this.biases_grad_decay[layer] + \
+            this.grad_decay_biases[layer] = BETA * this.grad_decay_biases[layer] + \
                                             BETA_BAR * np.einsum('lij,lij->lij', this.delta_biases[layer],
                                                                  this.delta_biases[layer])
-            this.weights_grad_decay[layer] = BETA * this.weights_grad_decay[layer] + \
+            this.grad_decay_weights[layer] = BETA * this.grad_decay_weights[layer] + \
                                              BETA_BAR * np.einsum('ij,ij->ij', this.delta_weights[layer],
                                                                   this.delta_weights[layer])
 
-            this.delta_biases[layer] *= LEARNING_RATE / (this.biases_grad_decay[layer] + EPSILON) ** 0.5
-            this.delta_weights[layer] *= LEARNING_RATE / (this.weights_grad_decay[layer] + EPSILON) ** 0.5
+            this.delta_biases[layer] *= LEARNING_RATE / np.sqrt(this.grad_decay_biases[layer] + EPSILON)
+            this.delta_weights[layer] *= LEARNING_RATE / np.sqrt(this.grad_decay_weights[layer] + EPSILON)
+
+        return Optimizer(optimizer)
+
+    @staticmethod
+    def adadelta(this, alpha=0.01, epsilon=np.e ** -8):
+        ALPHA = np.float32(alpha)
+        ALPHA_BAR = np.float32(1 - alpha)
+        EPSILON = np.float32(epsilon)
+        this.initialize = True
+
+        def optimizer(layer):
+            if this.initialize:
+                this.grad_decay_biases, this.grad_decay_weights = this.delta_initializer()
+                this.delta_decay_biases, this.delta_decay_weights = this.delta_initializer()
+                this.initialize = False
+
+            this.grad_decay_biases[layer] = ALPHA * this.grad_decay_biases[layer] + \
+                                            ALPHA_BAR * np.einsum('lij,lij->lij', this.delta_biases[layer],
+                                                                 this.delta_biases[layer])
+            this.grad_decay_weights[layer] = ALPHA * this.grad_decay_weights[layer] + \
+                                             ALPHA_BAR * np.einsum('ij,ij->ij', this.delta_weights[layer],
+                                                                  this.delta_weights[layer])
+
+            this.delta_biases[layer] =\
+                this.delta_biases[layer] *\
+                np.sqrt(this.delta_decay_biases[layer] + EPSILON) / np.sqrt(this.grad_decay_biases[layer] + EPSILON)
+            this.delta_weights[layer] =\
+                this.delta_weights[layer] *\
+                np.sqrt(this.delta_decay_weights[layer] + EPSILON) / np.sqrt(this.grad_decay_weights[layer] + EPSILON)
+
+            this.delta_decay_biases[layer] = ALPHA * this.delta_decay_biases[layer] + \
+                                             ALPHA_BAR * np.einsum('lij,lij->lij', this.delta_biases[layer],
+                                                                   this.delta_biases[layer])
+            this.delta_decay_weights[layer] = ALPHA * this.delta_decay_weights[layer] + \
+                                              ALPHA_BAR * np.einsum('ij,ij->ij', this.delta_weights[layer],
+                                                                    this.delta_weights[layer])
 
         return Optimizer(optimizer)
 

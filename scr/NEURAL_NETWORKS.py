@@ -17,8 +17,7 @@ warnings.filterwarnings('ignore')
 
 # ANN class
 class CreateArtificialNeuralNetwork:
-    def __init__(self,
-                 shape: Tuple[int, ...] = (1, 1),
+    def __init__(self, shape: Tuple[int, ...] = (1, 1),
                  initializer: Tp.Initializer = Tp.Initializer.xavier(2),
                  activation_function: Tp.ActivationFunction = Tp.ActivationFunction.relu(),
                  output_activation_function: Tp.ActivationFunction = Tp.ActivationFunction.softmax()):
@@ -83,8 +82,7 @@ class CreateArtificialNeuralNetwork:
 
     # recursive propagation
     def back_propagation(self, activated_derivative, layer=-1):
-        if layer <= -self.layers:
-            return
+        if layer <= -self.layers: return
         np.einsum('lij,lim->lij', self.loss_derivative[layer], activated_derivative(self.outputs[layer]),
                   out=self.delta_biases[layer])
         np.einsum('lkj,lij->ik', self.outputs[layer - 1], self.delta_biases[layer], out=self.delta_weights[layer])
@@ -94,43 +92,35 @@ class CreateArtificialNeuralNetwork:
         self.back_propagation(self.activated_derivative, layer - 1)
 
     # declaring training params
-    def trainer(self,
-                train_database: Tp.DataBase = None,
+    def trainer(self, train_database: Tp.DataBase = None,
                 loss_function: Tp.LossFunction = None,
                 optimizer: Tp.Optimizer = None,
                 epochs: int = None,
                 batch_size: int = None):
         # if new param sent, update existing class var, else use old param
-        if train_database is not None:
-            self.train_database = train_database
-        if loss_function is not None:
-            self.loss_function = loss_function
-        if optimizer is not None:
-            self.optimizer = optimizer
-        if epochs is not None:
-            self.epochs = epochs
-        if batch_size is not None:
-            self.batch_size = batch_size
+        if train_database is not None: self.train_database = train_database
+        if loss_function is not None: self.loss_function = loss_function
+        if optimizer is not None: self.optimizer = optimizer
+        if epochs is not None: self.epochs = epochs
+        if batch_size is not None: self.batch_size = batch_size
+
         if self.batch_size < 0:
             self.bs = self.train_database.size - batch_size - 1
         else:
             self.bs = self.batch_size
 
         # pre memory allocation for faster training
-        self.outputs = [np.zeros((self.bs, self.shape[layer], 1), dtype=np.float32)
-                        for layer in range(self.layers)]
+        self.outputs = [np.zeros((self.bs, self.shape[layer], 1), dtype=np.float32) for layer in range(self.layers)]
         self.loss_derivative = self.outputs.copy()
         self.targets = self.outputs[-1].copy()
         self.errors = self.targets.copy()
-
         self.delta_biases, self.delta_weights = self.delta_initializer()
 
     # pre memory allocation and initializer of delta values for wire and optimizer
     def delta_initializer(self, bs=None):
         if bs is None:
             bs = self.bs
-        delta_biases = np.NONE + [(np.zeros((bs, self.shape[i], 1), dtype=np.float32))
-                                  for i in range(1, self.layers)]
+        delta_biases = np.NONE + [(np.zeros((bs, self.shape[i], 1), dtype=np.float32)) for i in range(1, self.layers)]
         delta_weights = Tp.Initializer.normal(0).initialize(self.shape, self.layers)[1]
 
         return delta_biases, delta_weights

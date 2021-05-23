@@ -5,17 +5,19 @@ np.NONE = [np.array([None])]
 
 class Initializer:
     # for custom initializer
-    def __init__(self, initializer, *args, **kwargs):
-        self.initialize = initializer
-        self.args = args
-        self.kwargs = kwargs
+    def __new__(cls, initializer, *args, **kwargs):
+        cls.initialize = initializer
+        cls.args = args
+        cls.kwargs = kwargs
+
+        return super(Initializer, cls).__new__(cls, *args, **kwargs)
 
     def initialize(self, shape, layers):
         pass
 
     @staticmethod
     def uniform(start=-1, stop=1):
-        def initializer(shape, layers):
+        def initializer(self, shape, layers):
             biases = [np.random.uniform(start, stop, (shape[i], 1)).astype(dtype=np.float32)
                       for i in range(1, layers)]
             weights = [np.random.uniform(start, stop, (shape[i], shape[i - 1])).astype(dtype=np.float32)
@@ -27,7 +29,7 @@ class Initializer:
 
     @staticmethod
     def normal(scale=1):
-        def initializer(shape, layers):
+        def initializer(self, shape, layers):
             biases = [(np.random.default_rng().standard_normal((shape[i], 1), dtype=np.float32)) * scale
                       for i in range(1, layers)]
             weights = [(np.random.default_rng().standard_normal((shape[i], shape[i - 1]), dtype=np.float32)) * scale
@@ -39,7 +41,7 @@ class Initializer:
 
     @staticmethod
     def xavier(he=1):
-        def initializer(shape, layers):
+        def initializer(self, shape, layers):
             biases = [np.random.default_rng().standard_normal((shape[i], 1),
                                                               dtype=np.float32) * (he / shape[i - 1]) ** 0.5
                       for i in range(1, layers)]
@@ -53,7 +55,7 @@ class Initializer:
 
     @staticmethod
     def normalized_xavier(he=6):
-        def initializer(shape, layers):
+        def initializer(self, shape, layers):
             biases = [np.random.default_rng().standard_normal((shape[i], 1), dtype=np.float32) *
                       (he / (shape[i - 1] + shape[i])) ** 0.5
                       for i in range(1, layers)]
@@ -199,8 +201,7 @@ class Optimizer:
 
     @staticmethod
     def momentum(this, learning_rate=0.001, alpha=None):
-        if alpha is None:
-            alpha = learning_rate
+        if alpha is None: alpha = learning_rate
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
         this.pdb, this.pdw = this.delta_initializer(1)  # pdb -> prev_delta_biases, pdw -> prev_delta_weights
@@ -215,8 +216,7 @@ class Optimizer:
 
     @staticmethod
     def decay(this, learning_rate=0.01, alpha=None):
-        if alpha is None:
-            alpha = 1 / learning_rate
+        if alpha is None: alpha = 1 / learning_rate
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
         this.decay_count = 0
@@ -226,14 +226,13 @@ class Optimizer:
             this.delta_biases[layer] *= k
             this.delta_weights[layer] *= k
 
-            this.decay_count += 1 / this.batch_length
+            this.decay_count += 1 / this.batches
 
         return Optimizer(optimizer)
 
     @staticmethod
     def nesterov(this, learning_rate=0.001, alpha=None):
-        if alpha is None:
-            alpha = learning_rate
+        if alpha is None: alpha = learning_rate
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
         this.pdb, this.pdw = this.delta_initializer(1)  # pdb -> prev_delta_biases, pdw -> prev_delta_weights
@@ -269,8 +268,6 @@ class Optimizer:
 
     @staticmethod
     def rmsprop(this, learning_rate=0.001, beta=0.95, epsilon=np.e ** -8):
-        if beta is None:
-            beta = learning_rate
         LEARNING_RATE = np.float32(learning_rate)
         EPSILON = np.float32(epsilon)
         BETA = np.float32(beta)
@@ -364,7 +361,7 @@ class Optimizer:
             this.delta_biases[layer] = LEARNING_RATE * this.gb[layer] / div_1 / np.sqrt(gb_sq + EPSILON)
             this.delta_weights[layer] = LEARNING_RATE * this.gw[layer] / div_1 / np.sqrt(gw_sq + EPSILON)
 
-            this.decay_count += 1 / this.batch_length
+            this.decay_count += 1 / this.batches
 
         return Optimizer(optimizer)
 
@@ -409,7 +406,7 @@ class DataBase:
     def batch_generator(self, batch_size):
         if self.block:
             raise PermissionError(
-                "Access Denied: DataBase currently in use, end previous generator before creating a new one")
+                "Access Denied: DataBase currently in use, 'end' previous generator before creating a new one")
         self.block = True
         self.batch_size = batch_size
 
@@ -424,13 +421,12 @@ class DataBase:
                     yield r_val
                     return
                 signal = yield self.__batch(i)
-                if signal == 'end':
-                    return self.__return()
+                if signal == 'end': return self.__return()
                 self.pointer += batch_size
 
         return generator()
 
-    # private method which returns fixed size of dataset from pointer sequentially
+    # returns fixed size of dataset from pointer sequentially
     def __batch(self, i):
         r_val = [self.input_set[self.pointer:i], self.output_set[self.pointer:i]]
         if (filled := i - self.pointer) != self.batch_size:
@@ -439,6 +435,7 @@ class DataBase:
                 [self.batch_size, *self.input_set.shape[1:]])
             r_val[1] = np.append(r_val[1], self.output_set[:vacant]).reshape(
                 [self.batch_size, *self.output_set.shape[1:]])
+
         return r_val
 
     # reinitialize class vars after end of generator

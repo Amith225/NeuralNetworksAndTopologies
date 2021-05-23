@@ -17,9 +17,9 @@ warnings.filterwarnings('ignore')
 
 # ANN class
 class CreateArtificialNeuralNetwork:
-    def __init__(self, shape: Tuple[int, ...] = (1, 1),
+    def __init__(self, shape: Tuple[int, ...],
                  initializer: Tp.Initializer = Tp.Initializer.xavier(2),
-                 activation_function: Tp.ActivationFunction = Tp.ActivationFunction.relu(),
+                 activation_function: Tp.ActivationFunction = Tp.ActivationFunction.elu(),
                  output_activation_function: Tp.ActivationFunction = Tp.ActivationFunction.softmax()):
         # class params declaration
         self.shape = tuple(shape)
@@ -38,58 +38,58 @@ class CreateArtificialNeuralNetwork:
         # class vars initialization
         self.delta_weights, self.delta_biases = None, None
         self.train_database = None
-        self.epochs = None
-        self.epoch = None
-        self.batch = None
-        self.batch_size = None
-        self.bs = None
-        self.batch_length = None
-        self.loss_function = None
-        self.optimizer = None
+        self.epochs: int = 0  # total epochs for current training
+        self.epoch: int = 0  # current epoch
+        self.batches: int = 0  # total batches for current epoch
+        self.batch: int = 0  # current batch
+        self.batch_size: int = 0  # fancy format allowed from params, ex: -1
+        self.bs: int = 0  # actual batch_size
+        self.loss_function: Tp.LossFunction = Tp.LossFunction.mean_square()
+        self.optimizer: Tp.Optimizer = Tp.Optimizer.adam(self)
         self.outputs = None
         self.targets = None
         self.errors = None
         self.loss = None
         self.loss_derivative = None
-        self.costs = []
+        self.costs: List[List[float]] = []  # accumulation of all costs
 
     # recursive pass
-    def forward_pass(self, layer=1):
+    def __forward_pass(self, layer: int = 1):
         if layer == self.layers - 1:
-            self.fire(layer, self.output_activation)
+            self.__fire(layer, self.output_activation)
         else:
-            self.fire(layer, self.activation)
-            self.forward_pass(layer + 1)
+            self.__fire(layer, self.activation)
+            self.__forward_pass(layer + 1)
 
     # returns output, for online processing
-    def process(self, inputs, layer=1):
+    def process(self, inputs, layer: int = 1):
         self.outputs[layer - 1] = np.array(inputs, dtype=np.float32)
-        self.forward_pass(layer)
+        self.__forward_pass(layer)
 
         return self.outputs[-1]
 
     # neuron fire(activation) at a layer
-    def fire(self, layer, activation):
+    def __fire(self, layer: int, activation):
         self.outputs[layer] = \
             activation(np.einsum('lkj,ik->lij', self.outputs[layer - 1], self.weights[layer]) + self.biases[layer])
 
     # neuron wire(updates to biases and weights) at a layer
-    def wire(self, layer):
+    def __wire(self, layer: int):
         # optimization to sum on column(next line only), 5% time reduction
         self.biases[layer] -= (self.delta_biases[layer] * self.biases_ones[layer])[0]
         self.weights[layer] -= self.delta_weights[layer]
         self.theta = self.weights.copy()
 
     # recursive propagation
-    def back_propagation(self, activated_derivative, layer=-1):
+    def __back_propagation(self, activated_derivative, layer: int = -1):
         if layer <= -self.layers: return
         np.einsum('lij,lim->lij', self.loss_derivative[layer], activated_derivative(self.outputs[layer]),
                   out=self.delta_biases[layer])
         np.einsum('lkj,lij->ik', self.outputs[layer - 1], self.delta_biases[layer], out=self.delta_weights[layer])
         np.einsum('lij,ik->lkj', self.loss_derivative[layer], self.theta[layer], out=self.loss_derivative[layer - 1])
         self.optimizer.optimize(layer)
-        self.wire(layer)
-        self.back_propagation(self.activated_derivative, layer - 1)
+        self.__wire(layer)
+        self.__back_propagation(self.activated_derivative, layer - 1)
 
     # declaring training params
     def trainer(self, train_database: Tp.DataBase = None,
@@ -118,8 +118,7 @@ class CreateArtificialNeuralNetwork:
 
     # pre memory allocation and initializer of delta values for wire and optimizer
     def delta_initializer(self, bs=None):
-        if bs is None:
-            bs = self.bs
+        if bs is None: bs = self.bs
         delta_biases = np.NONE + [(np.zeros((bs, self.shape[i], 1), dtype=np.float32)) for i in range(1, self.layers)]
         delta_weights = Tp.Initializer.normal(0).initialize(self.shape, self.layers)[1]
 
@@ -127,20 +126,21 @@ class CreateArtificialNeuralNetwork:
 
     # start training after declaring trainer
     def train(self, profile=False):
+        # if profiling requested run training with cProfile
         if not profile:
             costs = [0]
             tot_time = 0
-            self.batch_length = int(np.ceil(self.train_database.size / self.bs))
+            self.batches = int(np.ceil(self.train_database.size / self.bs))
             for self.epoch in range(self.epochs):
                 batch_generator = self.train_database.batch_generator(self.bs)
                 cost = 0
                 time = tm.time()
-                for self.batch in range(self.batch_length):
+                for self.batch in range(self.batches):
                     self.outputs[0], self.targets = batch_generator.__next__()
-                    self.forward_pass()
+                    self.__forward_pass()
                     self.errors = self.outputs[-1] - self.targets
                     self.loss, self.loss_derivative[-1] = self.loss_function.loss_function(self.errors)
-                    self.back_propagation(self.output_activated_derivative)
+                    self.__back_propagation(self.output_activated_derivative)
                     cost += self.loss
                 time = tm.time() - time
                 cost /= self.train_database.size
@@ -166,8 +166,7 @@ class PlotNeuralNetwork:
         i = 0
         for cost_i in range(len(nn.costs)):
             cost = nn.costs[cost_i]
-            if cost_i > 0:
-                costs.append([costs[-1][-1], (i, cost[0])])
+            if cost_i > 0: costs.append([costs[-1][-1], (i, cost[0])])
             costs.append([(c + i, j) for c, j in enumerate(cost)])
             i += len(cost)
 
@@ -184,8 +183,7 @@ class PlotNeuralNetwork:
 class SaveNeuralNetwork:
     @staticmethod
     def save(this, fname='nn'):
-        if len(fname) >= 4 and '.nns' == fname[-4:0]:
-            fname.replace('.nns', '')
+        if len(fname) >= 4 and '.nns' == fname[-4:0]: fname.replace('.nns', '')
         cost = str(round(this.costs[-1][-1] * 100, 2))
         cost.replace('.', ':')
         fname += 'c' + cost

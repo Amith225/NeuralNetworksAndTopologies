@@ -1,4 +1,5 @@
 venv
-debug.py
 data_sets
 .idea
+debug.py
+test.py

@@ -1,14 +1,19 @@
+from typing import TYPE_CHECKING
+
 import numpy as np
+
+if TYPE_CHECKING: from NEURAL_NETWORKS import CreateArtificialNeuralNetwork
 
 np.NONE = [np.array([None])]
 
 
 class Initializer:
     # for custom initializer
-    def __new__(cls, initializer, *args, **kwargs):
+    def __new__(cls, initializer, __init__=lambda: None, *args, **kwargs):
         cls.initialize = initializer
         cls.args = args
         cls.kwargs = kwargs
+        __init__()
 
         return super(Initializer, cls).__new__(cls, *args, **kwargs)
 
@@ -190,7 +195,7 @@ class Optimizer:
         pass
 
     @staticmethod
-    def gradient_decent(this, learning_rate=0.01):
+    def gradient_decent(this: 'CreateArtificialNeuralNetwork', learning_rate=0.01):
         LEARNING_RATE = np.float32(learning_rate)
 
         def optimizer(layer):
@@ -200,7 +205,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def momentum(this, learning_rate=0.001, alpha=None):
+    def momentum(this: 'CreateArtificialNeuralNetwork', learning_rate=0.001, alpha=None):
         if alpha is None: alpha = learning_rate
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
@@ -215,7 +220,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def decay(this, learning_rate=0.01, alpha=None):
+    def decay(this: 'CreateArtificialNeuralNetwork', learning_rate=0.01, alpha=None):
         if alpha is None: alpha = 1 / learning_rate
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
@@ -231,7 +236,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def nesterov(this, learning_rate=0.001, alpha=None):
+    def nesterov(this: 'CreateArtificialNeuralNetwork', learning_rate=0.001, alpha=None):
         if alpha is None: alpha = learning_rate
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
@@ -247,7 +252,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def adagrad(this, learning_rate=0.01, epsilon=np.e ** -8):
+    def adagrad(this: 'CreateArtificialNeuralNetwork', learning_rate=0.01, epsilon=np.e ** -8):
         LEARNING_RATE = np.float32(learning_rate)
         EPSILON = np.float32(epsilon)
         this.initialize = True
@@ -267,7 +272,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def rmsprop(this, learning_rate=0.001, beta=0.95, epsilon=np.e ** -8):
+    def rmsprop(this: 'CreateArtificialNeuralNetwork', learning_rate=0.001, beta=0.95, epsilon=np.e ** -8):
         LEARNING_RATE = np.float32(learning_rate)
         EPSILON = np.float32(epsilon)
         BETA = np.float32(beta)
@@ -291,7 +296,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def adadelta(this, learning_rate=0.1, alpha=0.95, epsilon=np.e ** -8):
+    def adadelta(this: 'CreateArtificialNeuralNetwork', learning_rate=0.1, alpha=0.95, epsilon=np.e ** -8):
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
         ALPHA_BAR = np.float32(1 - alpha)
@@ -327,7 +332,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def adam(this, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=np.e ** -8):
+    def adam(this: 'CreateArtificialNeuralNetwork', learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=np.e ** -8):
         LEARNING_RATE = np.float32(learning_rate)
         BETA1 = np.float32(beta1)
         BETA1_BAR = np.float32(1 - beta1)

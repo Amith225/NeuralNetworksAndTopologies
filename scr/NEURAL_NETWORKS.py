@@ -22,12 +22,9 @@ class CreateArtificialNeuralNetwork:
                  activation_function: Tp.ActivationFunction = None,
                  output_activation_function: Tp.ActivationFunction = None):
         # default params
-        if initializer is None:
-            initializer = Tp.Initializer.xavier(2)
-        if activation_function is None:
-            activation_function = Tp.ActivationFunction.elu()
-        if output_activation_function is None:
-            output_activation_function = Tp.ActivationFunction.softmax()
+        if initializer is None: initializer = Tp.Initializer.xavier(2)
+        if activation_function is None: activation_function = Tp.ActivationFunction.elu()
+        if output_activation_function is None: output_activation_function = Tp.ActivationFunction.softmax()
 
         # class params declaration
         self.shape = tuple(shape)
@@ -189,16 +186,21 @@ class PlotNeuralNetwork:
 class SaveNeuralNetwork:
     @staticmethod
     def save(this, fname='nn'):
+        if fname is None: fname = 'nn'
         if len(fname) >= 4 and '.nns' == fname[-4:0]: fname.replace('.nns', '')
         cost = str(round(this.costs[-1][-1] * 100, 2))
         fname += 'c' + cost
         train_database = this.train_database
         this.train_database = None
         fpath = os.path.dirname(os.getcwd()) + '\\models\\'
+        spath = fpath + fname
         os.makedirs(fpath, exist_ok=True)
-        dill.dump(this, open(fpath + fname + '.nns', 'wb'))
+        dill.dump(this, open(spath + '.nns', 'wb'))
         this.train_database = train_database
 
+        print(spath)
+
+        return spath
 
 # load NN as python dill object
 class LoadNeuralNetwork:

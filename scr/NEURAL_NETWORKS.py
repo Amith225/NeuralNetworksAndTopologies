@@ -16,7 +16,7 @@ warnings.filterwarnings('ignore')
 
 
 # ANN class
-class CreateArtificialNeuralNetwork:
+class ArtificialNeuralNetwork:
     def __init__(self, shape: Tuple[int, ...],
                  initializer: Tp.Initializer = None,
                  activation_function: Tp.ActivationFunction = None,
@@ -55,7 +55,7 @@ class CreateArtificialNeuralNetwork:
         self.target = None
         self.loss = None
         self.loss_derivative = None
-        self.costs: List[List[float]] = []  # accumulation of all costs
+        self.costs: List[List[float]] = [[]]  # accumulation of all costs
 
     # recursive pass
     def __forward_pass(self, layer: int = 1):
@@ -185,28 +185,30 @@ class PlotNeuralNetwork:
 # save NN as dill pickle file(removes database from NN before saving)
 class SaveNeuralNetwork:
     @staticmethod
-    def save(this, fname='nn'):
+    def save(this, fname=None):
         if fname is None: fname = 'nn'
         if len(fname) >= 4 and '.nns' == fname[-4:0]: fname.replace('.nns', '')
-        cost = str(round(this.costs[-1][-1] * 100, 2))
+        try:
+            cost = str(round(this.costs[-1][-1] * 100, 2))
+        except IndexError:
+            if input("trying to save untrained model, do you want to continue?(y,n): ").lower() != 'y': return
+            cost = ''
         fname += 'c' + cost
         train_database = this.train_database
         this.train_database = None
         fpath = os.path.dirname(os.getcwd()) + '\\models\\'
-        spath = fpath + fname
+        spath = fpath + fname + '.nns'
         os.makedirs(fpath, exist_ok=True)
-        dill.dump(this, open(spath + '.nns', 'wb'))
+        dill.dump(this, open(spath, 'wb'))
         this.train_database = train_database
-
-        print(spath)
 
         return spath
 
 # load NN as python dill object
 class LoadNeuralNetwork:
     @staticmethod
-    def load(fname, fpath=None):
-        if fpath is None:
+    def load(fname='', fpath=''):
+        if fpath:
             return dill.load(open(os.path.dirname(os.getcwd()) + '\\models\\' + fname, 'rb'))
         else:
             return dill.load(open(fpath, 'rb'))

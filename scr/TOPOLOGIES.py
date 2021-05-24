@@ -1,8 +1,9 @@
+import os
 from typing import TYPE_CHECKING
 
 import numpy as np
 
-if TYPE_CHECKING: from NEURAL_NETWORKS import CreateArtificialNeuralNetwork
+if TYPE_CHECKING: from NEURAL_NETWORKS import ArtificialNeuralNetwork
 
 np.NONE = [np.array([None])]
 
@@ -216,7 +217,7 @@ class Optimizer:
         pass
 
     @staticmethod
-    def gradient_decent(this: 'CreateArtificialNeuralNetwork', learning_rate=0.01):
+    def gradient_decent(this: 'ArtificialNeuralNetwork', learning_rate=0.01):
         LEARNING_RATE = np.float32(learning_rate)
 
         def optimizer(layer):
@@ -226,7 +227,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def momentum(this: 'CreateArtificialNeuralNetwork', learning_rate=0.001, alpha=None):
+    def momentum(this: 'ArtificialNeuralNetwork', learning_rate=0.001, alpha=None):
         if alpha is None: alpha = learning_rate
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
@@ -241,7 +242,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def decay(this: 'CreateArtificialNeuralNetwork', learning_rate=0.01, alpha=None):
+    def decay(this: 'ArtificialNeuralNetwork', learning_rate=0.01, alpha=None):
         if alpha is None: alpha = 1 / learning_rate
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
@@ -257,7 +258,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def nesterov(this: 'CreateArtificialNeuralNetwork', learning_rate=0.001, alpha=None):
+    def nesterov(this: 'ArtificialNeuralNetwork', learning_rate=0.001, alpha=None):
         if alpha is None: alpha = learning_rate
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
@@ -273,7 +274,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def adagrad(this: 'CreateArtificialNeuralNetwork', learning_rate=0.01, epsilon=np.e ** -8):
+    def adagrad(this: 'ArtificialNeuralNetwork', learning_rate=0.01, epsilon=np.e ** -8):
         LEARNING_RATE = np.float32(learning_rate)
         EPSILON = np.float32(epsilon)
         this.initialize = True
@@ -293,7 +294,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def rmsprop(this: 'CreateArtificialNeuralNetwork', learning_rate=0.001, beta=0.95, epsilon=np.e ** -8):
+    def rmsprop(this: 'ArtificialNeuralNetwork', learning_rate=0.001, beta=0.95, epsilon=np.e ** -8):
         LEARNING_RATE = np.float32(learning_rate)
         EPSILON = np.float32(epsilon)
         BETA = np.float32(beta)
@@ -317,7 +318,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def adadelta(this: 'CreateArtificialNeuralNetwork', learning_rate=0.1, alpha=0.95, epsilon=np.e ** -8):
+    def adadelta(this: 'ArtificialNeuralNetwork', learning_rate=0.1, alpha=0.95, epsilon=np.e ** -8):
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)
         ALPHA_BAR = np.float32(1 - alpha)
@@ -353,7 +354,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def adam(this: 'CreateArtificialNeuralNetwork', learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=np.e ** -8):
+    def adam(this: 'ArtificialNeuralNetwork', learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=np.e ** -8):
         LEARNING_RATE = np.float32(learning_rate)
         BETA1 = np.float32(beta1)
         BETA1_BAR = np.float32(1 - beta1)
@@ -390,7 +391,7 @@ class Optimizer:
 
     # doesn't work
     @staticmethod
-    def adamax(this: 'CreateArtificialNeuralNetwork', learning_rate=0.0001, beta1=0.9, beta2=0.999):
+    def adamax(this: 'ArtificialNeuralNetwork', learning_rate=0.0001, beta1=0.9, beta2=0.999):
         LEARNING_RATE = np.float32(learning_rate)
         BETA1 = np.float32(beta1)
         BETA1_BAR = np.float32(1 - beta1)
@@ -440,6 +441,28 @@ class DataBase:
 
         # shuffle database
         self.randomize()
+
+    # save data_base as *.nndb.npz
+    def save(self, fname: str = None):
+        if fname is None: fname = 'db'
+        fpath = os.path.dirname(os.getcwd()) + '\\data_sets\\'
+        spath = fpath + fname + f's{self.size}'
+        os.makedirs(fpath, exist_ok=True)
+        np.savez_compressed(spath + '.nndb', self.input_set, self.output_set)
+
+        return spath
+
+    # returns a DataBase object from file name or path
+    @staticmethod
+    def load(fname: str = None, fpath: str = None):
+        if fname is None and fpath is None: raise Exception("fname and fpath both can't be None")
+        if fname is not None and fpath is not None: raise Exception("only one of fname or fpath can be passed")
+        if fpath is None and fname is not None:
+            nn_loader = np.load(os.path.dirname(os.getcwd()) + '\\data_sets\\' + fname)
+        else:
+            nn_loader = np.load(fpath)
+
+        return DataBase(nn_loader['arr_0'], nn_loader['arr_1'])
 
     # scale data values within -1 to +1
     def normalize(self):

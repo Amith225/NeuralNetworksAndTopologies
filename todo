@@ -1,1 +1,9 @@
-optimizer, clean name
+all topologies use monkey change to __init__ using __new__
+
+    def __new__(cls, initializer, __init__=lambda: None, *args, **kwargs):
+        cls.initialize = initializer
+        cls.args = args
+        cls.kwargs = kwargs
+        __init__()
+
+        return super(Initializer, cls).__new__(cls, *args, **kwargs)

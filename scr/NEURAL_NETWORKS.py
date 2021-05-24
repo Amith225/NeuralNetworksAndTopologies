@@ -18,9 +18,17 @@ warnings.filterwarnings('ignore')
 # ANN class
 class CreateArtificialNeuralNetwork:
     def __init__(self, shape: Tuple[int, ...],
-                 initializer: Tp.Initializer = Tp.Initializer.xavier(2),
-                 activation_function: Tp.ActivationFunction = Tp.ActivationFunction.elu(),
-                 output_activation_function: Tp.ActivationFunction = Tp.ActivationFunction.softmax()):
+                 initializer: Tp.Initializer = None,
+                 activation_function: Tp.ActivationFunction = None,
+                 output_activation_function: Tp.ActivationFunction = None):
+        # default params
+        if initializer is None:
+            initializer = Tp.Initializer.xavier(2)
+        if activation_function is None:
+            activation_function = Tp.ActivationFunction.elu()
+        if output_activation_function is None:
+            output_activation_function = Tp.ActivationFunction.softmax()
+
         # class params declaration
         self.shape = tuple(shape)
         self.initializer = initializer
@@ -38,17 +46,16 @@ class CreateArtificialNeuralNetwork:
         # class vars initialization
         self.delta_weights, self.delta_biases = None, None
         self.train_database = None
-        self.epochs: int = 0  # total epochs for current training
+        self.epochs: int = 1  # total epochs for current training
         self.epoch: int = 0  # current epoch
+        self.batch_size: int = 32  # fancy format allowed from params, ex: -1
+        self.bs: int = 0  # actual batch_size
         self.batches: int = 0  # total batches for current epoch
         self.batch: int = 0  # current batch
-        self.batch_size: int = 0  # fancy format allowed from params, ex: -1
-        self.bs: int = 0  # actual batch_size
         self.loss_function: Tp.LossFunction = Tp.LossFunction.mean_square()
         self.optimizer: Tp.Optimizer = Tp.Optimizer.adam(self)
         self.outputs = None
-        self.targets = None
-        self.errors = None
+        self.target = None
         self.loss = None
         self.loss_derivative = None
         self.costs: List[List[float]] = []  # accumulation of all costs
@@ -112,8 +119,7 @@ class CreateArtificialNeuralNetwork:
         # pre memory allocation for faster training
         self.outputs = [np.zeros((self.bs, self.shape[layer], 1), dtype=np.float32) for layer in range(self.layers)]
         self.loss_derivative = self.outputs.copy()
-        self.targets = self.outputs[-1].copy()
-        self.errors = self.targets.copy()
+        self.target = self.outputs[-1].copy()
         self.delta_biases, self.delta_weights = self.delta_initializer()
 
     # pre memory allocation and initializer of delta values for wire and optimizer
@@ -136,10 +142,10 @@ class CreateArtificialNeuralNetwork:
                 cost = 0
                 time = tm.time()
                 for self.batch in range(self.batches):
-                    self.outputs[0], self.targets = batch_generator.__next__()
+                    self.outputs[0], self.target = batch_generator.__next__()
                     self.__forward_pass()
-                    self.errors = self.outputs[-1] - self.targets
-                    self.loss, self.loss_derivative[-1] = self.loss_function.loss_function(self.errors)
+                    self.loss, self.loss_derivative[-1] = \
+                        self.loss_function.loss_function(self.outputs[-1], self.target)
                     self.__back_propagation(self.output_activated_derivative)
                     cost += self.loss
                 time = tm.time() - time
@@ -185,11 +191,12 @@ class SaveNeuralNetwork:
     def save(this, fname='nn'):
         if len(fname) >= 4 and '.nns' == fname[-4:0]: fname.replace('.nns', '')
         cost = str(round(this.costs[-1][-1] * 100, 2))
-        cost.replace('.', ':')
         fname += 'c' + cost
         train_database = this.train_database
         this.train_database = None
-        dill.dump(this, open(os.path.dirname(os.getcwd()) + '\\models\\' + fname + '.nns', 'wb'))
+        fpath = os.path.dirname(os.getcwd()) + '\\models\\'
+        os.makedirs(fpath, exist_ok=True)
+        dill.dump(this, open(fpath + fname + '.nns', 'wb'))
         this.train_database = train_database
 
 

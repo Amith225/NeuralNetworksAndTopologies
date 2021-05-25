@@ -27,18 +27,19 @@ class ArtificialNeuralNetwork:
         if output_activation_function is None: output_activation_function = Tp.ActivationFunction.softmax()
 
         # class params declaration
-        self.shape = tuple(shape)
-        self.initializer = initializer
+        self.shape: Tuple[int, ...] = tuple(shape)
+        self.initializer: Tp.Initializer = initializer
         self.activation, self.activated_derivative = activation_function.activations
         self.output_activation, self.output_activated_derivative = output_activation_function.activations
 
         # declaration of weights and biases and its relatives
-        self.layers = len(self.shape)
+        self.layers: int = len(self.shape)
         self.biases, self.weights = self.initializer.initialize(self.shape, self.layers)
-        self.biases_ones = np.NONE + [np.ones_like(bias, dtype=np.float32) for bias in self.biases[1:]]
+        self.biases_ones: List[np.ndarray] = np.NONE + [np.ones_like(bias, dtype=np.float32)
+                                                        for bias in self.biases[1:]]
 
         # derivation wrt
-        self.theta = self.weights.copy()
+        self.theta: List[np.ndarray] = self.weights.copy()
 
         # class vars initialization
         self.delta_weights, self.delta_biases = None, None
@@ -128,7 +129,8 @@ class ArtificialNeuralNetwork:
         return delta_biases, delta_weights
 
     # start training after declaring trainer
-    def train(self, profile=False):
+    def train(self, profile: bool = False, epochs: int = None, batch_size: int = None):
+        self.trainer(epochs=epochs, batch_size=batch_size)
         # if profiling requested run training with cProfile
         if not profile:
             costs = [0]
@@ -152,6 +154,7 @@ class ArtificialNeuralNetwork:
                 print(end='\r')
                 print(pv.CBOLD + pv.CBLUE + pv.CURL + f'epoch:{self.epoch}' + pv.CEND,
                       pv.CYELLOW + f'cost:{cost}', f'time:{time}' + pv.CEND,
+                      pv.CBOLD + pv.CITALIC + pv.CBEIGE + f'cost_reduction:{(costs[-2] - cost)}' + pv.CEND,
                       pv.CBOLD + f'eta:{tot_time / (self.epoch + 1) * (self.epochs - self.epoch - 1)}',
                       pv.CEND, end='')
             print()
@@ -173,7 +176,7 @@ class PlotNeuralNetwork:
             costs.append([(c + i, j) for c, j in enumerate(cost)])
             i += len(cost)
 
-        lc = mc.LineCollection(costs, colors=['red', 'red', 'green', 'green'], linewidths=1)
+        lc = mc.LineCollection(costs, colors=['red', 'green', 'green', 'red'], linewidths=1)
         sp = plt.subplot()
         sp.add_collection(lc)
 
@@ -203,6 +206,7 @@ class SaveNeuralNetwork:
         this.train_database = train_database
 
         return spath
+
 
 # load NN as python dill object
 class LoadNeuralNetwork:

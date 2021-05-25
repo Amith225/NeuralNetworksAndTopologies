@@ -1,5 +1,5 @@
 import os
-from typing import TYPE_CHECKING
+from typing import *
 
 import numpy as np
 
@@ -15,7 +15,7 @@ class Initializer:
         self.args = args
         self.kwargs = kwargs
 
-    def initialize(self, shape, layers):
+    def initialize(self, shape, layers) -> Tuple[List[np.ndarray], List[np.ndarray]]:
         pass
 
     @staticmethod

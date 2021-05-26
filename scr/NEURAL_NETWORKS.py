@@ -197,13 +197,16 @@ class SaveNeuralNetwork:
             if input("trying to save untrained model, do you want to continue?(y,n): ").lower() != 'y': return
             cost = ''
         fname += 'c' + cost
-        train_database = this.train_database
-        this.train_database = None
+
+        train_database, outputs, target, loss, loss_derivative = this.train_database, this.outputs, this.target, \
+                                                                 this.loss, this.loss_derivative
+        this.train_database = this.outputs = this.target = this.loss = this.loss_derivative = None
         fpath = os.path.dirname(os.getcwd()) + '\\models\\'
         spath = fpath + fname + '.nns'
         os.makedirs(fpath, exist_ok=True)
         dill.dump(this, open(spath, 'wb'))
-        this.train_database = train_database
+        this.train_database, this.outputs, this.target, this.loss, this.loss_derivative = train_database, outputs, \
+                                                                                          target, loss, loss_derivative
 
         return spath
 
@@ -211,8 +214,11 @@ class SaveNeuralNetwork:
 # load NN as python dill object
 class LoadNeuralNetwork:
     @staticmethod
-    def load(fname='', fpath=''):
-        if fpath:
-            return dill.load(open(os.path.dirname(os.getcwd()) + '\\models\\' + fname, 'rb'))
+    def load(file=''):
+        if file:
+            if not os.path.dirname(file):
+                file = os.path.dirname(os.getcwd()) + '\\models\\' + file
         else:
-            return dill.load(open(fpath, 'rb'))
+            raise FileExistsError("file not given")
+
+        return dill.load(open(file, 'rb'))

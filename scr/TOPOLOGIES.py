@@ -454,13 +454,13 @@ class DataBase:
 
     # returns a DataBase object from file name or path
     @staticmethod
-    def load(fname: str = None, fpath: str = None):
-        if fname is None and fpath is None: raise Exception("fname and fpath both can't be None")
-        if fname is not None and fpath is not None: raise Exception("only one of fname or fpath can be passed")
-        if fpath is None and fname is not None:
-            nn_loader = np.load(os.path.dirname(os.getcwd()) + '\\data_sets\\' + fname)
+    def load(file=''):
+        if file:
+            if not os.path.dirname(file):
+                file = os.path.dirname(os.getcwd()) + '\\data_sets\\' + file
         else:
-            nn_loader = np.load(fpath)
+            raise FileExistsError("file not given")
+        nn_loader = np.load(file)
 
         return DataBase(nn_loader['arr_0'], nn_loader['arr_1'])
 

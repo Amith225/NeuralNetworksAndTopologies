@@ -80,7 +80,7 @@ class ArtificialNeuralNetwork:
 
     # neuron wire(updates to biases and weights) at a layer
     def __wire(self, layer: int):
-        # optimization to sum on column(next line only), 5% time reduction
+        # optimization to sum on column(next line only), 7% time reduction
         self.biases[layer] -= (self.delta_biases[layer] * self.biases_ones[layer])[0]
         self.weights[layer] -= self.delta_weights[layer]
         self.theta = self.weights.copy()
@@ -214,7 +214,7 @@ class SaveNeuralNetwork:
 # load NN as python dill object
 class LoadNeuralNetwork:
     @staticmethod
-    def load(file=''):
+    def load(file: str = ''):
         if file:
             if not os.path.dirname(file):
                 file = os.path.dirname(os.getcwd()) + '\\models\\' + file

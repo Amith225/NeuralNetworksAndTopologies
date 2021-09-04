@@ -454,7 +454,7 @@ class DataBase:
 
     # returns a DataBase object from file name or path
     @staticmethod
-    def load(file=''):
+    def load(file: str = ''):
         if file:
             if not os.path.dirname(file):
                 file = os.path.dirname(os.getcwd()) + '\\data_sets\\' + file

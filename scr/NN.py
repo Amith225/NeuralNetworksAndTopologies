@@ -7,7 +7,7 @@ import print_vars as pv
 
 
 class CreateANN:
-    DELAY_INTERVAL = 0.25
+    SMOOTH_INTERVAL = 0.25
 
     def __init__(self, shape,
                  initializer,
@@ -29,9 +29,9 @@ class CreateANN:
         self.loss_function = None
         self.optimizer = None
         self.num_batches = None
-        self.costs = [[]]
+        self.costs = []
         self.outputs, self.target = list(range(self.num_layers)), None
-        self.loss, self.loss_derivative = None, self.outputs.copy()
+        self.loss, self.delta_loss = None, None
         self.delta_biases, self.delta_weights = None, None
 
     def __forward_pass(self, layer=1):
@@ -57,22 +57,22 @@ class CreateANN:
 
     def __back_propagation(self, activated_derivative, layer=-1):
         if layer <= -self.num_layers: return
-        self.delta_biases[layer] = self.loss_derivative[layer] * activated_derivative(self.outputs[layer])
+        self.delta_biases[layer] = self.delta_loss[layer] * activated_derivative(self.outputs[layer])
         np.einsum('lkj,lij->ik', self.outputs[layer - 1], self.delta_biases[layer], out=self.delta_weights[layer])
-        self.loss_derivative[layer - 1] = self.theta[layer].transpose() @ self.loss_derivative[layer]
+        self.delta_loss[layer - 1] = self.theta[layer].transpose() @ self.delta_loss[layer]
         self.optimizer(layer)
         self.__wire(layer)
         self.__back_propagation(self.activated_derivative, layer - 1)
 
     def delta_initializer(self):
-        delta_biases = np.NONE + [(np.zeros((self.batch_size, self.shape[i], 1), dtype=np.float32))
-                                  for i in range(1, self.num_layers)]
+        delta_loss = [(np.zeros((self.batch_size, self.shape[i], 1), dtype=np.float32))
+                      for i in range(0, self.num_layers)]
+        delta_biases = np.NONE + delta_loss[1:]
         delta_weights = self.initializer(self.shape)[1]
 
-        return delta_biases, delta_weights
+        return delta_biases, delta_weights, delta_loss
 
-    def train(self, epochs=None,
-              batch_size=None,
+    def train(self, epochs=None, batch_size=None,
               train_database=None,
               loss_function=None,
               optimizer=None,
@@ -83,14 +83,12 @@ class CreateANN:
         if loss_function is not None: self.loss_function = loss_function
         if optimizer is not None: self.optimizer = optimizer
 
-        self.delta_biases, self.delta_weights = self.delta_initializer()
-        self.loss_derivative = [(np.zeros((self.batch_size, self.shape[i], 1), dtype=np.float32))
-                                for i in range(0, self.num_layers)]
+        self.delta_biases, self.delta_weights, self.delta_loss = self.delta_initializer()
 
         if not profile:
             costs = [0]
             tot_time = 0
-            delay = self.DELAY_INTERVAL
+            delay = self.SMOOTH_INTERVAL
             self.num_batches = int(np.ceil(self.train_database.size / self.batch_size))
             last_epoch = self.epochs - 1
             for epoch in range(self.epochs):
@@ -100,7 +98,7 @@ class CreateANN:
                 for batch in range(self.num_batches):
                     self.outputs[0], self.target = batch_generator.__next__()
                     self.__forward_pass()
-                    self.loss, self.loss_derivative[-1] = self.loss_function(self.outputs[-1], self.target)
+                    self.loss, self.delta_loss[-1] = self.loss_function(self.outputs[-1], self.target)
                     self.__back_propagation(self.output_activated_derivative)
                     cost += self.loss
                 time = tm.time() - time
@@ -108,7 +106,7 @@ class CreateANN:
                 cost /= self.train_database.size
                 costs.append(cost)
                 if tot_time > delay or epoch == last_epoch:
-                    delay += self.DELAY_INTERVAL
+                    delay += self.SMOOTH_INTERVAL
                     print(end='\r')
                     print(pv.CBOLD + pv.CBLUE + pv.CURL + f'epoch:{epoch}' + pv.CEND,
                           pv.CYELLOW + f'cost:{cost}', f'time:{time}' + pv.CEND,

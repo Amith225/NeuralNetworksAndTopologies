@@ -156,11 +156,11 @@ class ActivationFunction:
             return numerator / np.einsum('lij->lj', numerator)[:, None]
 
         def activated_derivative(activated_x):
-            jacobian = -np.einsum('lij,lkj->lik', activated_x, activated_x)
+            jacobian = activated_x @ activated_x.transpose(0, 2, 1)
             diag_i = np.diag_indices(jacobian.shape[1])
-            jacobian[:, diag_i[1], diag_i[0]] = np.einsum('lij,lij->li', activated_x, 1 - activated_x)
+            jacobian[:, [diag_i[1]], [diag_i[0]]] = (activated_x * (1 - activated_x)).transpose(0, 2, 1)
 
-            return jacobian
+            return jacobian.sum(axis=2, keepdims=1)
 
         return ActivationFunction(activation, activated_derivative)
 
@@ -227,7 +227,7 @@ class Optimizer:
         return Optimizer(optimizer)
 
     @staticmethod
-    def momentum(this: 'ArtificialNeuralNetwork', learning_rate=0.001, alpha=None):
+    def momentum(this: 'ArtificialNeuralNetwork', learning_rate=0.1, alpha=0.9):
         if alpha is None: alpha = learning_rate
         LEARNING_RATE = np.float32(learning_rate)
         ALPHA = np.float32(alpha)

@@ -10,7 +10,7 @@ from matplotlib import collections as mc, pyplot as plt
 
 # library imports for type checking
 if TYPE_CHECKING:
-    pass
+    from .neuralNetwork import *
 
 # setup for plotting
 colDict = mc.mcolors.cnames
@@ -88,7 +88,7 @@ class PlotNeuralNetwork:  # plot neural network class
             i += len(cost)
 
         rd.shuffle(colors)
-        lc = mc.LineCollection(costs, colors=colors, linewidths=1)
+        lc = mc.LineCollection(costs, colors=colors, linewidths=1, antialiaseds=True)
         sp = plt.subplot()
         sp.add_collection(lc)
 

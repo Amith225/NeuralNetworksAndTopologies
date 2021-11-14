@@ -15,7 +15,7 @@ db2.normalize()
 nn.train(10000, 1,
          trainDatabase=db,
          lossFunction=LossFunction.meanSquare(),
-         optimizer=Optimizer.gradientDecent(nn),
+         optimizer=WBOptimizer.gradientDecent(nn),
          profile=0)
 SaveNeuralNetwork.save(nn)
 

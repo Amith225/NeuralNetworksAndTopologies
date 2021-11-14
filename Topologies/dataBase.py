@@ -4,6 +4,7 @@ from typing import *
 
 # library imports
 import numpy as np
+import numexpr as ne
 
 
 class DataBase:  # main class
@@ -64,8 +65,8 @@ class DataBase:  # main class
     # normalize input and target sets within the range of -scale to +scale
     def normalize(self, scale: Union[int, float] = 1) -> "None":
         if scale != 0:  # do not normalize if scale is zero
-            inputScale = np.max(np.absolute(self.inputSet))
-            targetScale = np.max(np.absolute(self.targetSet))
+            inputScale = ne.evaluate("abs(inputSet)", local_dict={'inputSet': self.inputSet}).max()
+            targetScale = ne.evaluate("abs(targetSet)", local_dict={'targetSet': self.targetSet}).max()
             self.inputSet /= inputScale * scale
             self.targetSet /= targetScale * scale
 
@@ -77,8 +78,9 @@ class DataBase:  # main class
 
     # returns a generator for input and target sets, each batch-sets of size batchSize at a time
     def batchGenerator(self, batch_size) -> "Generator":
-        if self.block: raise PermissionError(
-            "Access Denied: DataBase currently in use, 'end' previous generator before creating a new one")
+        if self.block:
+            raise PermissionError("Access Denied: DataBase currently in use, "
+                                  "'end' previous generator before creating a new one")
         self.block = True
         self.batchSize = batch_size
         self.randomize()

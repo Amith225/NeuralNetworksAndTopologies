@@ -1,5 +1,6 @@
 import cProfile as cP
 import time as tm
+import warnings
 from abc import ABCMeta, abstractmethod
 from typing import *
 
@@ -23,18 +24,26 @@ class AbstractNeuralNetwork(metaclass=ABCMeta):
         self.numBatches = None
         self.trainDatabase = None
         self.lossFunction = None
+        self.training = False
 
     @abstractmethod
     def _forwardPass(self, layer=1):
         pass
 
     @abstractmethod
-    def _backPropagation(self, layer=-1):
+    def _backPropagate(self, layer=-1):
+        pass
+
+    @abstractmethod
+    def _evalDelta(self, layer):
         pass
 
     @abstractmethod
     def process(self, inputs):
-        pass
+        if self.training:
+            warnings.showwarning("can't process while training in progress", ResourceWarning,
+                                 'neuralNetwork.py->AbstractNeuralNetwork.process', 0)
+            return
 
     @abstractmethod
     def _fire(self, layer):
@@ -52,6 +61,7 @@ class AbstractNeuralNetwork(metaclass=ABCMeta):
         pass
 
     def train(self, profile=False):
+        self.training = True
         if not profile:
             if len(self.costs) == 0:
                 costs = [float('nan')]
@@ -76,16 +86,18 @@ class AbstractNeuralNetwork(metaclass=ABCMeta):
                     print(end='\r')
                     print(pV.CBOLD + pV.CBLUE + pV.CURL + f'epoch:{epoch}' + pV.CEND,
                           pV.CYELLOW + f'cost:{cost}', f'time:{time}' + pV.CEND,
-                          pV.CBOLD + pV.CITALIC + pV.CBEIGE + f'cost_reduction:{(costs[-2] - cost)}' + pV.CEND,
-                          pV.CBOLD + f'eta:{totTime / (epoch + 1) * (self.epochs - epoch - 1)}',
+                          pV.CBOLD + pV.CITALIC + pV.CBEIGE + f'cost-reduction:{(costs[-2] - cost)}' + pV.CEND,
+                          pV.CBOLD + f'eta:{totTime / (epoch + 1) * (self.epochs - epoch - 1)}', f'elapsed:{totTime}' +
                           pV.CEND, end='')
-            print('\n' + pV.CBOLD + pV.CRED2 + f'totTime:{totTime}', f'avg_time:{totTime / self.epochs}' + pV.CEND)
+            print('\n' + pV.CBOLD + pV.CRED2 + f'total-time:{totTime}', f'average-time:{totTime / self.epochs}' +
+                  pV.CEND)
             self.timeTrained += totTime
             self.costs.append(costs[1:])
         else:
             cP.runctx("self.train()", globals=globals(), locals=locals())
 
         self._resetVars()
+        self.training = False
 
 
 class ArtificialNeuralNetwork(AbstractNeuralNetwork):
@@ -99,7 +111,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
 
         self.biasesList, self.weightsList = self.wbInitializer.initialize(self.wbShape)
 
-        self.optimizer = None
+        self.wbOptimizer = None
 
         self.wbOutputs, self.target = list(range(self.wbShape.LAYERS)), None
         self.deltaBiases, self.deltaWeights, self.deltaLoss = None, None, None
@@ -113,26 +125,36 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         if layer < self.wbShape.LAYERS - 1:
             self._forwardPass(layer + 1)
 
-    def _backPropagation(self, layer=-1):
+    def _backPropagate(self, layer=-1):
         if layer <= -self.wbShape.LAYERS:
             return
-        deltaBiases = (self.deltaLoss[layer] * self.wbActivationDerivatives[layer].__call__(self.wbOutputs[layer]))
+        self._evalDelta(layer)
+        self.wbOptimizer(layer)
+        self._wire(layer)
+        self._backPropagate(layer - 1)
+
+    def _evalDelta(self, layer):
+        deltaBiases = self.deltaLoss[layer] * self.wbActivationDerivatives[layer](self.wbOutputs[layer])
         np.einsum('lkj,lij->ik', self.wbOutputs[layer - 1], deltaBiases, out=self.deltaWeights[layer])
         np.einsum('lij->ij', deltaBiases, out=self.deltaBiases[layer])
         self.deltaLoss[layer - 1] = self.weightsList[layer].transpose() @ self.deltaLoss[layer]
-        self.optimizer(layer)
-        self._wire(layer)
-        self._backPropagation(layer - 1)
 
     def process(self, inputs):
+        super(ArtificialNeuralNetwork, self).process(inputs)
+        inputs = np.array(inputs)
+        if inputs.size % self.wbShape[0] == 0:
+            inputs = inputs.reshape([-1, self.wbShape[0], 1])
+        else:
+            raise Exception("InputError: size of input should be same as that of input node of neural network or"
+                            "an integral multiple of it")
         self.wbOutputs[0] = inputs
         self._forwardPass()
 
         return self.wbOutputs[-1]
 
     def _fire(self, layer):
-        self.wbOutputs[layer] = self.wbActivations[layer - 1](self.weightsList[layer] @ self.wbOutputs[layer - 1] +
-                                                              self.biasesList[layer])
+        self.wbOutputs[layer] = self.wbActivations[layer](self.weightsList[layer] @ self.wbOutputs[layer - 1] +
+                                                          self.biasesList[layer])
 
     def _wire(self, layer):
         self.biasesList[layer] -= self.deltaBiases[layer]
@@ -149,13 +171,13 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         self.wbOutputs[0], self.target = batch
         self._forwardPass()
         loss, self.deltaLoss[-1] = self.lossFunction.eval(self.wbOutputs[-1], self.target)
-        self._backPropagation()
+        self._backPropagate()
 
         return loss
 
     def train(self, epochs: "int" = None, batchSize: "int" = None,
               trainDatabase: "DataBase" = None, lossFunction: "LossFunction" = None,
-              optimizer: "Optimizer" = None,
+              wbOptimizer: "WBOptimizer" = None,
               profile: "bool" = False):
         if epochs is not None:
             self.epochs = epochs
@@ -165,8 +187,8 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
             self.trainDatabase = trainDatabase
         if lossFunction is not None:
             self.lossFunction = lossFunction
-        if optimizer is not None:
-            self.optimizer = optimizer
+        if wbOptimizer is not None:
+            self.wbOptimizer = wbOptimizer
 
         self.deltaBiases, self.deltaWeights, self.deltaLoss = self.__deltaInitializer()
         super(ArtificialNeuralNetwork, self).train(profile)

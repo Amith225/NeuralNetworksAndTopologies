@@ -1,3 +1,7 @@
+from typing import *
+import numpy as np
+
+
 class WBShape:
     def __init__(self, *wbShape):
         self._shape = tuple(wbShape)
@@ -15,8 +19,8 @@ class Activations:
         self.activationFunctions = args
 
     def get(self, length):
-        activations = []
-        activationDerivatives = []
+        activations = [None]
+        activationDerivatives = [None]
         prevActivationFunction = None
         numEllipsis = self.activationFunctions.count(Ellipsis)
         numActivations = len(self.activationFunctions) - numEllipsis
@@ -34,3 +38,11 @@ class Activations:
             activationDerivatives.append(activationFunction.activatedDerivative)
 
         return activations, activationDerivatives
+
+
+def copyNumpyList(lis: List[np.ndarray]):
+    copyList = []
+    for array in lis:
+        copyList.append(array.copy())
+
+    return copyList

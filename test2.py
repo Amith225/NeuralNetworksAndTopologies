@@ -1,4 +1,10 @@
-class CreateCNN(CreateANN):
+import numpy as np
+
+from NeuralNetworks import *
+from Topologies import *
+
+
+class CreateCNN(ArtificialNeuralNetwork):
     class CORRELATION_TYPE:
         VALID = 0; FULL = 1; SAME = 2
 

@@ -21,7 +21,7 @@ nn = ArtificialNeuralNetwork(wbShape=WBShape(db.inpShape, *hiddenShape, db.tarSh
 
 nn.train(4, 128,
          trainDatabase=db,
-         lossFunction=LossFunction.meanSquare(),
+         lossFunction=MeanSquareLossFunction(),
          wbOptimizer=AdagradWBOptimizer(nn),
          profile=False)
 

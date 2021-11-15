@@ -1,5 +1,10 @@
-from typing import *
-import numpy as np
+import typing as _tp
+
+import numpy as _np
+
+if _tp.TYPE_CHECKING:
+    from . import *
+    from Topologies import *
 
 
 class WBShape:
@@ -40,7 +45,7 @@ class Activations:
         return activations, activationDerivatives
 
 
-def copyNumpyList(lis: List[np.ndarray]):
+def copyNumpyList(lis: _tp.List[_np.ndarray]):
     copyList = []
     for array in lis:
         copyList.append(array.copy())

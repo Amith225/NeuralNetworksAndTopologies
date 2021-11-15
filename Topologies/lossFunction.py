@@ -1,4 +1,10 @@
-import numpy as np
+import typing as _tp
+
+import numpy as _np
+
+if _tp.TYPE_CHECKING:
+    from . import *
+    from NeuralNetworks import *
 
 
 class LossFunction:
@@ -13,6 +19,6 @@ class LossFunction:
         def lossFunction(output, target):
             loss = output - target
 
-            return np.einsum('lij,lij->', loss, loss), loss
+            return _np.einsum('lij,lij->', loss, loss), loss
 
         return LossFunction(lossFunction)

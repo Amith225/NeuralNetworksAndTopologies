@@ -1,19 +1,19 @@
-import cProfile as cP
-import time as tm
-import warnings
-from abc import ABCMeta, abstractmethod
-from typing import *
+import cProfile as _cP
+import time as _tm
+import warnings as _wr
+import typing as _tp
+from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
 
-import numpy as np
+import numpy as _np
 
-from .printVars import PrintVars as pV
+from .printVars import PrintVars as _pV
 
-if TYPE_CHECKING:
+if _tp.TYPE_CHECKING:
     from . import *
     from Topologies import *
 
 
-class AbstractNeuralNetwork(metaclass=ABCMeta):
+class AbstractNeuralNetwork(metaclass=_ABCMeta):
     SMOOTH_PRINT_INTERVAL = 0.25
 
     def __init__(self):
@@ -26,34 +26,34 @@ class AbstractNeuralNetwork(metaclass=ABCMeta):
         self.lossFunction = None
         self.training = False
 
-    @abstractmethod
+    @_abstractmethod
     def _forwardPass(self, layer=1):
         pass
 
-    @abstractmethod
+    @_abstractmethod
     def _backPropagate(self, layer=-1):
         pass
 
-    @abstractmethod
+    @_abstractmethod
     def _evalDelta(self, layer):
         pass
 
-    @abstractmethod
+    @_abstractmethod
     def process(self, inputs):
         if self.training:
-            warnings.showwarning("can't process while training in progress", ResourceWarning,
-                                 'neuralNetwork.py->AbstractNeuralNetwork.process', 0)
+            _wr.showwarning("can't process while training in progress", ResourceWarning,
+                            'neuralNetwork.py->AbstractNeuralNetwork.process', 0)
             return
 
-    @abstractmethod
+    @_abstractmethod
     def _fire(self, layer):
         pass
 
-    @abstractmethod
+    @_abstractmethod
     def _wire(self, layer):
         pass
 
-    @abstractmethod
+    @_abstractmethod
     def _trainer(self, batch) -> "float":
         pass
 
@@ -69,32 +69,32 @@ class AbstractNeuralNetwork(metaclass=ABCMeta):
                 costs = [self.costs[-1][-1]]
             totTime = 0
             waitTime = self.SMOOTH_PRINT_INTERVAL
-            self.numBatches = int(np.ceil(self.trainDatabase.size / self.batchSize))
+            self.numBatches = int(_np.ceil(self.trainDatabase.size / self.batchSize))
             lastEpoch = self.epochs - 1
             for epoch in range(self.epochs):
                 cost = 0
-                time = tm.time()
+                time = _tm.time()
                 batchGenerator = self.trainDatabase.batchGenerator(self.batchSize)
                 for batch in range(self.numBatches):
                     cost += self._trainer(batchGenerator.__next__())
-                time = tm.time() - time
+                time = _tm.time() - time
                 totTime += time
                 cost /= self.trainDatabase.size
                 costs.append(cost)
                 if totTime > waitTime or epoch == lastEpoch:
                     waitTime += self.SMOOTH_PRINT_INTERVAL
                     print(end='\r')
-                    print(pV.CBOLD + pV.CBLUE + pV.CURL + f'epoch:{epoch}' + pV.CEND,
-                          pV.CYELLOW + f'cost:{cost}', f'time:{time}' + pV.CEND,
-                          pV.CBOLD + pV.CITALIC + pV.CBEIGE + f'cost-reduction:{(costs[-2] - cost)}' + pV.CEND,
-                          pV.CBOLD + f'eta:{totTime / (epoch + 1) * (self.epochs - epoch - 1)}', f'elapsed:{totTime}' +
-                          pV.CEND, end='')
-            print('\n' + pV.CBOLD + pV.CRED2 + f'total-time:{totTime}', f'average-time:{totTime / self.epochs}' +
-                  pV.CEND)
+                    print(_pV.CBOLD + _pV.CBLUE + _pV.CURL + f'epoch:{epoch}' + _pV.CEND,
+                          _pV.CYELLOW + f'cost:{cost}', f'time:{time}' + _pV.CEND,
+                          _pV.CBOLD + _pV.CITALIC + _pV.CBEIGE + f'cost-reduction:{(costs[-2] - cost)}' + _pV.CEND,
+                          _pV.CBOLD + f'eta:{totTime / (epoch + 1) * (self.epochs - epoch - 1)}', f'elapsed:{totTime}' +
+                          _pV.CEND, end='')
+            print('\n' + _pV.CBOLD + _pV.CRED2 + f'total-time:{totTime}', f'average-time:{totTime / self.epochs}' +
+                  _pV.CEND)
             self.timeTrained += totTime
             self.costs.append(costs[1:])
         else:
-            cP.runctx("self.train()", globals=globals(), locals=locals())
+            _cP.runctx("self.train()", globals=globals(), locals=locals())
 
         self._resetVars()
         self.training = False
@@ -129,19 +129,19 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         if layer <= -self.wbShape.LAYERS:
             return
         self._evalDelta(layer)
-        self.wbOptimizer(layer)
+        self.wbOptimizer.optimize(layer)
         self._wire(layer)
         self._backPropagate(layer - 1)
 
     def _evalDelta(self, layer):
         deltaBiases = self.deltaLoss[layer] * self.wbActivationDerivatives[layer](self.wbOutputs[layer])
-        np.einsum('lkj,lij->ik', self.wbOutputs[layer - 1], deltaBiases, out=self.deltaWeights[layer])
-        np.einsum('lij->ij', deltaBiases, out=self.deltaBiases[layer])
+        _np.einsum('lkj,lij->ik', self.wbOutputs[layer - 1], deltaBiases, out=self.deltaWeights[layer])
+        _np.einsum('lij->ij', deltaBiases, out=self.deltaBiases[layer])
         self.deltaLoss[layer - 1] = self.weightsList[layer].transpose() @ self.deltaLoss[layer]
 
     def process(self, inputs):
         super(ArtificialNeuralNetwork, self).process(inputs)
-        inputs = np.array(inputs)
+        inputs = _np.array(inputs)
         if inputs.size % self.wbShape[0] == 0:
             inputs = inputs.reshape([-1, self.wbShape[0], 1])
         else:
@@ -161,7 +161,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         self.weightsList[layer] -= self.deltaWeights[layer]
 
     def __deltaInitializer(self):
-        deltaLoss = [(np.zeros((self.batchSize, self.wbShape[i], 1), dtype=np.float32))
+        deltaLoss = [(_np.zeros((self.batchSize, self.wbShape[i], 1), dtype=_np.float32))
                      for i in range(0, self.wbShape.LAYERS)]
         deltaBiases, deltaWeights = self.wbInitializer.initialize(self.wbShape)
 

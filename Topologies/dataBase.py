@@ -1,21 +1,25 @@
 # library direct imports
-import os
-from typing import *
+import os as _os
+import typing as _tp
 
 # library imports
-import numpy as np
-import numexpr as ne
+import numpy as _np
+import numexpr as _ne
+
+if _tp.TYPE_CHECKING:
+    from . import *
+    from NeuralNetworks import *
 
 
 class DataBase:  # main class
     def __init__(self, inputSet: "Iterable" and "Sized",  # input signal
                  targetSet: "Iterable" and "Sized",  # desired output signal
-                 normalize: Union[int, float] = 0):  #
+                 normalize: _tp.Union[int, float] = 0):
         if (size := len(inputSet)) != len(targetSet):
             raise Exception("Both input and output set should be of same size")
 
-        self.inputSet = np.array(inputSet, dtype=np.float32)
-        self.targetSet = np.array(targetSet, dtype=np.float32)
+        self.inputSet = _np.array(inputSet, dtype=_np.float32)
+        self.targetSet = _np.array(targetSet, dtype=_np.float32)
 
         self.size: int = size
         self.pointer: int = 0
@@ -29,7 +33,7 @@ class DataBase:  # main class
     def save(self, fname: str = None) -> str:
         if fname is None:
             fname = 'db'
-        fpath = os.getcwd() + '\\DataSets\\'
+        fpath = _os.getcwd() + '\\DataSets\\'
         spath = fpath + fname + f's{self.size}i{self.inputSet.shape[1]}o{self.targetSet.shape[1]}'
 
         i = 0
@@ -37,13 +41,13 @@ class DataBase:  # main class
         while 1:
             if i != 0:
                 nSpath = spath + ' (' + str(i) + ')'
-            if os.path.exists(nSpath + '.nndb' + '.npz'):
+            if _os.path.exists(nSpath + '.nndb' + '.npz'):
                 i += 1
             else:
                 spath = nSpath
                 break
-        os.makedirs(fpath, exist_ok=True)
-        np.savez_compressed(spath + '.nndb', self.inputSet, self.targetSet)
+        _os.makedirs(fpath, exist_ok=True)
+        _np.savez_compressed(spath + '.nndb', self.inputSet, self.targetSet)
 
         return spath
 
@@ -51,28 +55,28 @@ class DataBase:  # main class
     @staticmethod
     def load(file: str) -> "DataBase":
         if file:
-            if not os.path.dirname(file):
-                file = os.getcwd() + '\\DataSets\\' + file
+            if not _os.path.dirname(file):
+                file = _os.getcwd() + '\\DataSets\\' + file
         else:
             raise FileExistsError("file not given")
 
         if file[-4:-1] != '.npz':
             raise ValueError("file type must be that of 'NPZ'")
-        nnLoader = np.load(file)
+        nnLoader = _np.load(file)
 
         return DataBase(nnLoader['arr_0'], nnLoader['arr_1'])
 
     # normalize input and target sets within the range of -scale to +scale
-    def normalize(self, scale: Union[int, float] = 1) -> "None":
+    def normalize(self, scale: _tp.Union[int, float] = 1) -> "None":
         if scale != 0:  # do not normalize if scale is zero
-            inputScale = ne.evaluate("abs(inputSet)", local_dict={'inputSet': self.inputSet}).max()
-            targetScale = ne.evaluate("abs(targetSet)", local_dict={'targetSet': self.targetSet}).max()
+            inputScale = _ne.evaluate("abs(inputSet)", local_dict={'inputSet': self.inputSet}).max()
+            targetScale = _ne.evaluate("abs(targetSet)", local_dict={'targetSet': self.targetSet}).max()
             self.inputSet /= inputScale * scale
             self.targetSet /= targetScale * scale
 
     # shuffle the input and target sets randomly and simultaneously
     def randomize(self) -> "None":
-        np.random.shuffle(self.indices)
+        _np.random.shuffle(self.indices)
         self.inputSet = self.inputSet[self.indices]
         self.targetSet = self.targetSet[self.indices]
 
@@ -101,13 +105,13 @@ class DataBase:  # main class
         return generator()
 
     # returns batch-set of index i
-    def __batch(self, i) -> Tuple[np.ndarray, np.ndarray]:
+    def __batch(self, i) -> _tp.Tuple[_np.ndarray, _np.ndarray]:
         inputBatch = self.inputSet[self.pointer:i]
         targetBatch = self.targetSet[self.pointer:i]
         if (filled := i - self.pointer) != self.batchSize:
             vacant = self.batchSize - filled
-            inputBatch = np.append(inputBatch, self.inputSet[:vacant]).reshape([-1, *self.inputSet.shape[1:]])
-            targetBatch = np.append(targetBatch, self.targetSet[:vacant]).reshape([-1, *self.targetSet.shape[1:]])
+            inputBatch = _np.append(inputBatch, self.inputSet[:vacant]).reshape([-1, *self.inputSet.shape[1:]])
+            targetBatch = _np.append(targetBatch, self.targetSet[:vacant]).reshape([-1, *self.targetSet.shape[1:]])
 
         return inputBatch, targetBatch
 

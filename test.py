@@ -1,4 +1,4 @@
-from DataSets import data_set
+from DataSets import dataSet
 from NeuralNetworks import *
 from Topologies import *
 
@@ -7,9 +7,9 @@ nn = ArtificialNeuralNetwork((3, 50, 25, 10, 1),
                              WBInitializer.xavier(2),
                              [AF.elu(), AF.elu(), AF.elu(), AF.elu()])
 
-db = DataBase(*data_set.TRAIN_SETS.train_set_xor)
+db = DataBase(*data_set.TrainSets.train_set_xor)
 db.normalize()
-db2 = DataBase(*data_set.TEST_SETS.test_set_xor)
+db2 = DataBase(*data_set.TestSets.test_set_xor)
 db2.normalize()
 
 nn.train(10000, 1,

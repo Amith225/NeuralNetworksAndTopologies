@@ -1,28 +1,26 @@
-# library direct imports
-# library imports
-import os
-import random as rd
-from typing import *
+import os as _os
+import typing as _tp
+import random as _rd
 
-import dill
-# library from imports
-from matplotlib import collections as mc, pyplot as plt
+import dill as _dl
+from matplotlib import collections as _mc, pyplot as _plt
 
 # library imports for type checking
-if TYPE_CHECKING:
-    from .neuralNetwork import *
+if _tp.TYPE_CHECKING:
+    from . import *
+    from Topologies import *
 
 # setup for plotting
-colDict = mc.mcolors.cnames
+colDict = _mc.mcolors.cnames
 colDict.pop('black')
-colors = list(mc.mcolors.cnames.values())
-plt.style.use('dark_background')
+colors = list(_mc.mcolors.cnames.values())
+_plt.style.use('dark_background')
 
 
 class SaveNeuralNetwork:  # save neural network class
     # saves neural network as .nns file
     @staticmethod
-    def save(this: "AbstractNeuralNetwork", fname: "str" = None) -> Union["str", "None"]:
+    def save(this: "AbstractNeuralNetwork", fname: "str" = None) -> _tp.Union["str", "None"]:
         if fname is None:
             fname = 'nn'
         if len(fname) >= 4 and '.nns' == fname[-4:0]:
@@ -34,29 +32,26 @@ class SaveNeuralNetwork:  # save neural network class
                 return
             cost = ''
         epoch = sum([len(c) for c in this.costs])
-        fname += 'c' + cost + 'e' + str(epoch) + 't' + str(round(this.timeTrained / 60, 2)) + \
-                 str(this.wbShape).replace('(', 's').replace(')', '').replace(' ', '')
+        fname += 'c' + cost + 'e' + str(epoch) + 't' + str(round(this.timeTrained / 60, 2))
 
-        trainDatabase, outputs, target = this.trainDatabase, this.wbOutputs, this.target
-        loss, deltaLoss = this.loss, this.deltaLoss
-        this.trainDatabase = this.wbOutputs = this.target = this.loss = this.deltaLoss = None
-        fpath = os.getcwd() + '\\Models\\'
+        trainDatabase = this.trainDatabase
+        this.trainDatabase = None
+        fpath = _os.getcwd() + '\\Models\\'
         spath = fpath + fname + '.nns'
-        os.makedirs(fpath, exist_ok=True)
+        _os.makedirs(fpath, exist_ok=True)
 
         i = 0
         nSpath = spath
         while 1:
             if i != 0:
                 nSpath = spath + ' (' + str(i) + ')'
-            if os.path.exists(nSpath):
+            if _os.path.exists(nSpath):
                 i += 1
             else:
                 spath = nSpath
                 break
-        dill.dump(this, open(spath, 'wb'))
-        this.trainDatabase, this.wbOutputs, this.target = trainDatabase, outputs, target
-        this.loss, this.deltaLoss = loss, deltaLoss
+        _dl.dump(this, open(spath, 'wb'))
+        this.trainDatabase = trainDatabase
 
         return spath
 
@@ -66,12 +61,12 @@ class LoadNeuralNetwork:  # load neural network class
     @staticmethod
     def load(file: "str") -> "AbstractNeuralNetwork":
         if file:
-            if not os.path.dirname(file):
-                file = os.getcwd() + '\\Models\\' + file
+            if not _os.path.dirname(file):
+                file = _os.getcwd() + '\\Models\\' + file
             elif '\\' == file[0] or '/' == file[0] or '//' == file[0]:
-                file = os.getcwd() + file
+                file = _os.getcwd() + file
 
-        return dill.load(open(file, 'rb'))
+        return _dl.load(open(file, 'rb'))
 
 
 class PlotNeuralNetwork:  # plot neural network class
@@ -87,11 +82,11 @@ class PlotNeuralNetwork:  # plot neural network class
             costs.append([(c + i, j) for c, j in enumerate(cost)])
             i += len(cost)
 
-        rd.shuffle(colors)
-        lc = mc.LineCollection(costs, colors=colors, linewidths=1, antialiaseds=True)
-        sp = plt.subplot()
+        _rd.shuffle(colors)
+        lc = _mc.LineCollection(costs, colors=colors, linewidths=1, antialiaseds=True)
+        sp = _plt.subplot()
         sp.add_collection(lc)
 
         sp.autoscale()
         sp.margins(0.1)
-        plt.show()
+        _plt.show()

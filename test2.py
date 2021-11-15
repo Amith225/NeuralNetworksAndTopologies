@@ -1,5 +1,7 @@
 import numpy as np
 
+from typing import *
+
 from NeuralNetworks import *
 from Topologies import *
 
@@ -169,7 +171,7 @@ class KRInitializer:
             print(conv_output_shapes)
             exit()
             kernel_biases = [np.random.uniform(start, stop, [*s]).astype(dtype=np.float32)
-                             for s in kernel_output_shapes[1:]]
+                             for s in conv_output_shapes[1:]]
             kernels = [np.random.uniform(start, stop, [*s]).astype(dtype=np.float32) for s in shape[1:]]
 
             return np.NONE + kernel_biases, np.NONE + kernels

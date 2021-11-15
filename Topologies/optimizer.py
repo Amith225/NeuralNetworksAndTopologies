@@ -62,7 +62,7 @@ class MomentumWBOptimizer(WBOptimizer):
 # non verified algorithm
 class NesterovMomentumWBOptimizer(WBOptimizer):
     def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.01, alpha=None):
-        _wr.showwarning("\nnesterovMomentum has tag 'non verified algorithm' and might not work as intended, "
+        _wr.showwarning("\nNesterovMomentum has tag 'non verified algorithm' and might not work as intended, "
                         "\nuse 'momentum' instead for stable working", FutureWarning,
                         'optimizer.py->NesterovMomentumWBOptimizer', 0)
         if alpha is None:
@@ -118,8 +118,8 @@ class DecayWBOptimizer(WBOptimizer):
 
 
 class AdagradWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: 'ArtificialNeuralNetwork', learning_rate=0.01, epsilon=_np.e ** -8):
-        super(AdagradWBOptimizer, self).__init__(neural_network, learning_rate, epsilon=epsilon)
+    def __init__(self, neural_network: 'ArtificialNeuralNetwork', learningRate=0.01, epsilon=_np.e ** -8):
+        super(AdagradWBOptimizer, self).__init__(neural_network, learningRate, epsilon=epsilon)
         self.grad_square_biases = [0 for _ in range(self.nn.wbShape.LAYERS)]
         self.grad_square_weights = self.grad_square_biases.copy()
 
@@ -129,7 +129,6 @@ class AdagradWBOptimizer(WBOptimizer):
                       'deltaWeight': self.nn.deltaWeights[layer],
                       'grad_square_bias': self.grad_square_biases[layer],
                       'grad_square_weight': self.grad_square_weights[layer]}
-
         self.grad_square_biases[layer] = _ne.evaluate('grad_square_bias + deltaBias*deltaBias',
                                                       local_dict=local_dict)
         self.grad_square_weights[layer] = _ne.evaluate('grad_square_weight + deltaWeight*deltaWeight',
@@ -141,7 +140,6 @@ class AdagradWBOptimizer(WBOptimizer):
                       'grad_square_weight': self.grad_square_weights[layer],
                       'EPSILON': self.EPSILON,
                       'LEARNING_RATE': self.LEARNING_RATE}
-
         self.nn.deltaBiases[layer] = _ne.evaluate('deltaBias * LEARNING_RATE / sqrt(grad_square_bias + EPSILON)',
                                                   local_dict=local_dict)
         self.nn.deltaWeights[layer] = _ne.evaluate('deltaWeight * LEARNING_RATE / sqrt(grad_square_weight + EPSILON)',
@@ -149,8 +147,8 @@ class AdagradWBOptimizer(WBOptimizer):
 
 
 class RmspropWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: 'ArtificialNeuralNetwork', learning_rate=0.001, beta=0.9, epsilon=_np.e ** -8):
-        super(RmspropWBOptimizer, self).__init__(neural_network, learning_rate, beta=beta, epsilon=epsilon)
+    def __init__(self, neural_network: 'ArtificialNeuralNetwork', learningRate=0.001, beta=0.9, epsilon=_np.e ** -8):
+        super(RmspropWBOptimizer, self).__init__(neural_network, learningRate, beta=beta, epsilon=epsilon)
         self.grad_square_biases_sum = [0 for _ in range(self.nn.wbShape.LAYERS)]
         self.grad_square_weights_sum = self.grad_square_biases_sum.copy()
 
@@ -162,11 +160,10 @@ class RmspropWBOptimizer(WBOptimizer):
                       'grad_square_weight_sum': self.grad_square_weights_sum[layer],
                       'BETA': self.BETA,
                       'BETA_BAR': self.BETA_BAR}
-
         self.grad_square_biases_sum[layer] = _ne.evaluate(
             "BETA * grad_square_bias_sum + BETA_BAR * deltaBias*deltaBias", local_dict=local_dict)
         self.grad_square_weights_sum[layer] = _ne.evaluate(
-            "BETA * grad_square_weights_sum + BETA_BAR * deltaWeight*deltaWeight", local_dict=local_dict)
+            "BETA * grad_square_weight_sum + BETA_BAR * deltaWeight*deltaWeight", local_dict=local_dict)
 
         local_dict = {'deltaBias': self.nn.deltaBiases[layer],
                       'deltaWeight': self.nn.deltaWeights[layer],
@@ -174,8 +171,52 @@ class RmspropWBOptimizer(WBOptimizer):
                       'grad_square_weight_sum': self.grad_square_weights_sum[layer],
                       'EPSILON': self.EPSILON,
                       'LEARNING_RATE': self.LEARNING_RATE}
-
-        self.nn.deltaBiases[layer] = _ne.evaluate('deltaBias * LEARNING_RATE / sqrt(grad_square_weight_sum + EPSILON)',
+        self.nn.deltaBiases[layer] = _ne.evaluate('deltaBias * LEARNING_RATE / sqrt(grad_square_bias_sum + EPSILON)',
                                                   local_dict=local_dict)
         self.nn.deltaWeights[layer] = _ne.evaluate(
             'deltaWeight * LEARNING_RATE / sqrt(grad_square_weight_sum +EPSILON)', local_dict=local_dict)
+
+
+# non verified algorithm
+class AdadeltaWBOptimizer(WBOptimizer):
+    def __init__(self, neural_network: 'ArtificialNeuralNetwork', learningRate=0.0001, beta=0.9, epsilon=_np.e ** -8):
+        _wr.showwarning("\nAdadelta has tag 'non verified algorithm' and might not work as intended, "
+                        "\nuse 'Rmsprop' instead for stable working", FutureWarning,
+                        'optimizer.py->AdadeltaWBOptimizer', 0)
+        super(AdadeltaWBOptimizer, self).__init__(neural_network, learningRate, beta=beta, epsilon=epsilon)
+        self.grad_square_biases_sum = [0 for _ in range(self.nn.wbShape.LAYERS)]
+        self.grad_square_weights_sum = self.grad_square_biases_sum.copy()
+        self.delta_square_biases_sum = [0 for _ in range(self.nn.wbShape.LAYERS)]
+        self.delta_square_weights_sum = self.delta_square_biases_sum.copy()
+
+    def optimize(self, layer):
+        local_dict = {'deltaBias': self.nn.deltaBiases[layer],
+                      'deltaWeight': self.nn.deltaWeights[layer],
+                      'grad_square_bias_sum': self.grad_square_biases_sum[layer],
+                      'grad_square_weight_sum': self.grad_square_weights_sum[layer],
+                      'BETA': self.BETA,
+                      'BETA_BAR': self.BETA_BAR}
+        self.grad_square_biases_sum[layer] = _ne.evaluate(
+            "BETA * grad_square_bias_sum + BETA_BAR * deltaBias*deltaBias", local_dict=local_dict)
+        self.grad_square_weights_sum[layer] = _ne.evaluate(
+            "BETA * grad_square_weight_sum + BETA_BAR * deltaWeight*deltaWeight", local_dict=local_dict)
+
+        self.nn.deltaBiases[layer] *=\
+            self.LEARNING_RATE *\
+            _np.sqrt((self.delta_square_biases_sum[layer] + self.EPSILON) / (self.grad_square_biases_sum[layer] +
+                                                                             self.EPSILON))
+        self.nn.deltaWeights[layer] *=\
+            self.LEARNING_RATE *\
+            _np.sqrt((self.delta_square_weights_sum[layer] + self.EPSILON) / (self.grad_square_weights_sum[layer] +
+                                                                              self.EPSILON))
+
+        local_dict = {'deltaBias': self.nn.deltaBiases[layer],
+                      'deltaWeight': self.nn.deltaWeights[layer],
+                      'delta_square_bias_sum': self.delta_square_biases_sum[layer],
+                      'delta_square_weight_sum': self.delta_square_weights_sum[layer],
+                      'BETA': self.BETA,
+                      'BETA_BAR': self.BETA_BAR}
+        self.delta_square_biases_sum[layer] = _ne.evaluate(
+            "BETA * delta_square_bias_sum + BETA_BAR * deltaBias*deltaBias", local_dict=local_dict)
+        self.delta_square_weights_sum[layer] = _ne.evaluate(
+            "BETA * delta_square_weight_sum + BETA_BAR * deltaWeight*deltaWeight", local_dict=local_dict)

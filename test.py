@@ -4,20 +4,24 @@ from Topologies import *
 
 import numpy as np
 
-aF = WBActivationFunction
-nn = ArtificialNeuralNetwork(wbShape=WBShape(784, 392, 196, 47),
-                             wbInitializer=WBInitializer.xavier(2),
-                             wbActivations=Activations(aF.prelu(), ..., aF.softmax()))
-
+# xor = [[[0], [0], [0]], [[0], [0], [1]], [[0], [1], [0]], [[0], [1], [1]],
+#        [[1], [0], [0]], [[1], [0], [1]], [[1], [1], [0]], [[1], [1], [1]]], \
+#       [[[0]], [[1]], [[1]], [[0]], [[1]], [[0]], [[0]], [[1]]]
 db = DataBase.load(dataSet.TrainSets.EmnistBalanced)
 db.normalize()
 db2 = DataBase.load(dataSet.TestSets.EmnistBalanced)
 db2.normalize()
 
-nn.train(3, 64,
+aF = WBActivationFunction
+hiddenShape = 392, 196
+nn = ArtificialNeuralNetwork(wbShape=WBShape(db.inpShape, *hiddenShape, db.tarShape),
+                             wbInitializer=XavierWBInitializer(2),
+                             wbActivations=Activations(aF.prelu(), ..., aF.softmax()))
+
+nn.train(4, 128,
          trainDatabase=db,
          lossFunction=LossFunction.meanSquare(),
-         wbOptimizer=NesterovMomentumWBOptimizer(nn, 0.001),
+         wbOptimizer=AdagradWBOptimizer(nn),
          profile=False)
 
 

@@ -22,6 +22,8 @@ class DataBase:  # main class
         self.targetSet = _np.array(targetSet, dtype=_np.float32)
 
         self.size: int = size
+        self.inpShape = self.inputSet.shape[1]
+        self.tarShape = self.targetSet.shape[1]
         self.pointer: int = 0
         self.block: bool = False
         self.batchSize: int = 1

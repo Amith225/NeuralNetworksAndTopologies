@@ -5,8 +5,7 @@ import numpy as _np
 
 # library imports for type checking
 if _tp.TYPE_CHECKING:
-    from . import *
-    from NeuralNetworks import *
+    from NeuralNetworks import WBShape
 
 # setup list or element numpy array of None
 _np.NONE = [_np.array([None])]

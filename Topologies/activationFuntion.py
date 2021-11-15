@@ -4,8 +4,7 @@ from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
 import numpy as _np
 
 if _tp.TYPE_CHECKING:
-    from . import *
-    from NeuralNetworks import *
+    pass
 
 
 class WBActivationFunction(metaclass=_ABCMeta):  # main class

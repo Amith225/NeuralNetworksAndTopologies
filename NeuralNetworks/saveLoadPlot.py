@@ -7,8 +7,7 @@ from matplotlib import collections as _mc, pyplot as _plt
 
 # library imports for type checking
 if _tp.TYPE_CHECKING:
-    from . import *
-    from Topologies import *
+    from NeuralNetworks import AbstractNeuralNetwork
 
 # setup for plotting
 colDict = _mc.mcolors.cnames

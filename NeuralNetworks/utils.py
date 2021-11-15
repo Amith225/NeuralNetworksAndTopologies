@@ -3,8 +3,7 @@ import typing as _tp
 import numpy as _np
 
 if _tp.TYPE_CHECKING:
-    from . import *
-    from Topologies import *
+    pass
 
 
 class WBShape:

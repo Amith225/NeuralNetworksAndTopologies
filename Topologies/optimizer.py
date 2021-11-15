@@ -5,10 +5,10 @@ from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
 import numpy as _np
 import numexpr as _ne
 
-from NeuralNetworks import *
+from NeuralNetworks import copyNumpyList
 
 if _tp.TYPE_CHECKING:
-    from . import *
+    from NeuralNetworks import ArtificialNeuralNetwork
 
 
 class WBOptimizer(metaclass=_ABCMeta):

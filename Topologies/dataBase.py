@@ -1,14 +1,11 @@
-# library direct imports
 import os as _os
 import typing as _tp
 
-# library imports
 import numpy as _np
 import numexpr as _ne
 
 if _tp.TYPE_CHECKING:
-    from . import *
-    from NeuralNetworks import *
+    pass
 
 
 class DataBase:  # main class

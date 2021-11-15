@@ -9,8 +9,8 @@ import numpy as _np
 from .printVars import PrintVars as _pV
 
 if _tp.TYPE_CHECKING:
-    from . import *
-    from Topologies import *
+    from NeuralNetworks import WBShape, Activations, DataBase
+    from Topologies import WBInitializer, WBOptimizer, LossFunction
 
 
 class AbstractNeuralNetwork(metaclass=_ABCMeta):

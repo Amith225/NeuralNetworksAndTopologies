@@ -1,7 +1,6 @@
-# library direct imports
 import typing as _tp
+from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
 
-# library imports
 import numpy as _np
 
 if _tp.TYPE_CHECKING:
@@ -9,114 +8,115 @@ if _tp.TYPE_CHECKING:
     from NeuralNetworks import *
 
 
-class WBActivationFunction:  # main class
-    # WBActivationFunction class and methods / params for custom activation function
-    def __init__(self, activation: _tp.Callable, activatedDerivative: _tp.Callable):
-        self.__activation = activation
-        self.__activatedDerivative = activatedDerivative
+class WBActivationFunction(metaclass=_ABCMeta):  # main class
+    # WBActivationFunction class and methods
+    @_abstractmethod
+    def __init__(self, *args, **kwargs):
+        # constants
+        self.ONE = _np.float32(1)
+        self.E = _np.float32(_np.e)
+
+    @_abstractmethod
+    def activation(self, x: _np.ndarray) -> "_np.ndarray":
+        pass
+
+    @_abstractmethod
+    def activatedDerivative(self, activatedX: _np.ndarray) -> "_np.ndarray":
+        pass
+
+
+class SigmoidWBActivationFunction(WBActivationFunction):
+    def __init__(self, smooth: _tp.Union[int, float] = 1, offset: _tp.Union[int, float] = 0):
+        super(SigmoidWBActivationFunction, self).__init__()
+        # constants
+        self.SMOOTH = _np.float32(smooth)
+        self.OFFSET = _np.float32(offset)
 
     def activation(self, x: _np.ndarray) -> _np.ndarray:
-        return self.__activation(x)
+        return self.ONE / (self.ONE + self.E ** (-self.SMOOTH * (x - self.OFFSET)))
 
     def activatedDerivative(self, activatedX: _np.ndarray) -> _np.ndarray:
-        return self.__activatedDerivative(activatedX)
+        return self.SMOOTH * (activatedX * (self.ONE - activatedX))
 
-    # Pre-Defined activation functions
-    @staticmethod
-    def sigmoid(smooth: _tp.Union[int, float] = 1, offset: _tp.Union[int, float] = 0) -> "WBActivationFunction":
+
+class TanhWBActivationFunction(WBActivationFunction):
+    def __init__(self, alpha: _tp.Union[int, float] = 1):
+        super(TanhWBActivationFunction, self).__init__()
         # constants
-        ONE = _np.float32(1)
-        E = _np.float32(_np.e)
-        SMOOTH = _np.float32(smooth)
-        OFFSET = _np.float32(offset)
+        self.ALPHA = _np.float32(alpha)
 
-        def activation(x: _np.ndarray) -> _np.ndarray:
-            return ONE / (ONE + E ** (-SMOOTH * (x - OFFSET)))
+    def activation(self, x: _np.ndarray) -> _np.ndarray:
+        return _np.arctan(self.ALPHA * x)
 
-        def activatedDerivative(activatedX: _np.ndarray) -> _np.ndarray:
-            return SMOOTH * (activatedX * (ONE - activatedX))
+    def activatedDerivative(self, activatedX: _np.ndarray) -> _np.ndarray:
+        return self.ALPHA * _np.square(_np.cos(activatedX))
 
-        return WBActivationFunction(activation, activatedDerivative)
 
-    @staticmethod
-    def tanh(alpha: _tp.Union[int, float] = 1) -> "WBActivationFunction":
-        # constants
-        ALPHA = _np.float32(alpha)
+class ReluWBActivationFunction(WBActivationFunction):
+    def __init__(self):
+        super(ReluWBActivationFunction, self).__init__()
 
-        def activation(x: _np.ndarray) -> _np.ndarray: return _np.arctan(ALPHA * x)
+    def activation(self, x: _np.ndarray) -> _np.ndarray:
+        return x * (x > 0)
 
-        def activatedDerivative(activatedX: _np.ndarray) -> _np.ndarray: return ALPHA * _np.square(_np.cos(activatedX))
+    def activatedDerivative(self, activatedX: _np.ndarray) -> _np.ndarray:
+        return self.ONE * (activatedX != 0)
 
-        return WBActivationFunction(activation, activatedDerivative)
 
-    @staticmethod
-    def relu() -> "WBActivationFunction":
-        # constants
-        ONE = _np.float32(1)
-
-        def activation(x: _np.ndarray) -> _np.ndarray: return x * (x > 0)
-
-        def activatedDerivative(activatedX: _np.ndarray) -> _np.ndarray: return ONE * (activatedX != 0)
-
-        return WBActivationFunction(activation, activatedDerivative)
-
-    @staticmethod
-    def prelu(leak: _tp.Union[int, float] = 0.01) -> "WBActivationFunction":
-        # constants
+class PreluWBActivationFunction(WBActivationFunction):
+    def __init__(self, leak: _tp.Union[int, float] = 0.01):
+        super(PreluWBActivationFunction, self).__init__()
         if leak < 0:
             raise ValueError("parameter 'leak' cannot be less than zero")
-        ONE = _np.float32(1)
-        LEAK = _np.float32(leak)
-
-        def activation(x: _np.ndarray) -> _np.ndarray: return _np.where(x > 0, x, LEAK * x)
-
-        def activatedDerivative(activatedX: _np.ndarray) -> _np.ndarray: return _np.where(activatedX <= 0, LEAK, ONE)
-
-        return WBActivationFunction(activation, activatedDerivative)
-
-    @staticmethod
-    def elu(alpha: _tp.Union[int, float] = 1) -> "WBActivationFunction":
         # constants
+        self.LEAK = _np.float32(leak)
+
+    def activation(self, x: _np.ndarray) -> _np.ndarray:
+        return _np.where(x > 0, x, self.LEAK * x)
+
+    def activatedDerivative(self, activatedX: _np.ndarray) -> _np.ndarray:
+        return _np.where(activatedX <= 0, self.LEAK, self.ONE)
+
+
+class EluWBActivationFunction(WBActivationFunction):
+    def __init__(self, alpha: _tp.Union[int, float] = 1):
+        super(EluWBActivationFunction, self).__init__()
         if alpha < 0:
             raise ValueError("parameter 'alpha' cannot be less than zero")
-        ONE = _np.float32(1)
-        E = _np.e
-        ALPHA = _np.float32(alpha)
-
-        def activation(x: _np.ndarray) -> _np.ndarray: return _np.where(x > 0, x, ALPHA * (E ** x - 1))
-
-        def activatedDerivative(activatedX: _np.ndarray) -> _np.ndarray:
-            return _np.where(activatedX <= 0, activatedX + ALPHA, ONE)
-
-        return WBActivationFunction(activation, activatedDerivative)
-
-    @staticmethod
-    def softmax() -> "WBActivationFunction":
         # constants
-        E = _np.float32(_np.e)
+        self.ALPHA = _np.float32(alpha)
 
-        def activation(x: _np.ndarray) -> _np.ndarray:
-            numerator = E ** (x - x.max(axis=1, keepdims=1))
+    def activation(self, x: _np.ndarray) -> _np.ndarray:
+        return _np.where(x > 0, x, self.ALPHA * (self.E ** x - 1))
 
-            return numerator / numerator.sum(axis=1, keepdims=1)
+    def activatedDerivative(self, activatedX: _np.ndarray) -> _np.ndarray:
+        return _np.where(activatedX <= 0, activatedX + self.ALPHA, self.ONE)
 
-        def activatedDerivative(activatedX: _np.ndarray):
-            jacobian = activatedX @ activatedX.transpose([0, 2, 1])
-            diagIndexes = _np.diag_indices(jacobian.shape[1])
-            jacobian[:, [diagIndexes[1]], [diagIndexes[0]]] = (activatedX * (1 - activatedX)).transpose(0, 2, 1)
 
-            return jacobian.sum(axis=2, keepdims=1)
+class SoftmaxWBActivationFunction(WBActivationFunction):
+    def __init__(self):
+        super(SoftmaxWBActivationFunction, self).__init__()
+        self.jacobian = None
 
-        return WBActivationFunction(activation, activatedDerivative)
+    def activation(self, x: _np.ndarray) -> _np.ndarray:
+        numerator = self.E ** (x - x.max(axis=1, keepdims=1))
 
-    @staticmethod
-    def softplus() -> "WBActivationFunction":
-        # constants
-        E = _np.float32(_np.e)
-        ONE = _np.float32(1)
+        return numerator / numerator.sum(axis=1, keepdims=1)
 
-        def activation(x: _np.ndarray) -> _np.ndarray: return _np.log(ONE + E ** x)
+    def activatedDerivative(self, activatedX: _np.ndarray):
+        self.jacobian = activatedX @ activatedX.transpose([0, 2, 1])
+        diagIndexes = _np.diag_indices(self.jacobian.shape[1])
+        self.jacobian[:, [diagIndexes[1]], [diagIndexes[0]]] = (activatedX * (1 - activatedX)).transpose(0, 2, 1)
 
-        def activatedDerivative(activatedX: _np.ndarray) -> _np.ndarray: return ONE - E ** -activatedX
+        return self.jacobian.sum(axis=2, keepdims=1)
 
-        return WBActivationFunction(activation, activatedDerivative)
+
+class SoftplusWBActivationFunction(WBActivationFunction):
+    def __init__(self):
+        super(SoftplusWBActivationFunction, self).__init__()
+
+    def activation(self, x: _np.ndarray) -> _np.ndarray:
+        return _np.log(self.ONE + self.E ** x)
+
+    def activatedDerivative(self, activatedX: _np.ndarray) -> _np.ndarray:
+        return self.ONE - self.E ** -activatedX

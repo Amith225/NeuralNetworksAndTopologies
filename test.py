@@ -12,11 +12,12 @@ db.normalize()
 db2 = DataBase.load(dataSet.TestSets.EmnistBalanced)
 db2.normalize()
 
-aF = WBActivationFunction
 hiddenShape = 392, 196
 nn = ArtificialNeuralNetwork(wbShape=WBShape(db.inpShape, *hiddenShape, db.tarShape),
                              wbInitializer=XavierWBInitializer(2),
-                             wbActivations=Activations(aF.prelu(), ..., aF.softmax()))
+                             wbActivations=Activations(PreluWBActivationFunction(),
+                                                       ...,
+                                                       SoftmaxWBActivationFunction()))
 
 nn.train(4, 128,
          trainDatabase=db,

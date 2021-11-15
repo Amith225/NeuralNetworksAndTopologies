@@ -12,8 +12,8 @@ if _tp.TYPE_CHECKING:
 
 
 class DataBase:  # main class
-    def __init__(self, inputSet: "Iterable" and "Sized",  # input signal
-                 targetSet: "Iterable" and "Sized",  # desired output signal
+    def __init__(self, inputSet: _tp.Iterable and _tp.Sized,  # input signal
+                 targetSet: _tp.Iterable and _tp.Sized,  # desired output signal
                  normalize: _tp.Union[int, float] = 0):
         if (size := len(inputSet)) != len(targetSet):
             raise Exception("Both input and output set should be of same size")
@@ -60,8 +60,8 @@ class DataBase:  # main class
         else:
             raise FileExistsError("file not given")
 
-        if file[-4:-1] != '.npz':
-            raise ValueError("file type must be that of 'NPZ'")
+        if file[-4:] != '.npz':
+            raise ValueError(f"file type must be that of 'NPZ' but given {file}")
         nnLoader = _np.load(file)
 
         return DataBase(nnLoader['arr_0'], nnLoader['arr_1'])
@@ -69,10 +69,12 @@ class DataBase:  # main class
     # normalize input and target sets within the range of -scale to +scale
     def normalize(self, scale: _tp.Union[int, float] = 1) -> "None":
         if scale != 0:  # do not normalize if scale is zero
-            inputScale = _ne.evaluate("abs(inputSet)", local_dict={'inputSet': self.inputSet}).max()
-            targetScale = _ne.evaluate("abs(targetSet)", local_dict={'targetSet': self.targetSet}).max()
-            self.inputSet /= inputScale * scale
-            self.targetSet /= targetScale * scale
+            inputScale = _ne.evaluate("abs(inputSet) * scale",
+                                      local_dict={'inputSet': self.inputSet, 'scale': scale}).max()
+            targetScale = _ne.evaluate("abs(targetSet) * scale",
+                                       local_dict={'targetSet': self.targetSet, 'scale': scale}).max()
+            self.inputSet /= inputScale
+            self.targetSet /= targetScale
 
     # shuffle the input and target sets randomly and simultaneously
     def randomize(self) -> "None":
@@ -81,15 +83,15 @@ class DataBase:  # main class
         self.targetSet = self.targetSet[self.indices]
 
     # returns a generator for input and target sets, each batch-sets of size batchSize at a time
-    def batchGenerator(self, batch_size) -> "Generator":
+    def batchGenerator(self, batch_size) -> _tp.Generator:
         if self.block:
             raise PermissionError("Access Denied: DataBase currently in use, "
-                                  "'end' previous generator before creating a new one")
+                                  "end previous generator before creating a new one")
         self.block = True
         self.batchSize = batch_size
         self.randomize()
 
-        def generator() -> "Generator":
+        def generator() -> _tp.Generator:
             while True:
                 if (i := self.pointer + batch_size) >= self.size:
                     i = self.size

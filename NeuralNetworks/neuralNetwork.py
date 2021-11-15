@@ -35,10 +35,6 @@ class AbstractNeuralNetwork(metaclass=_ABCMeta):
         pass
 
     @_abstractmethod
-    def _evalDelta(self, layer):
-        pass
-
-    @_abstractmethod
     def process(self, inputs):
         if self.training:
             _wr.showwarning("can't process while training in progress", ResourceWarning,
@@ -128,16 +124,9 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
     def _backPropagate(self, layer=-1):
         if layer <= -self.wbShape.LAYERS:
             return
-        self._evalDelta(layer)
         self.wbOptimizer.optimize(layer)
         self._wire(layer)
         self._backPropagate(layer - 1)
-
-    def _evalDelta(self, layer):
-        deltaBiases = self.deltaLoss[layer] * self.wbActivationDerivatives[layer](self.wbOutputs[layer])
-        _np.einsum('lkj,lij->ik', self.wbOutputs[layer - 1], deltaBiases, out=self.deltaWeights[layer])
-        _np.einsum('lij->ij', deltaBiases, out=self.deltaBiases[layer])
-        self.deltaLoss[layer - 1] = self.weightsList[layer].transpose() @ self.deltaLoss[layer]
 
     def process(self, inputs):
         super(ArtificialNeuralNetwork, self).process(inputs)

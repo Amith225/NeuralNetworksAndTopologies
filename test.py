@@ -7,17 +7,17 @@ import numpy as np
 aF = WBActivationFunction
 nn = ArtificialNeuralNetwork(wbShape=WBShape(784, 392, 196, 47),
                              wbInitializer=WBInitializer.xavier(2),
-                             wbActivations=Activations(aF.relu(), ..., aF.softmax()))
+                             wbActivations=Activations(aF.prelu(), ..., aF.softmax()))
 
-db = DataBase(*dataSet.TrainSets.EmnistBalanced)
+db = DataBase.load(dataSet.TrainSets.EmnistBalanced)
 db.normalize()
-db2 = DataBase(*dataSet.TestSets.EmnistBalanced)
+db2 = DataBase.load(dataSet.TestSets.EmnistBalanced)
 db2.normalize()
 
 nn.train(3, 64,
          trainDatabase=db,
          lossFunction=LossFunction.meanSquare(),
-         wbOptimizer=AdagradWBOptimizer(nn),
+         wbOptimizer=NesterovMomentumWBOptimizer(nn, 0.001),
          profile=False)
 
 

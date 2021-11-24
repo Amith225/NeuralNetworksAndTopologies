@@ -27,7 +27,7 @@ class WBOptimizer(metaclass=_ABCMeta):
         self._evalDelta(layer)
     
     def _evalDelta(self, layer):
-        deltaBiases = self.nn.deltaLoss[layer] * self.nn.wbActivationDerivatives[layer](self.nn.wbOutputs[layer])
+        deltaBiases = self.nn.deltaLoss[layer] * self.nn.activationDerivatives[layer](self.nn.wbOutputs[layer])
         _np.einsum('lkj,lij->ik', self.nn.wbOutputs[layer - 1], deltaBiases, out=self.nn.deltaWeights[layer])
         _np.einsum('lij->ij', deltaBiases, out=self.nn.deltaBiases[layer])
         self.nn.deltaLoss[layer - 1] = self.nn.weightsList[layer].transpose() @ self.nn.deltaLoss[layer]
@@ -78,13 +78,13 @@ class NesterovMomentumWBOptimizer(WBOptimizer):
     def _fire(self, layer):
         if self.nn.training:
             self.nn.wbOutputs[layer] =\
-                self.nn.wbActivations[layer](self.momentum_weights[layer] @ self.nn.wbOutputs[layer - 1] +
-                                             self.momentum_biases[layer])
+                self.nn.activations[layer](self.momentum_weights[layer] @ self.nn.wbOutputs[layer - 1] +
+                                           self.momentum_biases[layer])
         else:
             super(ArtificialNeuralNetwork, self.nn)._fire(layer)  # noqa
 
     def _evalDelta(self, layer):
-        deltaBiases = self.nn.deltaLoss[layer] * self.nn.wbActivationDerivatives[layer](self.nn.wbOutputs[layer])
+        deltaBiases = self.nn.deltaLoss[layer] * self.nn.activationDerivatives[layer](self.nn.wbOutputs[layer])
         _np.einsum('lkj,lij->ik', self.nn.wbOutputs[layer - 1], deltaBiases, out=self.nn.deltaWeights[layer])
         _np.einsum('lij->ij', deltaBiases, out=self.nn.deltaBiases[layer])
         self.nn.deltaLoss[layer - 1] = self.momentum_weights[layer].transpose() @ self.nn.deltaLoss[layer]

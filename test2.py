@@ -1,4 +1,8 @@
 import numpy as np
+import numpy as _np
+import os as _os
+import numexpr as _ne
+import typing as _tp
 
 from typing import *
 
@@ -218,3 +222,76 @@ class KRActivationFunction:  # main class
             return SMOOTH * (activated_x * (ONE - activated_x))
 
         return KRActivationFunction(activation, activated_derivative)
+
+
+
+class ProxyDataBase:
+    def __init__(self, inputSet: _tp.Iterable and _tp.Sized,  # input signal
+                 targetSet: _tp.Iterable and _tp.Sized,  # desired output signal
+                 normalize: _tp.Union[int, float] = 0):
+        if (size := len(inputSet)) != len(targetSet):
+            raise Exception("Both input and output set should be of same size")
+
+        inputSet = self.normalize(_np.array(inputSet, dtype=_np.float32), normalize)
+        targetSet = self.normalize(_np.array(targetSet, dtype=_np.float32), normalize)
+        fTmp = tf.NamedTemporaryFile(delete=False)
+        self.cacheInputSet = fTmp.name + ".npy"
+        _np.save(self.cacheInputSet, inputSet, allow_pickle=False)
+        fTmp = tf.NamedTemporaryFile(delete=False)
+        self.cacheTargetSet = fTmp.name + ".npy"
+        _np.save(self.cacheTargetSet, targetSet, allow_pickle=False)
+
+        self.size: int = size
+        self.inpShape = inputSet.shape[1]
+        self.tarShape = targetSet.shape[1]
+        self.pointer: int = 0
+        self.block: bool = False
+        self.batchSize: int = 1
+        self.indices = list(range(self.size))
+
+    # normalize input and target sets within the range of -scale to +scale
+    @staticmethod
+    def normalize(data, scale: _tp.Union[int, float] = 1) -> "_np.ndarray":
+        if scale != 0:  # do not normalize if scale is zero
+            scale = _ne.evaluate("abs(data) * scale", local_dict={'data': data, 'scale': scale}).max()
+
+            return data / scale
+        else:
+            return data
+
+    # save database as NPZ file
+    def save(self, fname: str = None) -> str:
+        if fname is None:
+            fname = 'db'
+        fpath = _os.getcwd() + '\\DataSets\\'
+        spath = fpath + fname + f's{self.size}i{self.inpShape}o{self.tarShape}'
+
+        i = 0
+        nSpath = spath
+        while 1:
+            if i != 0:
+                nSpath = spath + ' (' + str(i) + ')'
+            if _os.path.exists(nSpath + '.nndb' + '.npz'):
+                i += 1
+            else:
+                spath = nSpath
+                break
+        _os.makedirs(fpath, exist_ok=True)
+        _np.savez_compressed(spath + '.nndb', self.inputSet, self.targetSet)
+
+        return spath
+
+    # load a database file
+    @staticmethod
+    def load(file: str, normalize: _tp.Union[int, float] = 0) -> "DataBase":
+        if file:
+            if not _os.path.dirname(file):
+                file = _os.getcwd() + '\\DataSets\\' + file
+        else:
+            raise FileExistsError("file not given")
+
+        if file[-4:] != '.npz':
+            raise ValueError(f"file type must be that of 'NPZ' but given {file}")
+        nnLoader = _np.load(file)
+
+        return DataBase(nnLoader['arr_0'], nnLoader['arr_1'], normalize)

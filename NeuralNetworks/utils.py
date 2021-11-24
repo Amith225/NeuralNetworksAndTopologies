@@ -3,7 +3,7 @@ import typing as _tp
 import numpy as _np
 
 if _tp.TYPE_CHECKING:
-    pass
+    from ..Topologies.activationFuntion import AbstractActivationFunction
 
 
 class WBShape:
@@ -18,9 +18,9 @@ class WBShape:
         return self._shape
 
 
-class Activations:
-    def __init__(self, *args):
-        self.activationFunctions = args
+class Activators:
+    def __init__(self, *activationFunctions: "AbstractActivationFunction"):
+        self.activationFunctions = activationFunctions
 
     def get(self, length):
         activations = [None]

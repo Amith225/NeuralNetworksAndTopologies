@@ -7,8 +7,8 @@ if _tp.TYPE_CHECKING:
     pass
 
 
-class WBActivationFunction(metaclass=_ABCMeta):  # main class
-    # WBActivationFunction class and methods
+class AbstractActivationFunction(metaclass=_ABCMeta):  # main class
+    # AbstractActivationFunction class and methods
     @_abstractmethod
     def __init__(self, *args, **kwargs):
         # constants
@@ -24,9 +24,9 @@ class WBActivationFunction(metaclass=_ABCMeta):  # main class
         pass
 
 
-class SigmoidWBActivationFunction(WBActivationFunction):
+class Sigmoid(AbstractActivationFunction):
     def __init__(self, smooth: _tp.Union[int, float] = 1, offset: _tp.Union[int, float] = 0):
-        super(SigmoidWBActivationFunction, self).__init__()
+        super(Sigmoid, self).__init__()
         # constants
         self.SMOOTH = _np.float32(smooth)
         self.OFFSET = _np.float32(offset)
@@ -38,9 +38,9 @@ class SigmoidWBActivationFunction(WBActivationFunction):
         return self.SMOOTH * (activatedX * (self.ONE - activatedX))
 
 
-class TanhWBActivationFunction(WBActivationFunction):
+class Tanh(AbstractActivationFunction):
     def __init__(self, alpha: _tp.Union[int, float] = 1):
-        super(TanhWBActivationFunction, self).__init__()
+        super(Tanh, self).__init__()
         # constants
         self.ALPHA = _np.float32(alpha)
 
@@ -51,9 +51,9 @@ class TanhWBActivationFunction(WBActivationFunction):
         return self.ALPHA * _np.square(_np.cos(activatedX))
 
 
-class ReluWBActivationFunction(WBActivationFunction):
+class Relu(AbstractActivationFunction):
     def __init__(self):
-        super(ReluWBActivationFunction, self).__init__()
+        super(Relu, self).__init__()
 
     def activation(self, x: _np.ndarray) -> _np.ndarray:
         return x * (x > 0)
@@ -62,9 +62,9 @@ class ReluWBActivationFunction(WBActivationFunction):
         return self.ONE * (activatedX != 0)
 
 
-class PreluWBActivationFunction(WBActivationFunction):
+class Prelu(AbstractActivationFunction):
     def __init__(self, leak: _tp.Union[int, float] = 0.01):
-        super(PreluWBActivationFunction, self).__init__()
+        super(Prelu, self).__init__()
         if leak < 0:
             raise ValueError("parameter 'leak' cannot be less than zero")
         # constants
@@ -77,9 +77,9 @@ class PreluWBActivationFunction(WBActivationFunction):
         return _np.where(activatedX <= 0, self.LEAK, self.ONE)
 
 
-class EluWBActivationFunction(WBActivationFunction):
+class Elu(AbstractActivationFunction):
     def __init__(self, alpha: _tp.Union[int, float] = 1):
-        super(EluWBActivationFunction, self).__init__()
+        super(Elu, self).__init__()
         if alpha < 0:
             raise ValueError("parameter 'alpha' cannot be less than zero")
         # constants
@@ -92,10 +92,10 @@ class EluWBActivationFunction(WBActivationFunction):
         return _np.where(activatedX <= 0, activatedX + self.ALPHA, self.ONE)
 
 
-class SoftmaxWBActivationFunction(WBActivationFunction):
+class Softmax(AbstractActivationFunction):
     def __init__(self):
-        super(SoftmaxWBActivationFunction, self).__init__()
-        self.jacobian = None
+        super(Softmax, self).__init__()
+        self.__jacobian = None
 
     def activation(self, x: _np.ndarray) -> _np.ndarray:
         numerator = self.E ** (x - x.max(axis=1, keepdims=1))
@@ -103,16 +103,17 @@ class SoftmaxWBActivationFunction(WBActivationFunction):
         return numerator / numerator.sum(axis=1, keepdims=1)
 
     def activatedDerivative(self, activatedX: _np.ndarray):
-        self.jacobian = activatedX @ activatedX.transpose([0, 2, 1])
-        diagIndexes = _np.diag_indices(self.jacobian.shape[1])
-        self.jacobian[:, [diagIndexes[1]], [diagIndexes[0]]] = (activatedX * (1 - activatedX)).transpose(0, 2, 1)
+        self.__jacobian = (ax := activatedX.transpose([0, 2, 1])[:, :, :, None]) @ ax.transpose([0, 1, 3, 2])
+        diagIndexes = _np.diag_indices(self.__jacobian.shape[2])
+        self.__jacobian[:, :, [diagIndexes[1]], [diagIndexes[0]]] = \
+            (activatedX * (1 - activatedX)).transpose(0, 2, 1)[:, :, None]
 
-        return self.jacobian.sum(axis=2, keepdims=1)
+        return self.__jacobian.sum(axis=3).transpose(0, 2, 1)
 
 
-class SoftplusWBActivationFunction(WBActivationFunction):
+class Softplus(AbstractActivationFunction):
     def __init__(self):
-        super(SoftplusWBActivationFunction, self).__init__()
+        super(Softplus, self).__init__()
 
     def activation(self, x: _np.ndarray) -> _np.ndarray:
         return _np.log(self.ONE + self.E ** x)

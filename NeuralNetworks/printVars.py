@@ -13,6 +13,11 @@ class PrintVars:
     CBLINK2 = '\33[6m'
     CSELECTED = '\33[7m'
 
+    CBOLDITALIC = CBOLD + CITALIC
+    CURLBOLD = CBOLD + CURL
+    CITALICURL = CITALIC + CURL
+    CBOLDITALICURL = CBOLD + CITALIC + CURL
+
     CBLACK = '\33[30m'
     CRED = '\33[31m'
     CGREEN = '\33[32m'

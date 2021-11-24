@@ -25,12 +25,12 @@ class SaveNeuralNetwork:  # save neural network class
         if len(fname) >= 4 and '.nns' == fname[-4:0]:
             fname.replace('.nns', '')
         try:
-            cost = str(round(this.costs[-1][-1] * 100, 2))
+            cost = str(round(this.costHistory[-1][-1] * 100, 2))
         except IndexError:
             if input("trying to save untrained model, do you want to continue?(y,n): ").lower() != 'y':
                 return
             cost = ''
-        epoch = sum([len(c) for c in this.costs])
+        epoch = sum([len(c) for c in this.costHistory])
         fname += 'c' + cost + 'e' + str(epoch) + 't' + str(round(this.timeTrained / 60, 2))
 
         trainDatabase = this.trainDatabase
@@ -74,8 +74,8 @@ class PlotNeuralNetwork:  # plot neural network class
     def plotCostGraph(nn: "AbstractNeuralNetwork") -> "None":
         costs = []
         i = 0
-        for costIndex in range(len(nn.costs)):
-            cost = nn.costs[costIndex]
+        for costIndex in range(len(nn.costHistory)):
+            cost = nn.costHistory[costIndex]
             if costIndex > 0:
                 costs.append([costs[-1][-1], (i, cost[0])])
             costs.append([(c + i, j) for c, j in enumerate(cost)])

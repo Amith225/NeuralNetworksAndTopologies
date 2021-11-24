@@ -33,7 +33,7 @@ class DataBase:  # main class
         if fname is None:
             fname = 'db'
         fpath = _os.getcwd() + '\\DataSets\\'
-        spath = fpath + fname + f's{self.size}i{self.inputSet.shape[1]}o{self.targetSet.shape[1]}'
+        spath = fpath + fname + f's{self.size}i{self.inpShape}o{self.tarShape}'
 
         i = 0
         nSpath = spath
@@ -52,7 +52,7 @@ class DataBase:  # main class
 
     # load a database file
     @staticmethod
-    def load(file: str) -> "DataBase":
+    def load(file: str, normalize: _tp.Union[int, float] = 0) -> "DataBase":
         if file:
             if not _os.path.dirname(file):
                 file = _os.getcwd() + '\\DataSets\\' + file
@@ -63,7 +63,7 @@ class DataBase:  # main class
             raise ValueError(f"file type must be that of 'NPZ' but given {file}")
         nnLoader = _np.load(file)
 
-        return DataBase(nnLoader['arr_0'], nnLoader['arr_1'])
+        return DataBase(nnLoader['arr_0'], nnLoader['arr_1'], normalize)
 
     # normalize input and target sets within the range of -scale to +scale
     def normalize(self, scale: _tp.Union[int, float] = 1) -> "None":

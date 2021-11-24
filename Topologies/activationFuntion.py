@@ -1,5 +1,5 @@
 import typing as tp
-from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
+from abc import ABCMeta as ABCMeta, abstractmethod as abstractmethod
 
 import numpy as np
 
@@ -7,19 +7,19 @@ if tp.TYPE_CHECKING:
     pass
 
 
-class AbstractActivationFunction(metaclass=_ABCMeta):  # main class
+class AbstractActivationFunction(metaclass=ABCMeta):  # main class
     # AbstractActivationFunction class and methods
-    @_abstractmethod
+    @abstractmethod
     def __init__(self, *args, **kwargs):
         # constants
         self.ONE = np.float32(1)
         self.E = np.float32(np.e)
 
-    @_abstractmethod
+    @abstractmethod
     def activation(self, x: np.ndarray) -> "np.ndarray":
         pass
 
-    @_abstractmethod
+    @abstractmethod
     def activatedDerivative(self, activatedX: np.ndarray) -> "np.ndarray":
         pass
 

@@ -19,15 +19,23 @@ class DataCache:
         self.__fHandle.seek(0)
         _ = _format.read_magic(self.__fHandle)
         self.shape, _, self.dtype = _format.read_array_header_1_0(self.__fHandle)
+        self.fluke = self.__fHandle.tell()
         self.rowSize = int(_np.prod(self.shape[1:]))
 
     def __getitem__(self, item):
         if isinstance(item, slice):
-            return self.readNpyCache(item.start, item.stop, item.step)
+            start, stop, step = item.start, item.stop, item.step
+            if start is None:
+                start = 0
+            if stop is None:
+                stop = self.shape[0]
+            if step is None:
+                step = 1
+            return self.readNpyCache(range(start, stop, step))
         elif isinstance(item, int):
-            return self.readNpyCache(item, item + 1)
+            return self.readNpyCache([item])[0]
         elif iterable(item):
-            return self.readNpyCacheProxy(item)
+            return self.readNpyCache(item)
 
     @property
     def cache(self):
@@ -42,49 +50,17 @@ class DataCache:
 
         return file
 
-    def readNpyCacheProxy(self, indices):
-        buffer = _np.empty((length := len(indices),) + self.shape[1:], dtype=self.dtype)
+    def readNpyCache(self, indices):
+        buffer = []
         for i, index in enumerate(indices):
-            self.__fHandle.seek(index * self.rowSize * self.dtype.itemsize, 1)
-            buffer[i] = _np.fromfile(self.__fHandle, count=self.rowSize, dtype=self.dtype).reshape((1, *self.shape[1:]))
+            self.__fHandle.seek(index * self.rowSize * self.dtype.itemsize + self.fluke)
+            # buf = _np.empty(self.shape[1:])
+            # self.__fHandle.readinto(buf)
+            # buffer.append(buf)
+            buffer.append(_np.fromfile(self.__fHandle, count=self.rowSize, dtype=self.dtype))
+        buffer = _np.array(buffer).reshape((-1, *self.shape[1:]))
 
         return buffer
-
-    def readNpyCache(self, start=None, stop=None, step=None, fancy=None):
-        if step is not None and fancy is not None:
-            raise SyntaxError('expected "step" or "fancy" but given both step and fancy')
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = -1
-        if step is None:
-            step = 1
-        if step != 1:
-            fancy = _np.arange(start, stop, step)
-        if fancy is None:
-            fancy = slice(None)
-        else:
-            fancy = _np.array(fancy) - start
-
-        self.__fHandle.seek(0)
-        _ = _format.read_magic(self.__fHandle)
-        # handle negative indexing
-        if start < 0:
-            start += self.shape[0] + 1
-        if stop < 0:
-            stop += self.shape[0] + 1
-        # make sure the offsets aren't invalid.
-        assert start < self.shape[0], 'start is beyond end of file'
-        assert stop <= self.shape[0], 'stop is beyond end of file'
-        # get the number of elements in one 'row' by taking product over all other dimensions
-        rowSize = _np.prod(self.shape[1:])
-        startByte = start * rowSize * self.dtype.itemsize
-        self.__fHandle.seek(startByte, 1)
-        nItems = rowSize * (num := (stop - start))
-        flat = _np.fromfile(self.__fHandle, count=nItems, dtype=self.dtype)
-        flat.resize((num,) + self.shape[1:])
-
-        return flat[fancy]
 
 
 class FutureDataBase:
@@ -166,16 +142,20 @@ class FutureDataBase:
         if self.block:
             raise PermissionError("Access Denied: DataBase currently in use, "
                                   "end previous generator before creating a new one\n"
-                                  "send signal '-1' to end generator")
+                                  "send signal '-1' to end generator or reach StopIteration")
         self.block = True
         self.batchSize = batch_size
-        self.randomize()
+        # self.randomize()
 
         def generator() -> _tp.Generator:
+            signal = None
             while True:
-                signal = yield self.__batch()
                 if signal == -1 or self.pointer + batch_size >= self.size:
-                    return self.__resetVars()
+                    rVal = self.__batch()
+                    self.__resetVars()
+                    yield rVal
+                    return
+                signal = yield self.__batch()
                 self.pointer += batch_size
 
         return generator()
@@ -280,7 +260,7 @@ class DataBase:
                                   "end previous generator before creating a new one")
         self.block = True
         self.batchSize = batch_size
-        self.randomize()
+        # self.randomize()
 
         def generator() -> _tp.Generator:
             while True:

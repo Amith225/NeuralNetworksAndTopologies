@@ -1,9 +1,10 @@
-import typing as _tp
+import typing as tp
 
-import numpy as _np
+import numpy as np
+import tempfile as tf
 
-if _tp.TYPE_CHECKING:
-    from ..Topologies.activationFuntion import AbstractActivationFunction
+if tp.TYPE_CHECKING:
+    from Topologies.activationFuntion import AbstractActivationFunction
 
 
 class WBShape:
@@ -44,7 +45,25 @@ class Activators:
         return activations, activationDerivatives
 
 
-def copyNumpyList(lis: _tp.List[_np.ndarray]):
+class NumpyDataCache:
+    def __init__(self, data):
+        file = self.writeNpyCache(data)
+        self.__npLoader = np.load(file.name, mmap_mode='r')
+
+    def __getitem__(self, item):
+        return self.__npLoader[item]
+
+    @staticmethod
+    def writeNpyCache(data):
+        file = tf.NamedTemporaryFile()
+        fname = file.name + '.npy'
+        np.save(fname, data)
+        file.name += '.npy'
+
+        return file
+
+
+def copyNumpyList(lis: tp.List[np.ndarray]):
     copyList = []
     for array in lis:
         copyList.append(array.copy())

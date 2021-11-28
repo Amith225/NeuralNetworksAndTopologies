@@ -7,11 +7,9 @@ if tp.TYPE_CHECKING:
     pass
 
 
-class AbstractActivationFunction(metaclass=ABCMeta):  # main class
-    # AbstractActivationFunction class and methods
+class AbstractActivationFunction(metaclass=ABCMeta):
     @abstractmethod
     def __init__(self, *args, **kwargs):
-        # constants
         self.ONE = np.float32(1)
         self.E = np.float32(np.e)
 
@@ -27,7 +25,6 @@ class AbstractActivationFunction(metaclass=ABCMeta):  # main class
 class Sigmoid(AbstractActivationFunction):
     def __init__(self, smooth: tp.Union[int, float] = 1, offset: tp.Union[int, float] = 0):
         super(Sigmoid, self).__init__()
-        # constants
         self.SMOOTH = np.float32(smooth)
         self.OFFSET = np.float32(offset)
 
@@ -41,7 +38,6 @@ class Sigmoid(AbstractActivationFunction):
 class Tanh(AbstractActivationFunction):
     def __init__(self, alpha: tp.Union[int, float] = 1):
         super(Tanh, self).__init__()
-        # constants
         self.ALPHA = np.float32(alpha)
 
     def activation(self, x: np.ndarray) -> np.ndarray:
@@ -67,7 +63,6 @@ class Prelu(AbstractActivationFunction):
         super(Prelu, self).__init__()
         if leak < 0:
             raise ValueError("parameter 'leak' cannot be less than zero")
-        # constants
         self.LEAK = np.float32(leak)
 
     def activation(self, x: np.ndarray) -> np.ndarray:
@@ -82,7 +77,6 @@ class Elu(AbstractActivationFunction):
         super(Elu, self).__init__()
         if alpha < 0:
             raise ValueError("parameter 'alpha' cannot be less than zero")
-        # constants
         self.ALPHA = np.float32(alpha)
 
     def activation(self, x: np.ndarray) -> np.ndarray:

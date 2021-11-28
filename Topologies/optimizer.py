@@ -5,7 +5,7 @@ from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
 import numpy as _np
 import numexpr as _ne
 
-from NeuralNetworks import copyNumpyList
+from utils import copyNumpyList
 
 if _tp.TYPE_CHECKING:
     from NeuralNetworks import ArtificialNeuralNetwork
@@ -22,8 +22,11 @@ class WBOptimizer(metaclass=_ABCMeta):
         self.BETA = _np.float32(beta)
         self.BETA_BAR = _np.float32(1 - beta)
 
+    def __call__(self, layer):
+        return self._optimize(layer)
+
     @_abstractmethod
-    def optimize(self, layer):
+    def _optimize(self, layer):
         self._evalDelta(layer)
     
     def _evalDelta(self, layer):
@@ -37,8 +40,8 @@ class GradientDecentWBOptimizer(WBOptimizer):
     def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.01):
         super(GradientDecentWBOptimizer, self).__init__(neural_network, learningRate)
 
-    def optimize(self, layer):
-        super(GradientDecentWBOptimizer, self).optimize(layer)
+    def _optimize(self, layer):
+        super(GradientDecentWBOptimizer, self)._optimize(layer)
         self.nn.deltaBiases[layer] *= self.LEARNING_RATE
         self.nn.deltaWeights[layer] *= self.LEARNING_RATE
 
@@ -51,8 +54,8 @@ class MomentumWBOptimizer(WBOptimizer):
         self.prev_delta_biases = [0 for _ in range(self.nn.wbShape.LAYERS)]
         self.prev_delta_weights = self.prev_delta_biases.copy()
 
-    def optimize(self, layer):
-        super(MomentumWBOptimizer, self).optimize(layer)
+    def _optimize(self, layer):
+        super(MomentumWBOptimizer, self)._optimize(layer)
         self.nn.deltaBiases[layer] = self.prev_delta_biases[layer] =\
             self.ALPHA * self.prev_delta_biases[layer] + self.LEARNING_RATE * self.nn.deltaBiases[layer]
         self.nn.deltaWeights[layer] = self.prev_delta_weights[layer] =\
@@ -63,7 +66,7 @@ class MomentumWBOptimizer(WBOptimizer):
 class NesterovMomentumWBOptimizer(WBOptimizer):
     def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.01, alpha=None):
         _wr.showwarning("\nNesterovMomentum has tag 'non verified algorithm' and might not work as intended, "
-                        "\nuse 'momentum' instead for stable working", FutureWarning,
+                        "\nuse 'momentum' instead for stable working", PendingDeprecationWarning,
                         'optimizer.py->NesterovMomentumWBOptimizer', 0)
         if alpha is None:
             alpha = learningRate / 10
@@ -89,8 +92,8 @@ class NesterovMomentumWBOptimizer(WBOptimizer):
         _np.einsum('lij->ij', deltaBiases, out=self.nn.deltaBiases[layer])
         self.nn.deltaLoss[layer - 1] = self.momentum_weights[layer].transpose() @ self.nn.deltaLoss[layer]
 
-    def optimize(self, layer):
-        super(NesterovMomentumWBOptimizer, self).optimize(layer)
+    def _optimize(self, layer):
+        super(NesterovMomentumWBOptimizer, self)._optimize(layer)
         self.nn.deltaBiases[layer] = self.prev_delta_biases[layer] =\
             self.ALPHA * self.prev_delta_biases[layer] + self.LEARNING_RATE * self.nn.deltaBiases[layer]
         self.nn.deltaWeights[layer] = self.prev_delta_weights[layer] =\
@@ -108,8 +111,8 @@ class DecayWBOptimizer(WBOptimizer):
         self.ALPHA = _np.float32(alpha)
         self.decayCount = 0
 
-    def optimize(self, layer):
-        super(DecayWBOptimizer, self).optimize(layer)
+    def _optimize(self, layer):
+        super(DecayWBOptimizer, self)._optimize(layer)
         k = self.LEARNING_RATE / (1 + self.decayCount / self.ALPHA)
         self.nn.deltaBiases[layer] *= k
         self.nn.deltaWeights[layer] *= k
@@ -123,8 +126,8 @@ class AdagradWBOptimizer(WBOptimizer):
         self.grad_square_biases = [0 for _ in range(self.nn.wbShape.LAYERS)]
         self.grad_square_weights = self.grad_square_biases.copy()
 
-    def optimize(self, layer):
-        super(AdagradWBOptimizer, self).optimize(layer)
+    def _optimize(self, layer):
+        super(AdagradWBOptimizer, self)._optimize(layer)
         local_dict = {'deltaBias': self.nn.deltaBiases[layer],
                       'deltaWeight': self.nn.deltaWeights[layer],
                       'grad_square_bias': self.grad_square_biases[layer],
@@ -152,8 +155,8 @@ class RmspropWBOptimizer(WBOptimizer):
         self.grad_square_biases_sum = [0 for _ in range(self.nn.wbShape.LAYERS)]
         self.grad_square_weights_sum = self.grad_square_biases_sum.copy()
 
-    def optimize(self, layer):
-        super(RmspropWBOptimizer, self).optimize(layer)
+    def _optimize(self, layer):
+        super(RmspropWBOptimizer, self)._optimize(layer)
         local_dict = {'deltaBias': self.nn.deltaBiases[layer],
                       'deltaWeight': self.nn.deltaWeights[layer],
                       'grad_square_bias_sum': self.grad_square_biases_sum[layer],
@@ -181,7 +184,7 @@ class RmspropWBOptimizer(WBOptimizer):
 class AdadeltaWBOptimizer(WBOptimizer):
     def __init__(self, neural_network: 'ArtificialNeuralNetwork', learningRate=0.0001, beta=0.9, epsilon=_np.e ** -8):
         _wr.showwarning("\nAdadelta has tag 'non verified algorithm' and might not work as intended, "
-                        "\nuse 'Rmsprop' instead for stable working", FutureWarning,
+                        "\nuse 'Rmsprop' instead for stable working", PendingDeprecationWarning,
                         'optimizer.py->AdadeltaWBOptimizer', 0)
         super(AdadeltaWBOptimizer, self).__init__(neural_network, learningRate, beta=beta, epsilon=epsilon)
         self.grad_square_biases_sum = [0 for _ in range(self.nn.wbShape.LAYERS)]
@@ -189,7 +192,7 @@ class AdadeltaWBOptimizer(WBOptimizer):
         self.delta_square_biases_sum = [0 for _ in range(self.nn.wbShape.LAYERS)]
         self.delta_square_weights_sum = self.delta_square_biases_sum.copy()
 
-    def optimize(self, layer):
+    def _optimize(self, layer):
         local_dict = {'deltaBias': self.nn.deltaBiases[layer],
                       'deltaWeight': self.nn.deltaWeights[layer],
                       'grad_square_bias_sum': self.grad_square_biases_sum[layer],

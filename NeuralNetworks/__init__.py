@@ -1,3 +1,2 @@
 from .neuralNetwork import *
-from .saveLoadPlot import *
-from .utils import *
+from .saveLoadPlot import SaveNeuralNetwork, LoadNeuralNetwork, PlotNeuralNetwork

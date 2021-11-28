@@ -9,7 +9,7 @@ import numpy as _np
 from .printVars import PrintVars as _pV
 
 if _tp.TYPE_CHECKING:
-    from NeuralNetworks import WBShape, Activators
+    from utils import WBShape, Activators
     from Topologies import WBInitializer, WBOptimizer, LossFunction, DataBase
 
 
@@ -132,10 +132,10 @@ class AbstractNeuralNetwork(metaclass=_ABCMeta):
 
             return (accuracy1 + accuracy2) / 2
 
-        return result.sum() / len(result) * 100
+        return result.sum() / result.shape[0] * 100
 
     def accuracy(self, db: "DataBase"):
-        return self._accuracy(db.inputSet, db.targetSet, db.tarShape, db.size)
+        return self._accuracy(db.inputSet[:], db.targetSet[:], db.tarShape, db.size)
 
     def test(self, testDataBase: "DataBase" = None):
         if self.trainDatabase is not None:
@@ -156,7 +156,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         self.wbInitializer = wbInitializer
         self.activations, self.activationDerivatives = activators.get(self.wbShape.LAYERS - 1)
 
-        self.biasesList, self.weightsList = self.wbInitializer.initialize(self.wbShape)
+        self.biasesList, self.weightsList = self.wbInitializer(self.wbShape)
 
         self.wbOptimizer = None
 
@@ -175,7 +175,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
     def _backPropagate(self, layer=-1):
         if layer <= -self.wbShape.LAYERS:
             return
-        self.wbOptimizer.optimize(layer)
+        self.wbOptimizer(layer)
         self._wire(layer)
         self._backPropagate(layer - 1)
 
@@ -185,7 +185,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         if inputs.size % self.wbShape[0] == 0:
             inputs = inputs.reshape([-1, self.wbShape[0], 1])
         else:
-            raise Exception("InputError: size of input should be same as that of input node of neural network or"
+            raise Exception("InputError: size of input should be same as that of input node of neural network or "
                             "an integral multiple of it")
         self.wbOutputs[0] = inputs
         self._forwardPass()
@@ -203,7 +203,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
     def __deltaInitializer(self):
         deltaLoss = [(_np.zeros((self.batchSize, self.wbShape[i], 1), dtype=_np.float32))
                      for i in range(0, self.wbShape.LAYERS)]
-        deltaBiases, deltaWeights = self.wbInitializer.initialize(self.wbShape)
+        deltaBiases, deltaWeights = self.wbInitializer(self.wbShape)
 
         return deltaBiases, deltaWeights, deltaLoss
 

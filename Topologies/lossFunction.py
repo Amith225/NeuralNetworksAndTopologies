@@ -12,8 +12,11 @@ class LossFunction(metaclass=_ABCMeta):
     def __init__(self, *args, **kwargs):
         pass
 
+    def __call__(self, output, target):
+        return self._eval(output, target)
+
     @_abstractmethod
-    def eval(self, output, target):
+    def _eval(self, output, target):
         pass
 
 
@@ -21,7 +24,7 @@ class MeanSquareLossFunction(LossFunction):
     def __init__(self):
         super(MeanSquareLossFunction, self).__init__()
 
-    def eval(self, output, target):
+    def _eval(self, output, target):
         loss = output - target
 
         return _np.einsum('lij,lij->', loss, loss), loss

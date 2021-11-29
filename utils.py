@@ -1,6 +1,7 @@
 import typing as tp
 
 import numpy as np
+from numpy.lib import format as fm
 import tempfile as tf
 
 if tp.TYPE_CHECKING:
@@ -47,20 +48,21 @@ class Activators:
 
 class NumpyDataCache:
     def __init__(self, data):
-        file = self.writeNpyCache(data)
-        self.__npLoader = np.load(file.name, mmap_mode='r')
+        self.__memMap = self.writeNpyCache(data)
 
     def __getitem__(self, item):
-        return self.__npLoader[item]
+        return self.__memMap[item]
 
     @staticmethod
-    def writeNpyCache(data):
-        file = tf.NamedTemporaryFile()
-        fname = file.name + '.npy'
-        np.save(fname, data)
-        file.name += '.npy'
+    def writeNpyCache(data) -> np.memmap:
+        with tf.NamedTemporaryFile(suffix='.npy') as file:
+            np.save(file, data)
+            file.seek(0)
+            fm.read_magic(file)
+            fm.read_array_header_1_0(file)
+            memMap = np.memmap(file, mode='r', shape=data.shape, dtype=data.dtype, offset=file.tell())
 
-        return file
+        return memMap
 
 
 def copyNumpyList(lis: tp.List[np.ndarray]):
@@ -69,3 +71,11 @@ def copyNumpyList(lis: tp.List[np.ndarray]):
         copyList.append(array.copy())
 
     return copyList
+
+
+def iterable(var):
+    try:
+        iter(var)
+        return True
+    except TypeError:
+        return False

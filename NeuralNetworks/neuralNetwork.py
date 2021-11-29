@@ -40,7 +40,7 @@ class AbstractNeuralNetwork(metaclass=_ABCMeta):
     @_abstractmethod
     def process(self, inputs) -> "_np.ndarray":
         if self.training:
-            _wr.showwarning("can't process while training in progress", ResourceWarning,
+            _wr.showwarning("processing while training in progress, may have unintended conflicts", ResourceWarning,
                             'neuralNetwork.py->AbstractNeuralNetwork.process', 0)
             return _np.NAN
 
@@ -59,17 +59,22 @@ class AbstractNeuralNetwork(metaclass=_ABCMeta):
     def _resetVars(self):
         pass
 
+    @staticmethod
+    def _statPrinter(key, value, prefix='', suffix=_pV.CEND, end=' '):
+        print(prefix + f"{key}:{value}" + suffix, end=end)
+
     def train(self, profile=False, test=None):
         if not profile:
-            self.training = True
             if len(self.costHistory) == 0:
                 costs = [float('nan')]
             else:
                 costs = [self.costHistory[-1][-1]]
+            self.training = True
             totTime = 0
             waitTime = self.SMOOTH_PRINT_INTERVAL
             self.numBatches = int(_np.ceil(self.trainDatabase.size / self.batchSize))
             lastEpoch = self.epochs
+            self._statPrinter('Epoch', f"0/{self.epochs}", prefix=_pV.CBOLDITALICURL + _pV.CBLUE)
             for epoch in range(1, self.epochs + 1):
                 cost = 0
                 time = _tm.time()
@@ -84,13 +89,13 @@ class AbstractNeuralNetwork(metaclass=_ABCMeta):
                     waitTime += self.SMOOTH_PRINT_INTERVAL
                     avgTime = totTime / epoch
                     print(end='\r')
-                    print(_pV.CBOLDITALICURL + _pV.CBLUE + f'Epoch:{epoch}/{self.epochs}' + _pV.CEND,
-                          _pV.CYELLOW + f'Cost:{round(cost, 8):.8f}',
-                          f'Cost-Reduction:{round(costs[-2] - cost, 8):.8f}' + _pV.CEND,
-                          _pV.CBOLD + _pV.CRED2 + f"Time:{self.secToHMS(time)}",
-                          f"Average-Time:{self.secToHMS(avgTime)}",
-                          f"Eta:{self.secToHMS(avgTime * (self.epochs - epoch))}",
-                          f"Elapsed:{self.secToHMS(totTime)}" + _pV.CEND, end='')
+                    self._statPrinter('Epoch', f"{epoch}/{self.epochs}", prefix=_pV.CBOLDITALICURL + _pV.CBLUE)
+                    self._statPrinter('Cost', f"{round(cost, 8):.8f}", prefix=_pV.CYELLOW, suffix='')
+                    self._statPrinter('Cost-Reduction', f"{round(costs[-2] - cost, 8):.8f}")
+                    self._statPrinter('Time', self.secToHMS(time), prefix=_pV.CBOLD + _pV.CRED2, suffix='')
+                    self._statPrinter('Average-Time', self.secToHMS(avgTime), suffix='')
+                    self._statPrinter('Eta', self.secToHMS(avgTime * (self.epochs - epoch)), suffix='')
+                    self._statPrinter('Elapsed', self.secToHMS(totTime))
             print()
             self.timeTrained += totTime
             self.costHistory.append(costs[1:])
@@ -138,13 +143,14 @@ class AbstractNeuralNetwork(metaclass=_ABCMeta):
         return self._accuracy(db.inputSet[:], db.targetSet[:], db.tarShape, db.size)
 
     def test(self, testDataBase: "DataBase" = None):
+        self._statPrinter('Testing', 'wait...', prefix=_pV.CBOLD + _pV.CYELLOW, suffix='')
         if self.trainDatabase is not None:
             self.trainAccuracy = self.accuracy(self.trainDatabase)
         if testDataBase is not None:
             self.testAccuracy = self.accuracy(testDataBase)
-
-        print(_pV.CBOLD + _pV.CYELLOW + f'Train-Accuracy:{self.trainAccuracy}%', '\n'
-              f'Test-Accuracy :{self.testAccuracy}%' + _pV.CEND)
+        print(end='\r')
+        self._statPrinter('Train-Accuracy', f"{self.trainAccuracy}%", suffix='', end='\n')
+        self._statPrinter('Test-Accuracy', f"{self.testAccuracy}%", end='\n')
 
 
 class ArtificialNeuralNetwork(AbstractNeuralNetwork):
@@ -210,7 +216,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
     def _trainer(self, batch):
         self.wbOutputs[0], self.target = batch
         self._forwardPass()
-        loss, self.deltaLoss[-1] = self.lossFunction.eval(self.wbOutputs[-1], self.target)
+        loss, self.deltaLoss[-1] = self.lossFunction(self.wbOutputs[-1], self.target)
         self._backPropagate()
 
         return loss

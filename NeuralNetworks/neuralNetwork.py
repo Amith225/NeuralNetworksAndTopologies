@@ -6,7 +6,7 @@ from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
 
 import numpy as _np
 
-from .printVars import PrintVars as _pV
+from ._printVars import PrintVars as _pV
 
 if _tp.TYPE_CHECKING:
     from utils import WBShape, Activators
@@ -66,39 +66,38 @@ class AbstractNeuralNetwork(metaclass=_ABCMeta):
     def train(self, profile=False, test=None):
         if not profile:
             if len(self.costHistory) == 0:
-                costs = [float('nan')]
+                trainCosts = [float('nan')]
             else:
-                costs = [self.costHistory[-1][-1]]
+                trainCosts = [self.costHistory[-1][-1]]
             self.training = True
-            totTime = 0
-            waitTime = self.SMOOTH_PRINT_INTERVAL
             self.numBatches = int(_np.ceil(self.trainDatabase.size / self.batchSize))
-            lastEpoch = self.epochs
+            trainTime = 0
+            nextPrintTime = self.SMOOTH_PRINT_INTERVAL
             self._statPrinter('Epoch', f"0/{self.epochs}", prefix=_pV.CBOLDITALICURL + _pV.CBLUE)
             for epoch in range(1, self.epochs + 1):
-                cost = 0
+                epochCost = 0
                 time = _tm.time()
                 batchGenerator = self.trainDatabase.batchGenerator(self.batchSize)
                 for batch in range(self.numBatches):
-                    cost += self._trainer(batchGenerator.__next__())
-                time = _tm.time() - time
-                totTime += time
-                cost /= self.trainDatabase.size
-                costs.append(cost)
-                if totTime > waitTime or epoch == lastEpoch:
-                    waitTime += self.SMOOTH_PRINT_INTERVAL
-                    avgTime = totTime / epoch
+                    epochCost += self._trainer(batchGenerator.__next__())
+                epochTime = _tm.time() - time
+                trainTime += epochTime
+                epochCost /= self.trainDatabase.size
+                trainCosts.append(epochCost)
+                if trainTime >= nextPrintTime or epoch == self.epochs:
+                    nextPrintTime += self.SMOOTH_PRINT_INTERVAL
+                    avgTime = trainTime / epoch
                     print(end='\r')
                     self._statPrinter('Epoch', f"{epoch}/{self.epochs}", prefix=_pV.CBOLDITALICURL + _pV.CBLUE)
-                    self._statPrinter('Cost', f"{round(cost, 8):.8f}", prefix=_pV.CYELLOW, suffix='')
-                    self._statPrinter('Cost-Reduction', f"{round(costs[-2] - cost, 8):.8f}")
-                    self._statPrinter('Time', self.secToHMS(time), prefix=_pV.CBOLD + _pV.CRED2, suffix='')
+                    self._statPrinter('Cost', f"{round(epochCost, 8):.8f}", prefix=_pV.CYELLOW, suffix='')
+                    self._statPrinter('Cost-Reduction', f"{round(trainCosts[-2] - epochCost, 8):.8f}")
+                    self._statPrinter('Time', self.secToHMS(epochTime), prefix=_pV.CBOLD + _pV.CRED2, suffix='')
                     self._statPrinter('Average-Time', self.secToHMS(avgTime), suffix='')
                     self._statPrinter('Eta', self.secToHMS(avgTime * (self.epochs - epoch)), suffix='')
-                    self._statPrinter('Elapsed', self.secToHMS(totTime))
+                    self._statPrinter('Elapsed', self.secToHMS(trainTime))
             print()
-            self.timeTrained += totTime
-            self.costHistory.append(costs[1:])
+            self.timeTrained += trainTime
+            self.costHistory.append(trainCosts[1:])
             self.training = False
             self._resetVars()
         else:

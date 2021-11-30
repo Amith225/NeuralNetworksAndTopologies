@@ -1,8 +1,8 @@
 class TrainSets:
-    Xor = "xor3train8i3o1.nndb.npz"
-    EmnistBalanced = "emnistbalancedtrain112800i784o47.nndb.npz"
+    EmnistBalanced = "emnistbalancedtrain112800s784i47o.npzdb"
+    Xor = "xor3train8s3i1o.npzdb"
 
 
 class TestSets:
-    Xor = "xor3test8i3o1.nndb.npz"
-    EmnistBalanced = "emnistbalencedtest18800i784o47.nndb.npz"
+    EmnistBalanced = "emnistbalencedtest18800s784i47o.npzdb"
+    Xor = "xor3test8s3i1o.npzdb"

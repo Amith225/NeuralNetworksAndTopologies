@@ -47,20 +47,17 @@ class Activators:
 
 
 class NumpyDataCache:
-    def __init__(self, data):
-        self.__memMap = self.writeNpyCache(data)
-
-    def __getitem__(self, item):
-        return self.__memMap[item]
+    def __new__(cls, array):
+        return cls.writeNpyCache(array)
 
     @staticmethod
-    def writeNpyCache(data) -> np.memmap:
+    def writeNpyCache(array: "np.ndarray") -> np.ndarray:
         with tf.NamedTemporaryFile(suffix='.npy') as file:
-            np.save(file, data)
+            np.save(file, array)
             file.seek(0)
             fm.read_magic(file)
             fm.read_array_header_1_0(file)
-            memMap = np.memmap(file, mode='r', shape=data.shape, dtype=data.dtype, offset=file.tell())
+            memMap = np.memmap(file, mode='r', shape=array.shape, dtype=array.dtype, offset=file.tell())
 
         return memMap
 

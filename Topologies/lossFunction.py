@@ -27,4 +27,4 @@ class MeanSquareLossFunction(LossFunction):
     def _eval(self, output, target):
         loss = output - target
 
-        return _np.einsum('lij,lij->', loss, loss), loss
+        return (loss * loss).sum(), loss

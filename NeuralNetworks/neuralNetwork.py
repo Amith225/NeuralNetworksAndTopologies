@@ -139,7 +139,7 @@ class AbstractNeuralNetwork(metaclass=_ABCMeta):
         return result.sum() / result.shape[0] * 100
 
     def accuracy(self, db: "DataBase"):
-        return self._accuracy(db.inputSet[:], db.targetSet[:], db.tarShape, db.size)
+        return self._accuracy(db.inputSet, db.targetSet, db.tarShape, db.size)
 
     def test(self, testDataBase: "DataBase" = None):
         self._statPrinter('Testing', 'wait...', prefix=_pV.CBOLD + _pV.CYELLOW, suffix='')

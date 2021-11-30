@@ -32,12 +32,12 @@ class WBOptimizer(metaclass=_ABCMeta):
     def _evalDelta(self, layer):
         deltaBiases = self.nn.deltaLoss[layer] * self.nn.activationDerivatives[layer](self.nn.wbOutputs[layer])
         _np.einsum('lkj,lij->ik', self.nn.wbOutputs[layer - 1], deltaBiases, out=self.nn.deltaWeights[layer])
-        _np.einsum('lij->ij', deltaBiases, out=self.nn.deltaBiases[layer])
+        self.nn.deltaBiases[layer] = deltaBiases.sum(axis=0)
         self.nn.deltaLoss[layer - 1] = self.nn.weightsList[layer].transpose() @ self.nn.deltaLoss[layer]
 
 
 class GradientDecentWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.01):
+    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.001):
         super(GradientDecentWBOptimizer, self).__init__(neural_network, learningRate)
 
     def _optimize(self, layer):
@@ -47,7 +47,7 @@ class GradientDecentWBOptimizer(WBOptimizer):
 
 
 class MomentumWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.01, alpha=None):
+    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.001, alpha=0.9):
         if alpha is None:
             alpha = learningRate / 10
         super(MomentumWBOptimizer, self).__init__(neural_network, learningRate, alpha)
@@ -56,15 +56,15 @@ class MomentumWBOptimizer(WBOptimizer):
 
     def _optimize(self, layer):
         super(MomentumWBOptimizer, self)._optimize(layer)
-        self.nn.deltaBiases[layer] = self.prev_delta_biases[layer] =\
-            self.ALPHA * self.prev_delta_biases[layer] + self.LEARNING_RATE * self.nn.deltaBiases[layer]
-        self.nn.deltaWeights[layer] = self.prev_delta_weights[layer] =\
-            self.ALPHA * self.prev_delta_weights[layer] + self.LEARNING_RATE * self.nn.deltaWeights[layer]
+        self.nn.deltaBiases[layer] = self.prev_delta_biases[layer] = \
+            (self.ALPHA * self.prev_delta_biases[layer] + (1 - self.ALPHA) * self.nn.deltaBiases[layer]) * self.LEARNING_RATE
+        self.nn.deltaWeights[layer] = self.prev_delta_weights[layer] = \
+            (self.ALPHA * self.prev_delta_weights[layer] + (1 - self.ALPHA) * self.nn.deltaWeights[layer]) * self.LEARNING_RATE
 
 
 # non verified algorithm
 class NesterovMomentumWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.01, alpha=None):
+    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.001, alpha=0.9):
         _wr.showwarning("\nNesterovMomentum has tag 'non verified algorithm' and might not work as intended, "
                         "\nuse 'momentum' instead for stable working", PendingDeprecationWarning,
                         'optimizer.py->NesterovMomentumWBOptimizer', 0)
@@ -84,7 +84,7 @@ class NesterovMomentumWBOptimizer(WBOptimizer):
                 self.nn.activations[layer](self.momentum_weights[layer] @ self.nn.wbOutputs[layer - 1] +
                                            self.momentum_biases[layer])
         else:
-            super(ArtificialNeuralNetwork, self.nn)._fire(layer)  # noqa
+            super(self.nn.__class__, self.nn)._fire(layer)  # noqa
 
     def _evalDelta(self, layer):
         deltaBiases = self.nn.deltaLoss[layer] * self.nn.activationDerivatives[layer](self.nn.wbOutputs[layer])
@@ -104,7 +104,7 @@ class NesterovMomentumWBOptimizer(WBOptimizer):
 
 
 class DecayWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.01, alpha=None):
+    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.001, alpha=None):
         if alpha is None:
             alpha = 1 / learningRate
         super(DecayWBOptimizer, self).__init__(neural_network, learningRate, alpha)

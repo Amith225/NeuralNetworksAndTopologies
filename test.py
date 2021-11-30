@@ -3,8 +3,8 @@ from NeuralNetworks import *
 from Topologies import *
 from utils import *
 
-db = DataBase.load(dataSet.TrainSets.EmnistBalanced, 1)
-db2 = DataBase.load(dataSet.TestSets.EmnistBalanced, 1)
+db = LoadDataBase.load(dataSet.TrainSets.EmnistBalanced, 1)
+db2 = LoadDataBase.load(dataSet.TestSets.EmnistBalanced, 1)
 
 aF = activationFuntion
 hiddenShape = 392, 196

@@ -1,17 +1,30 @@
 ------------------------------------------------------------------------------------------------------------------------
-implement auto save.
+implement auto save. L
 ------------------------------------------------------------------------------------------------------------------------
-generalize topology classes to AbstractNeuralNetwork.
+generalize topology classes to AbstractNeuralNetwork. FD
 ------------------------------------------------------------------------------------------------------------------------
-clean up and organize imports.
+clean up and organize imports. LD
 ------------------------------------------------------------------------------------------------------------------------
-re-structure accuracy testing.
+re-structure accuracy testing. *L
 ------------------------------------------------------------------------------------------------------------------------
-update NEURAL_NETWORKS_AND_ITS_TOPOLOGIES.ipynb file.
+update NEURAL_NETWORKS_AND_ITS_TOPOLOGIES.ipynb file. FL
 ------------------------------------------------------------------------------------------------------------------------
-implement accuracy history, accuracy plotting, accuracy vs cost plotting.
+implement accuracy history, accuracy plotting, accuracy vs cost plotting. *L
 ------------------------------------------------------------------------------------------------------------------------
-improve momentum optimizers.
+improve momentum optimizers. FL
 ------------------------------------------------------------------------------------------------------------------------
-implement input visualization.
+implement input visualization. *
 ------------------------------------------------------------------------------------------------------------------------
+improve _write saving of AbstractNeuralNetwork. *
+------------------------------------------------------------------------------------------------------------------------
+implement Future directory. *
+------------------------------------------------------------------------------------------------------------------------
+implement CNN. FD
+------------------------------------------------------------------------------------------------------------------------
+
+Priority Annotation:
+    #: working on
+    *: work next
+    L: lazy work
+    F: future work
+    D: difficult

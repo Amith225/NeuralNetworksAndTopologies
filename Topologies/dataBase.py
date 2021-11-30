@@ -1,16 +1,41 @@
-import os as _os
 import typing as _tp
 
 import numpy as _np
 import numexpr as _ne
 
-from utils import NumpyDataCache
+from utils import NumpyDataCache, AbstractSave, AbstractLoad
 
 if _tp.TYPE_CHECKING:
     pass
 
 
-class DataBase:
+class DataBase(AbstractSave, AbstractLoad):
+    DEFAULT_DIR = '\\DataSets\\'
+    DEFAULT_NAME = 'db'
+    FILE_TYPE = '.zdb'
+
+    def saveName(self) -> str:
+        return f"{self.size}s{self.inpShape}i{self.tarShape}o"
+
+    # make dtype as the type which was imported ##############
+    def _write(self, dumpFile, *args, **kwargs):
+        dtype = _np.uint8
+        if 'dtype' in kwargs.keys():
+            dtype = kwargs['dtype']
+        _np.savez_compressed(dumpFile,
+                             inputSet=(self.inputSet * self.inputSetFactor).astype(dtype),
+                             targetSet=(self.targetSet * self.targetSetFactor).astype(dtype))
+
+    @classmethod
+    def _read(cls, loadFile, *args, **kwargs):
+        nnLoader = _np.load(loadFile, mmap_mode='r')
+        try:
+            inputSet, targetSet = nnLoader['arr_0'], nnLoader['arr_1']
+        except KeyError:
+            inputSet, targetSet = nnLoader['inputSet'], nnLoader['targetSet']
+
+        return DataBase(inputSet, targetSet, *args, **kwargs)
+
     def __init__(self, inputSet: _tp.Iterable and _tp.Sized,  # input signal
                  targetSet: _tp.Iterable and _tp.Sized,  # desired output signal
                  normalize: float = None):
@@ -86,62 +111,3 @@ class DataBase:
         self.pointer = 0
         self.block = False
         self.batchSize = None
-
-
-class SaveDataBase:
-    FILE_TYPE = '.npzdb'
-
-    @staticmethod
-    # save database as <FILE_TYPE> file
-    def save(db: "DataBase", file: str = 'db', dtype=_np.uint8, replace: bool = False) -> str:
-        if not (fpath := _os.path.dirname(file)):
-            fpath = _os.getcwd() + '\\DataSets\\'
-            fname = file
-        else:
-            fpath += '\\'
-            fname = _os.path.basename(file)
-        savePath = fpath + fname + f'{db.size}s{db.inpShape}i{db.tarShape}o'
-
-        i = 0
-        numSavePath = savePath
-        if not replace:
-            while 1:
-                if i != 0:
-                    numSavePath = savePath + ' (' + str(i) + ')'
-                if _os.path.exists(numSavePath + SaveDataBase.FILE_TYPE):
-                    i += 1
-                else:
-                    break
-        _os.makedirs(fpath, exist_ok=True)
-        with open(finalPath := (numSavePath + SaveDataBase.FILE_TYPE), 'wb') as dumpFile:
-            _np.savez_compressed(dumpFile,
-                                 inputSet=(db.inputSet * db.inputSetFactor).astype(dtype),
-                                 targetSet=(db.targetSet * db.targetSetFactor).astype(dtype))
-
-        return finalPath
-
-
-class LoadDataBase:
-    # load a database file
-    @staticmethod
-    def load(file: str, normalize: float = None) -> "DataBase":
-        if file:
-            if not (fpath := _os.path.dirname(file)):
-                fpath = _os.getcwd() + '\\DataSets\\'
-                fname = file
-            else:
-                fpath += '\\'
-                fname = _os.path.basename(file)
-        else:
-            raise NameError("file not given")
-        if '.' not in fname:
-            fname += SaveDataBase.FILE_TYPE
-
-        with open(fpath + fname, 'rb') as loadFile:
-            nnLoader = _np.load(loadFile, mmap_mode='r')
-            try:
-                inputSet, targetSet = nnLoader['arr_0'], nnLoader['arr_1']
-            except KeyError:
-                inputSet, targetSet = nnLoader['inputSet'], nnLoader['targetSet']
-
-        return DataBase(inputSet, targetSet, normalize)

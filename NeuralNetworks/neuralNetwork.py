@@ -2,23 +2,40 @@ import cProfile as _cP
 import time as _tm
 import warnings as _wr
 import typing as _tp
+import dill as _dl
 from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
 
 import numpy as _np
 
 from ._printVars import PrintVars as _pV
 
+from utils import AbstractSave
+
 if _tp.TYPE_CHECKING:
     from utils import WBShape, Activators
     from Topologies import WBInitializer, WBOptimizer, LossFunction, DataBase
 
 
-class AbstractNeuralNetwork(metaclass=_ABCMeta):
+class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
+    DEFAULT_DIR = '\\Models\\'
+    DEFAULT_NAME = 'nn'
+    FILE_TYPE = '.nnt'
     SMOOTH_PRINT_INTERVAL = 0.25
+
+    def saveName(self) -> str:
+        return f"{self.costTrained:.2f}c{self.epochTrained}e{self.secToHMS(self.timeTrained)}"
+
+    def _write(self, dumpFile, *args, **kwargs):
+        trainDatabase = self.trainDatabase
+        self.trainDatabase = None
+        _dl.dump(self, dumpFile)
+        self.trainDatabase = trainDatabase
 
     def __init__(self):
         self.costHistory = []
+        self.costTrained = 0
         self.timeTrained = 0
+        self.epochTrained = 0
         self.epochs = 1
         self.batchSize = 32
         self.trainAccuracy = float('nan')
@@ -75,26 +92,27 @@ class AbstractNeuralNetwork(metaclass=_ABCMeta):
             nextPrintTime = self.SMOOTH_PRINT_INTERVAL
             self._statPrinter('Epoch', f"0/{self.epochs}", prefix=_pV.CBOLDITALICURL + _pV.CBLUE)
             for epoch in range(1, self.epochs + 1):
-                epochCost = 0
+                self.costTrained = 0
                 time = _tm.time()
                 batchGenerator = self.trainDatabase.batchGenerator(self.batchSize)
                 for batch in range(self.numBatches):
-                    epochCost += self._trainer(batchGenerator.__next__())
+                    self.costTrained += self._trainer(batchGenerator.__next__())
                 epochTime = _tm.time() - time
                 trainTime += epochTime
-                epochCost /= self.trainDatabase.size
-                trainCosts.append(epochCost)
+                self.costTrained /= self.trainDatabase.size
+                trainCosts.append(self.costTrained)
                 if trainTime >= nextPrintTime or epoch == self.epochs:
                     nextPrintTime += self.SMOOTH_PRINT_INTERVAL
                     avgTime = trainTime / epoch
                     print(end='\r')
                     self._statPrinter('Epoch', f"{epoch}/{self.epochs}", prefix=_pV.CBOLDITALICURL + _pV.CBLUE)
-                    self._statPrinter('Cost', f"{round(epochCost, 8):.8f}", prefix=_pV.CYELLOW, suffix='')
-                    self._statPrinter('Cost-Reduction', f"{round(trainCosts[-2] - epochCost, 8):.8f}")
+                    self._statPrinter('Cost', f"{self.costTrained:.8f}", prefix=_pV.CYELLOW, suffix='')
+                    self._statPrinter('Cost-Reduction', f"{(trainCosts[-2] - self.costTrained):.8f}")
                     self._statPrinter('Time', self.secToHMS(epochTime), prefix=_pV.CBOLD + _pV.CRED2, suffix='')
                     self._statPrinter('Average-Time', self.secToHMS(avgTime), suffix='')
                     self._statPrinter('Eta', self.secToHMS(avgTime * (self.epochs - epoch)), suffix='')
                     self._statPrinter('Elapsed', self.secToHMS(trainTime))
+                self.epochTrained += 1
             print()
             self.timeTrained += trainTime
             self.costHistory.append(trainCosts[1:])
@@ -109,12 +127,12 @@ class AbstractNeuralNetwork(metaclass=_ABCMeta):
             self.test(test)
 
     @staticmethod
-    def secToHMS(seconds):
-        encode = '%Ssec'
+    def secToHMS(seconds, hms=('h', 'm', 's')):
+        encode = f'%S{hms[2]}'
         if (tim := _tm.gmtime(seconds)).tm_min != 0:
-            encode = '%Mmin' + encode
+            encode = f'%M{hms[1]}' + encode
         if tim.tm_hour != 0:
-            encode = '%Hhr' + encode
+            encode = f'%H{hms[0]}' + encode
 
         return _tm.strftime(encode, tim)
 

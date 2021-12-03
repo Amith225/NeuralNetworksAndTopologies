@@ -21,7 +21,4 @@ nn.train(2, 256,
          profile=False,
          test=db2)
 
-nn2 = LoadNeuralNetwork(nn.save())
-print(nn.weightsList[0] == nn2.weightsList[0])
-
 # PlotNeuralNetwork.plotCostGraph(nn)

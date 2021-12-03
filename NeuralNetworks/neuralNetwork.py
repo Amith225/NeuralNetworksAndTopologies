@@ -26,10 +26,10 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
         return f"{self.costTrained:.2f}c{self.epochTrained}e{self.secToHMS(self.timeTrained)}"
 
     def _write(self, dumpFile, *args, **kwargs):
-        trainDatabase = self.trainDatabase
-        self.trainDatabase = None
+        trainDataBase = self.trainDataBase
+        self.trainDataBase = None
         _dl.dump(self, dumpFile)
-        self.trainDatabase = trainDatabase
+        self.trainDataBase: "DataBase" = trainDataBase
 
     def __init__(self):
         self.costHistory = []
@@ -41,7 +41,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
         self.trainAccuracy = float('nan')
         self.testAccuracy = float('nan')
         self.numBatches = None
-        self.trainDatabase = None
+        self.trainDataBase = None
         self.lossFunction = None
         self.training = False
         self.profiling = False
@@ -80,26 +80,27 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
     def _statPrinter(key, value, prefix='', suffix=_pV.CEND, end=' '):
         print(prefix + f"{key}:{value}" + suffix, end=end)
 
-    def train(self, profile=False, test=None):
+    def train(self, *args, profile=False, test=None, **kwargs):
         if not profile:
             if len(self.costHistory) == 0:
-                trainCosts = [float('nan')]
+                trainCosts = [self.lossFunction(self.process(self.trainDataBase.inputSet[:self.batchSize]),
+                                                self.trainDataBase.targetSet[:self.batchSize])[0]]
             else:
                 trainCosts = [self.costHistory[-1][-1]]
             self.training = True
-            self.numBatches = int(_np.ceil(self.trainDatabase.size / self.batchSize))
+            self.numBatches = int(_np.ceil(self.trainDataBase.size / self.batchSize))
             trainTime = 0
             nextPrintTime = self.SMOOTH_PRINT_INTERVAL
             self._statPrinter('Epoch', f"0/{self.epochs}", prefix=_pV.CBOLDITALICURL + _pV.CBLUE)
             for epoch in range(1, self.epochs + 1):
                 self.costTrained = 0
                 time = _tm.time()
-                batchGenerator = self.trainDatabase.batchGenerator(self.batchSize)
+                batchGenerator = self.trainDataBase.batchGenerator(self.batchSize)
                 for batch in range(self.numBatches):
                     self.costTrained += self._trainer(batchGenerator.__next__())
                 epochTime = _tm.time() - time
                 trainTime += epochTime
-                self.costTrained /= self.trainDatabase.size
+                self.costTrained /= self.trainDataBase.size
                 trainCosts.append(self.costTrained)
                 if trainTime >= nextPrintTime or epoch == self.epochs:
                     nextPrintTime += self.SMOOTH_PRINT_INTERVAL
@@ -115,7 +116,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
                 self.epochTrained += 1
             print()
             self.timeTrained += trainTime
-            self.costHistory.append(trainCosts[1:])
+            self.costHistory.append(trainCosts)
             self.training = False
             self._resetVars()
         else:
@@ -161,8 +162,8 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
 
     def test(self, testDataBase: "DataBase" = None):
         self._statPrinter('Testing', 'wait...', prefix=_pV.CBOLD + _pV.CYELLOW, suffix='')
-        if self.trainDatabase is not None:
-            self.trainAccuracy = self.accuracy(self.trainDatabase)
+        if self.trainDataBase is not None:
+            self.trainAccuracy = self.accuracy(self.trainDataBase)
         if testDataBase is not None:
             self.testAccuracy = self.accuracy(testDataBase)
         print(end='\r')
@@ -177,7 +178,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         super(ArtificialNeuralNetwork, self).__init__()
         self.wbShape = wbShape
         self.wbInitializer = wbInitializer
-        self.activations, self.activationDerivatives = activators.get(self.wbShape.LAYERS - 1)
+        self.activations, self.activationDerivatives = activators(self.wbShape.LAYERS - 1)
 
         self.biasesList, self.weightsList = self.wbInitializer(self.wbShape)
 
@@ -239,7 +240,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         return loss
 
     def train(self, epochs: "int" = None, batchSize: "int" = None,
-              trainDatabase: "DataBase" = None, lossFunction: "LossFunction" = None,
+              trainDataBase: "DataBase" = None, lossFunction: "LossFunction" = None,
               wbOptimizer: "WBOptimizer" = None,
               profile: "bool" = False,
               test: "DataBase" = None):
@@ -247,8 +248,8 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
             self.epochs = epochs
         if batchSize is not None:
             self.batchSize = batchSize
-        if trainDatabase is not None:
-            self.trainDatabase = trainDatabase
+        if trainDataBase is not None:
+            self.trainDataBase = trainDataBase
         if lossFunction is not None:
             self.lossFunction = lossFunction
         if wbOptimizer is not None:

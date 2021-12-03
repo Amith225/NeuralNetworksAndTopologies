@@ -1,13 +1,18 @@
 import typing as tp
-from abc import ABCMeta, abstractmethod
 import os
+from abc import ABCMeta, abstractmethod
 
 import numpy as np
-from numpy.lib import format as fm
 import tempfile as tf
+from numpy.lib import format as fm
+from matplotlib import pyplot as plt, widgets as wg
 
 if tp.TYPE_CHECKING:
     from Topologies.activationFuntion import AbstractActivationFunction
+
+
+# setup for plotting
+plt.style.use('dark_background')
 
 
 class WBShape:
@@ -18,6 +23,7 @@ class WBShape:
     def __getitem__(self, item):
         return self._shape[item]
 
+    @property
     def shape(self):
         return self._shape
 
@@ -25,6 +31,9 @@ class WBShape:
 class Activators:
     def __init__(self, *activationFunctions: "AbstractActivationFunction"):
         self.activationFunctions = activationFunctions
+
+    def __call__(self, length):
+        return self.get(length)
 
     def get(self, length):
         activations = [None]
@@ -135,6 +144,73 @@ class AbstractLoad(metaclass=ABCMeta):
             rVal = cls._read(loadFile, *args, **kwargs)
 
         return rVal
+
+
+class Plot:
+    @staticmethod
+    def plot(x, y=None):
+        fig = plt.figure()
+        ax = fig.add_subplot()
+        args = (x, y)
+        if y is None:
+            args = (x,)
+        for i in range(len(x)):
+            ax.plot(*(arg[i] for arg in args), c=np.random.rand(3))
+
+        return fig, ax
+
+    @staticmethod
+    def plotInputVecAsImg(inpVec: "np.ndarray"):
+        shape = inpVec.shape[1:]
+        rows, columns = 4, 4
+        MAX = rows * columns
+        figShapeFactor = max(shape)
+        fig = plt.figure(figsize=(shape[0] / figShapeFactor * 6, shape[1] / figShapeFactor * 6))
+        axes = [fig.add_subplot(rows, columns, i + 1) for i in range(MAX)]
+        butPrev = wg.Button(plt.axes([0, 0, .5, .05]), '<-', color='red', hovercolor='blue')
+        butNext = wg.Button(plt.axes([.5, 0, .5, .05]), '->', color='red', hovercolor='blue')
+        fig.page = 0
+
+        def onclick(_page):
+            if _page == 0:
+                butPrev.active = False
+                butPrev.ax.patch.set_visible(False)
+            else:
+                butPrev.active = True
+                butPrev.ax.patch.set_visible(True)
+            if _page == (inpVec.shape[0] - 1) // MAX:
+                butNext.active = False
+                butNext.ax.patch.set_visible(False)
+            else:
+                butNext.active = True
+                butNext.ax.patch.set_visible(True)
+            fig.page = _page
+            to = (_page + 1) * MAX
+            if to > inpVec.shape[0]:
+                to = inpVec.shape[0]
+            [(ax.clear(),) for ax in axes]
+            for i, im in enumerate(inpVec[_page * MAX:to]):
+                axes[i].spines['bottom'].set_color('.5')
+                axes[i].spines['top'].set_color('.5')
+                axes[i].spines['right'].set_color('.5')
+                axes[i].spines['left'].set_color('.5')
+                axes[i].imshow(im)
+                axes[i].tick_params(axis='x', colors='.15', which='both')
+                axes[i].tick_params(axis='y', colors='.15', which='both')
+                axes[i].yaxis.label.set_color('.15')
+                axes[i].xaxis.label.set_color('.15')
+                fig.patch.set_facecolor('.15')
+                axes[i].annotate(i + MAX * _page, (1, 5))
+            fig.subplots_adjust(.05, .1, .95, .95)
+            fig.canvas.draw()
+
+        butNext.on_clicked(lambda *_: onclick(fig.page + 1))
+        butPrev.on_clicked(lambda *_: onclick(fig.page - 1))
+        onclick(fig.page)
+
+    @staticmethod
+    def show():
+        plt.show()
 
 
 def copyNumpyList(lis: tp.List[np.ndarray]):

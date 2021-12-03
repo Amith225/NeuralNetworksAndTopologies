@@ -2,20 +2,16 @@ import typing as _tp
 import random as _rd
 
 import dill as _dl
-from matplotlib import collections as _mc, pyplot as _plt
+import numpy as _np
+from matplotlib import collections as _mc, pyplot as _plt, widgets as _wg
 
-from utils import AbstractLoad
+from utils import AbstractLoad, Plot
 from NeuralNetworks.neuralNetwork import AbstractNeuralNetwork
+from Topologies.dataBase import DataBase
 
 # library imports for type checking
 if _tp.TYPE_CHECKING:
     pass
-
-# setup for plotting
-colDict = _mc.mcolors.cnames
-colDict.pop('black')
-colors = list(_mc.mcolors.cnames.values())
-_plt.style.use('dark_background')
 
 
 class NeuralNetworkParserError(Exception):
@@ -38,24 +34,59 @@ class LoadNeuralNetwork(AbstractLoad):
         return nn
 
 
-class PlotNeuralNetwork:  # plot neural network class
+class PlotNeuralNetwork(Plot):
     # plots cost graphs of neural networks
     @staticmethod
     def plotCostGraph(nn: "AbstractNeuralNetwork") -> "None":
-        costs = []
-        i = 0
-        for costIndex in range(len(nn.costHistory)):
-            cost = nn.costHistory[costIndex]
-            if costIndex > 0:
-                costs.append([costs[-1][-1], (i, cost[0])])
-            costs.append([(c + i, j) for c, j in enumerate(cost)])
-            i += len(cost)
+        yh = _np.array(nn.costHistory)
+        yh[0][0] = 0
+        xh = _np.arange(yh.size).reshape(yh.shape)
+        minus = _np.ones_like(xh)
+        minus[0, :] = 0
+        xh = xh - minus
+        PlotNeuralNetwork.plot(xh, yh)
+        PlotNeuralNetwork.show()
 
-        _rd.shuffle(colors)
-        lc = _mc.LineCollection(costs, colors=colors, linewidths=1, antialiaseds=True)
-        sp = _plt.subplot()
-        sp.add_collection(lc)
+    @staticmethod
+    def plotInputVecAsImg(inpVec: "_np.ndarray"):
+        shape = inpVec.shape[1:]
+        rows, columns = 5, 5
+        MAX = rows * columns
+        figShapeFactor = max(shape)
+        fig = _plt.figure(figsize=(shape[0] / figShapeFactor * 7, shape[1] / figShapeFactor * 7))
+        butPrev = _wg.Button(_plt.axes([0, 0, .5, .05]), '<-', color='red', hovercolor='blue')
+        butNext = _wg.Button(_plt.axes([.5, 0, .5, .05]), '->', color='red', hovercolor='blue')
+        axes = [fig.add_subplot(rows, columns, i + 1) for i in range(MAX)]
+        fig.page = 0
 
-        sp.autoscale()
-        sp.margins(0.1)
+        def onclick(_page):
+            if _page == 0:
+                butPrev.active = False
+                butPrev.ax.patch.set_visible(False)
+            else:
+                butPrev.active = True
+                butPrev.ax.patch.set_visible(True)
+            if _page == (inpVec.shape[0] - 1) // MAX:
+                butNext.active = False
+                butNext.ax.patch.set_visible(False)
+            else:
+                butNext.active = True
+                butNext.ax.patch.set_visible(True)
+            fig.page = _page
+            to = (_page + 1) * MAX
+            if to > inpVec.shape[0]:
+                to = inpVec.shape[0]
+            [(ax.clear(),) for ax in axes]
+            for i, im in enumerate(inpVec[_page * MAX:to]):
+                axes[i].imshow(im)
+                # axes[i].text(-1, 3, i + MAX * _page)
+                axes[i].set_yticklabels([])
+                axes[i].set_xticklabels([])
+            fig.subplots_adjust(wspace=0, hspace=0)
+            fig.canvas.draw()
+            fig.canvas.flush_events()
+        butNext.on_clicked(lambda *_: onclick(fig.page + 1))
+        butPrev.on_clicked(lambda *_: onclick(fig.page - 1))
+        onclick(fig.page)
+
         _plt.show()

@@ -17,14 +17,10 @@ class DataBase(AbstractSave, AbstractLoad):
     def saveName(self) -> str:
         return f"{self.size}s{self.inpShape}i{self.tarShape}o"
 
-    # make dtype as the type which was imported ##############
     def _write(self, dumpFile, *args, **kwargs):
-        dtype = _np.uint8
-        if 'dtype' in kwargs.keys():
-            dtype = kwargs['dtype']
         _np.savez_compressed(dumpFile,
-                             inputSet=(self.inputSet * self.inputSetFactor).astype(dtype),
-                             targetSet=(self.targetSet * self.targetSetFactor).astype(dtype))
+                             inputSet=(self.inputSet * self.inputSetFactor).astype(self.inputSetDtype),
+                             targetSet=(self.targetSet * self.targetSetFactor).astype(self.targetSetDtype))
 
     @classmethod
     def _read(cls, loadFile, *args, **kwargs):
@@ -41,6 +37,8 @@ class DataBase(AbstractSave, AbstractLoad):
                  normalize: float = None):
         if (size := len(inputSet)) != len(targetSet):
             raise Exception("Both input and output set should be of same size")
+        self.inputSetDtype = inputSet.dtype
+        self.targetSetDtype = targetSet.dtype
 
         inputSet, self.inputSetFactor = self.normalize(_np.array(inputSet, dtype=_np.float32), normalize)
         targetSet, self.targetSetFactor = self.normalize(_np.array(targetSet, dtype=_np.float32), normalize)

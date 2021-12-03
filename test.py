@@ -15,13 +15,13 @@ nn = ArtificialNeuralNetwork(wbShape=WBShape(db.inpShape, *hiddenShape, db.tarSh
                                                    aF.Softmax()))
 
 nn.train(2, 256,
-         trainDatabase=db,
+         trainDataBase=db,
          lossFunction=MeanSquareLossFunction(),
          wbOptimizer=AdagradWBOptimizer(nn),
          profile=False,
          test=db2)
 
-nn2 = LoadNeuralNetwork(nn.save())
-print(nn.weightsList[0] == nn2.weightsList[0])
+nn.train()
+nn.save()
 
 # PlotNeuralNetwork.plotCostGraph(nn)

@@ -71,7 +71,8 @@
 #         return tuple(conv_output_shapes)
 #
 #     def format_pooled_shape(self):
-#         return self.__pooled_shape_function(self.conv_output_shapes[-1], self.pooling[len(self.conv_output_shapes) - 2])
+#         return\
+#         self.__pooled_shape_function(self.conv_output_shapes[-1], self.pooling[len(self.conv_output_shapes) - 2])
 #
 #     @staticmethod
 #     def __pooled_shape_function(out_shape, pool):
@@ -162,7 +163,8 @@
 #         out = np.zeros((self.krOutputs[0].shape[0], *self.kernel_output_shapes[layer]), dtype=np.float32)
 #         for i, o in enumerate(self.krOutputs[layer - 1]):
 #             out[i] = self.cross_correlate(o, layer)
-#             # print(np.allclose(sg.correlate2d(o, self.kernels_list[layer], mode='valid'), out[i], rtol=1e-4, atol=1e-4))
+#             # print(
+#             np.allclose(sg.correlate2d(o, self.kernels_list[layer], mode='valid'), out[i], rtol=1e-4, atol=1e-4))
 #         self.krOutputs[layer] = out
 # """
 #
@@ -192,3 +194,45 @@
 #             return np.NONE + kernel_biases, np.NONE + kernels
 #
 #         return initializer
+
+
+#     @staticmethod
+#     def plotInputVecAsImg(inpVec: "_np.ndarray", shape):
+#         inpVec: "_np.ndarray" = inpVec.reshape((-1, *shape))
+#         rows, columns = 4, 4
+#         MAX = rows * columns
+#
+#         fig = _plt.figure(figsize=(5, 5))
+#         butPrev = _wg.Button(_plt.axes([0, 0, .5, .05]), '<-', color='red', hovercolor='blue')
+#         butNext = _wg.Button(_plt.axes([.5, 0, .5, .05]), '->', color='red', hovercolor='blue')
+#         axes = [fig.add_subplot(rows, columns, i + 1) for i in range(MAX)]
+#         fig.page = 0
+#
+#         def onclick(_page):
+#             if _page == 0:
+#                 butPrev.active = False
+#                 butPrev.ax.patch.set_visible(False)
+#             else:
+#                 butPrev.active = True
+#                 butPrev.ax.patch.set_visible(True)
+#             if _page == (inpVec.shape[0] - 1) // MAX:
+#                 butNext.active = False
+#                 butNext.ax.patch.set_visible(False)
+#             else:
+#                 butNext.active = True
+#                 butNext.ax.patch.set_visible(True)
+#             fig.page = _page
+#             to = (_page + 1) * MAX
+#             if to > inpVec.shape[0]:
+#                 to = inpVec.shape[0]
+#             [(ax.clear(), ax.axis('off')) for ax in fig.axes[2:]]
+#             for i, im in enumerate(inpVec[_page * MAX:to]):
+#                 axes[i].imshow(im)
+#                 axes[i].text(-1, 3, i)
+#             fig.canvas.draw()
+#             fig.canvas.flush_events()
+#         butNext.on_clicked(lambda *_: onclick(fig.page + 1))
+#         butPrev.on_clicked(lambda *_: onclick(fig.page - 1))
+#         onclick(fig.page)
+#
+#         _plt.show()

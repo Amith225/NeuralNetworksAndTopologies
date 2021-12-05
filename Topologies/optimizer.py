@@ -46,6 +46,7 @@ class GradientDecentWBOptimizer(WBOptimizer):
         self.nn.deltaWeights[layer] *= self.LEARNING_RATE
 
 
+# fixme: improve momentum optimizers. FL
 class MomentumWBOptimizer(WBOptimizer):
     def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.001, alpha=0.9):
         if alpha is None:

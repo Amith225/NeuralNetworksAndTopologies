@@ -57,7 +57,7 @@ class Activators:
         return activations, activationDerivatives
 
 
-class NumpyDataCache:
+class NumpyDataCache(np.ndarray):
     def __new__(cls, array):
         return cls.writeNpyCache(array)
 
@@ -131,26 +131,29 @@ class AbstractLoad(metaclass=ABCMeta):
         if file:
             if not (fpath := os.path.dirname(file)):
                 fpath = os.getcwd() + cls.DEFAULT_DIR
-                fname = file
+                fName = file
             else:
                 fpath += '\\'
-                fname = os.path.basename(file)
+                fName = os.path.basename(file)
         else:
             raise NameError("file not given")
-        if '.' not in fname:
-            fname += cls.FILE_TYPE
+        if '.' not in fName:
+            fName += cls.FILE_TYPE
 
-        with open(fpath + fname, 'rb') as loadFile:
+        with open(fpath + fName, 'rb') as loadFile:
             rVal = cls._read(loadFile, *args, **kwargs)
 
         return rVal
 
 
+# todo: improve Plot
 class Plot:
     @staticmethod
-    def plot(x, y=None):
-        fig = plt.figure()
-        ax = fig.add_subplot()
+    def plotHeight(x, y=None, ax=None):
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            ax, fig = ax, ax.figure
         args = (x, y)
         if y is None:
             args = (x,)
@@ -159,17 +162,32 @@ class Plot:
 
         return fig, ax
 
+    @ staticmethod
+    def plotMap(_2dVect, text='', textPos=(.01, .01), col='yellow', ax=None):
+        if not isinstance(_2dVect, np.ndarray):
+            _2dVect = np.array(_2dVect)
+        if len(_2dVect.shape) != 2:
+            raise ValueError("param '_2dVect' must have only 2Dimensions")
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            ax, fig = ax, ax.figure
+        ax.imshow(_2dVect)
+        ax.text(*textPos, text, transform=ax.transAxes, c=col)
+
     @staticmethod
-    def plotInputVecAsImg(inpVec: "np.ndarray"):
-        shape = inpVec.shape[1:]
-        rows, columns = 4, 4
+    def plotMultiMap(_3dVect: "np.ndarray", text=None, rows=4, columns=4, size=6):
+        shape = _3dVect.shape[-2:]
         MAX = rows * columns
-        figShapeFactor = max(shape)
-        fig = plt.figure(figsize=(shape[0] / figShapeFactor * 6, shape[1] / figShapeFactor * 6))
-        axes = [fig.add_subplot(rows, columns, i + 1) for i in range(MAX)]
-        butPrev = wg.Button(plt.axes([0, 0, .5, .05]), '<-', color='red', hovercolor='blue')
-        butNext = wg.Button(plt.axes([.5, 0, .5, .05]), '->', color='red', hovercolor='blue')
+        fig = plt.figure(figsize=(shape[0] / (figShapeFactor := max(shape)) * size, shape[1] / figShapeFactor * size))
+        axes = [fig.add_subplot(rows + 1, columns, i + 1) for i in range(MAX)]
+        butPrev = wg.Button(ax := fig.add_subplot(rows + 1, 2, 2 * rows + 1), '<-', color='red', hovercolor='blue')
+        ax.set_aspect(.1)
+        butNext = wg.Button(ax := fig.add_subplot(rows + 1, 2, 2 * rows + 2), '->', color='red', hovercolor='blue')
+        ax.set_aspect(.1)
         fig.page = 0
+        if text is None:
+            text = range(_3dVect.shape[0])
 
         def onclick(_page):
             if _page == 0:
@@ -178,30 +196,19 @@ class Plot:
             else:
                 butPrev.active = True
                 butPrev.ax.patch.set_visible(True)
-            if _page == (inpVec.shape[0] - 1) // MAX:
+            if _page == (_3dVect.shape[0] - 1) // MAX:
                 butNext.active = False
                 butNext.ax.patch.set_visible(False)
             else:
                 butNext.active = True
                 butNext.ax.patch.set_visible(True)
             fig.page = _page
-            to = (_page + 1) * MAX
-            if to > inpVec.shape[0]:
-                to = inpVec.shape[0]
-            [(ax.clear(),) for ax in axes]
-            for i, im in enumerate(inpVec[_page * MAX:to]):
-                axes[i].spines['bottom'].set_color('.5')
-                axes[i].spines['top'].set_color('.5')
-                axes[i].spines['right'].set_color('.5')
-                axes[i].spines['left'].set_color('.5')
-                axes[i].imshow(im)
-                axes[i].tick_params(axis='x', colors='.15', which='both')
-                axes[i].tick_params(axis='y', colors='.15', which='both')
-                axes[i].yaxis.label.set_color('.15')
-                axes[i].xaxis.label.set_color('.15')
-                fig.patch.set_facecolor('.15')
-                axes[i].annotate(i + MAX * _page, (1, 5))
-            fig.subplots_adjust(.05, .1, .95, .95)
+            if (to := (_page + 1) * MAX) > _3dVect.shape[0]:
+                to = _3dVect.shape[0]
+            [(ax.clear(), ax.set_xticks([]), ax.set_yticks([])) for ax in axes]
+            for i, im in enumerate(_3dVect[_page * MAX:to]):
+                Plot.plotMap(im, str(text[i]), ax=axes[i])
+            fig.subplots_adjust(.01, .01, .99, .99, 0, 0)
             fig.canvas.draw()
 
         butNext.on_clicked(lambda *_: onclick(fig.page + 1))

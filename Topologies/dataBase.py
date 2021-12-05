@@ -1,14 +1,17 @@
 import typing as _tp
 
-import numpy as _np
+import numpy as np
 import numexpr as _ne
+from matplotlib import pyplot as plt, widgets as wg
 
-from utils import NumpyDataCache, AbstractSave, AbstractLoad
+from utils import NumpyDataCache, AbstractSave, AbstractLoad, Plot
 
 if _tp.TYPE_CHECKING:
     pass
 
 
+# todo: implement one-hot-encode function. *
+# fixme: data shape and dtype
 class DataBase(AbstractSave, AbstractLoad):
     DEFAULT_DIR = '\\DataSets\\'
     DEFAULT_NAME = 'db'
@@ -18,13 +21,13 @@ class DataBase(AbstractSave, AbstractLoad):
         return f"{self.size}s{self.inpShape}i{self.tarShape}o"
 
     def _write(self, dumpFile, *args, **kwargs):
-        _np.savez_compressed(dumpFile,
-                             inputSet=(self.inputSet * self.inputSetFactor).astype(self.inputSetDtype),
-                             targetSet=(self.targetSet * self.targetSetFactor).astype(self.targetSetDtype))
+        np.savez_compressed(dumpFile,
+                            inputSet=(self.inputSet * self.inputSetFactor).astype(self.inputSetDtype),
+                            targetSet=(self.targetSet * self.targetSetFactor).astype(self.targetSetDtype))
 
     @classmethod
     def _read(cls, loadFile, *args, **kwargs):
-        nnLoader = _np.load(loadFile, mmap_mode='r')
+        nnLoader = np.load(loadFile, mmap_mode='r')
         try:
             inputSet, targetSet = nnLoader['arr_0'], nnLoader['arr_1']
         except KeyError:
@@ -34,14 +37,22 @@ class DataBase(AbstractSave, AbstractLoad):
 
     def __init__(self, inputSet: _tp.Iterable and _tp.Sized,  # input signal
                  targetSet: _tp.Iterable and _tp.Sized,  # desired output signal
-                 normalize: float = None):
+                 normalize: float = None,
+                 reshapeInp=None,
+                 reshapeTar=None):
         if (size := len(inputSet)) != len(targetSet):
             raise Exception("Both input and output set should be of same size")
         self.inputSetDtype = inputSet.dtype
         self.targetSetDtype = targetSet.dtype
+        self.inputSetShape = inputSet.shape
+        self.targetSetShape = targetSet.shape
 
-        inputSet, self.inputSetFactor = self.normalize(_np.array(inputSet, dtype=_np.float32), normalize)
-        targetSet, self.targetSetFactor = self.normalize(_np.array(targetSet, dtype=_np.float32), normalize)
+        inputSet, self.inputSetFactor = self.normalize(np.array(inputSet, dtype=np.float32), normalize)
+        targetSet, self.targetSetFactor = self.normalize(np.array(targetSet, dtype=np.float32), normalize)
+        if reshapeInp is not None:
+            inputSet = inputSet.reshape(reshapeInp)
+        if reshapeTar is not None:
+            inputSet = targetSet.reshape(reshapeTar)
         self.inputSet = NumpyDataCache(inputSet)
         self.targetSet = NumpyDataCache(targetSet)
 
@@ -55,7 +66,7 @@ class DataBase(AbstractSave, AbstractLoad):
 
     # normalize input and target sets within the range of -scale to +scale
     @staticmethod
-    def normalize(data, scale: float = None) -> _tp.Tuple["_np.ndarray", float]:
+    def normalize(data, scale: float = None) -> _tp.Tuple["np.ndarray", float]:
         if scale is None:
             factor = 1
         else:
@@ -65,7 +76,7 @@ class DataBase(AbstractSave, AbstractLoad):
 
     # shuffle the index order
     def randomize(self) -> "None":
-        _np.random.shuffle(self.indices)
+        np.random.shuffle(self.indices)
 
     # returns a generator for input and target sets, each batch-sets of size batchSize at a time
     # send signal '-1' to end generator
@@ -92,7 +103,7 @@ class DataBase(AbstractSave, AbstractLoad):
         return generator()
 
     # returns batch-set from index pointer to i
-    def __batch(self) -> _tp.Tuple[_np.ndarray, _np.ndarray]:
+    def __batch(self) -> _tp.Tuple[np.ndarray, np.ndarray]:
         vacant = 0
         if (i := self.pointer + self.batchSize) > self.size:
             i = self.size
@@ -109,3 +120,19 @@ class DataBase(AbstractSave, AbstractLoad):
         self.pointer = 0
         self.block = False
         self.batchSize = None
+
+
+# todo: implement output visualization. *#
+class PlotDataBase(Plot):
+    @staticmethod
+    def plotInputSet(db: "DataBase", start, n=1):
+        if len(db.inputSetShape) == 3 and db.inputSetShape[-2:][1] >= 1:
+            if n == 1:
+                PlotDataBase.plotMap(db.inputSet[start])
+            else:
+                PlotDataBase.plotMultiMap(db.inputSet[start:start+n])
+        PlotDataBase.show()
+
+    @staticmethod
+    def plotTargetSet(db):
+        pass

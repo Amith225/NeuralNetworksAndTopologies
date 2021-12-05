@@ -16,6 +16,7 @@ if _tp.TYPE_CHECKING:
     from Topologies import WBInitializer, WBOptimizer, LossFunction, DataBase
 
 
+# todo: implement auto save. L
 class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
     DEFAULT_DIR = '\\Models\\'
     DEFAULT_NAME = 'nn'
@@ -25,6 +26,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
     def saveName(self) -> str:
         return f"{self.costTrained:.2f}c{self.epochTrained}e{self.secToHMS(self.timeTrained)}"
 
+    # todo: improve _write saving of AbstractNeuralNetwork. *
     def _write(self, dumpFile, *args, **kwargs):
         trainDataBase = self.trainDataBase
         self.trainDataBase = None
@@ -137,6 +139,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
 
         return _tm.strftime(encode, tim)
 
+    # todo: re-structure accuracy testing. *L
     def _accuracy(self, inputSet, targetSet, tarShape, size):
         try:
             out = self.process(inputSet)

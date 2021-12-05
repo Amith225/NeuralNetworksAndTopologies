@@ -1,12 +1,11 @@
-import typing as _tp
-
-import numpy as np
-import numexpr as _ne
-from matplotlib import pyplot as plt, widgets as wg
-
 from utils import NumpyDataCache, AbstractSave, AbstractLoad, Plot
 
-if _tp.TYPE_CHECKING:
+import numpy as np
+import numexpr as ne
+
+import typing as tp
+
+if tp.TYPE_CHECKING:
     pass
 
 
@@ -35,8 +34,8 @@ class DataBase(AbstractSave, AbstractLoad):
 
         return DataBase(inputSet, targetSet, *args, **kwargs)
 
-    def __init__(self, inputSet: _tp.Iterable and _tp.Sized,  # input signal
-                 targetSet: _tp.Iterable and _tp.Sized,  # desired output signal
+    def __init__(self, inputSet: tp.Iterable and tp.Sized,  # input signal
+                 targetSet: tp.Iterable and tp.Sized,  # desired output signal
                  normalize: float = None,
                  reshapeInp=None,
                  reshapeTar=None):
@@ -66,11 +65,11 @@ class DataBase(AbstractSave, AbstractLoad):
 
     # normalize input and target sets within the range of -scale to +scale
     @staticmethod
-    def normalize(data, scale: float = None) -> _tp.Tuple["np.ndarray", float]:
+    def normalize(data, scale: float = None) -> tp.Tuple["np.ndarray", float]:
         if scale is None:
             factor = 1
         else:
-            factor = _ne.evaluate("abs(data) * scale", local_dict={'data': data, 'scale': scale}).max()
+            factor = ne.evaluate("abs(data) * scale", local_dict={'data': data, 'scale': scale}).max()
 
         return data / factor, factor
 
@@ -80,7 +79,7 @@ class DataBase(AbstractSave, AbstractLoad):
 
     # returns a generator for input and target sets, each batch-sets of size batchSize at a time
     # send signal '-1' to end generator
-    def batchGenerator(self, batch_size) -> _tp.Generator:
+    def batchGenerator(self, batch_size) -> tp.Generator:
         if self.block:
             raise PermissionError("Access Denied: DataBase currently in use, "
                                   "end previous generator before creating a new one\n"
@@ -89,7 +88,7 @@ class DataBase(AbstractSave, AbstractLoad):
         self.batchSize = batch_size
         self.randomize()
 
-        def generator() -> _tp.Generator:
+        def generator() -> tp.Generator:
             signal = None
             while True:
                 if signal == -1 or self.pointer + batch_size >= self.size:
@@ -103,7 +102,7 @@ class DataBase(AbstractSave, AbstractLoad):
         return generator()
 
     # returns batch-set from index pointer to i
-    def __batch(self) -> _tp.Tuple[np.ndarray, np.ndarray]:
+    def __batch(self) -> tp.Tuple[np.ndarray, np.ndarray]:
         vacant = 0
         if (i := self.pointer + self.batchSize) > self.size:
             i = self.size

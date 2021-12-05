@@ -1,11 +1,11 @@
-import typing as tp
-import os
-from abc import ABCMeta, abstractmethod
-
 import numpy as np
 import tempfile as tf
 from numpy.lib import format as fm
 from matplotlib import pyplot as plt, widgets as wg
+
+import typing as tp
+import os
+from abc import ABCMeta, abstractmethod
 
 if tp.TYPE_CHECKING:
     from Topologies.activationFuntion import AbstractActivationFunction

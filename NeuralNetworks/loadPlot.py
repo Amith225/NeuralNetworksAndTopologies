@@ -1,13 +1,13 @@
-import typing as _tp
-
-import dill as _dl
-import numpy as _np
-
 from utils import AbstractLoad, Plot
 from NeuralNetworks.neuralNetwork import AbstractNeuralNetwork
 
+import dill as dl
+import numpy as np
+
+import typing as tp
+
 # library imports for type checking
-if _tp.TYPE_CHECKING:
+if tp.TYPE_CHECKING:
     pass
 
 
@@ -24,7 +24,7 @@ class LoadNeuralNetwork(AbstractLoad):
 
     @classmethod
     def _read(cls, loadFile, *args, **kwargs) -> "AbstractNeuralNetwork":
-        if AbstractNeuralNetwork not in (nn := _dl.load(loadFile)).__class__.__bases__:
+        if AbstractNeuralNetwork not in (nn := dl.load(loadFile)).__class__.__bases__:
             _err = f'\nfile "{loadFile.name}" is not a NeuralNetworkParser'
             raise NeuralNetworkParserError(_err)
 
@@ -36,10 +36,10 @@ class PlotNeuralNetwork(Plot):
     # plots cost graphs of neural networks
     @staticmethod
     def plotCostGraph(nn: "AbstractNeuralNetwork") -> "None":
-        yh = _np.array(nn.costHistory)
+        yh = np.array(nn.costHistory)
         yh[0][0] = 0
-        xh = _np.arange(yh.size).reshape(yh.shape)
-        minus = _np.ones_like(xh)
+        xh = np.arange(yh.size).reshape(yh.shape)
+        minus = np.ones_like(xh)
         minus[0, :] = 0
         xh = xh - minus
         PlotNeuralNetwork.plotHeight(xh, yh)

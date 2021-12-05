@@ -1,7 +1,7 @@
+import numpy as np
+
 import typing as tp
 from abc import ABCMeta as ABCMeta, abstractmethod as abstractmethod
-
-import numpy as np
 
 if tp.TYPE_CHECKING:
     pass

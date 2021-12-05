@@ -1,23 +1,25 @@
-import cProfile as _cP
-import time as _tm
-import warnings as _wr
-import typing as _tp
-import dill as _dl
-from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
-
-import numpy as _np
-
-from ._printVars import PrintVars as _pV
-
+from ._printVars import PrintVars as pV
 from utils import AbstractSave
 
-if _tp.TYPE_CHECKING:
+import numpy as np
+
+import cProfile as cP
+import time as tm
+import warnings as wr
+import typing as tp
+import dill as dl
+from abc import ABCMeta as ABCMeta, abstractmethod as abstractmethod
+
+if tp.TYPE_CHECKING:
     from utils import WBShape, Activators
-    from Topologies import WBInitializer, WBOptimizer, LossFunction, DataBase
+    from Topologies.initializer import WBInitializer
+    from Topologies.optimizer import WBOptimizer
+    from Topologies.lossFunction import LossFunction
+    from Topologies.dataBase import DataBase
 
 
 # todo: implement auto save. L
-class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
+class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
     DEFAULT_DIR = '\\Models\\'
     DEFAULT_NAME = 'nn'
     FILE_TYPE = '.nnt'
@@ -30,7 +32,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
     def _write(self, dumpFile, *args, **kwargs):
         trainDataBase = self.trainDataBase
         self.trainDataBase = None
-        _dl.dump(self, dumpFile)
+        dl.dump(self, dumpFile)
         self.trainDataBase: "DataBase" = trainDataBase
 
     def __init__(self):
@@ -48,30 +50,30 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
         self.training = False
         self.profiling = False
 
-    @_abstractmethod
+    @abstractmethod
     def _forwardPass(self, layer=1):
         pass
 
-    @_abstractmethod
+    @abstractmethod
     def _backPropagate(self, layer=-1):
         pass
 
-    @_abstractmethod
+    @abstractmethod
     def process(self, inputs) -> "_np.ndarray":
         if self.training:
-            _wr.showwarning("processing while training in progress, may have unintended conflicts", ResourceWarning,
+            wr.showwarning("processing while training in progress, may have unintended conflicts", ResourceWarning,
                             'neuralNetwork.py->AbstractNeuralNetwork.process', 0)
-            return _np.NAN
+            return np.NAN
 
-    @_abstractmethod
+    @abstractmethod
     def _fire(self, layer):
         pass
 
-    @_abstractmethod
+    @abstractmethod
     def _wire(self, layer):
         pass
 
-    @_abstractmethod
+    @abstractmethod
     def _trainer(self, batch) -> "float":
         pass
 
@@ -79,7 +81,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
         pass
 
     @staticmethod
-    def _statPrinter(key, value, prefix='', suffix=_pV.CEND, end=' '):
+    def _statPrinter(key, value, prefix='', suffix=pV.CEND, end=' '):
         print(prefix + f"{key}:{value}" + suffix, end=end)
 
     def train(self, *args, profile=False, test=None, **kwargs):
@@ -90,17 +92,17 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
             else:
                 trainCosts = [self.costHistory[-1][-1]]
             self.training = True
-            self.numBatches = int(_np.ceil(self.trainDataBase.size / self.batchSize))
+            self.numBatches = int(np.ceil(self.trainDataBase.size / self.batchSize))
             trainTime = 0
             nextPrintTime = self.SMOOTH_PRINT_INTERVAL
-            self._statPrinter('Epoch', f"0/{self.epochs}", prefix=_pV.CBOLDITALICURL + _pV.CBLUE)
+            self._statPrinter('Epoch', f"0/{self.epochs}", prefix=pV.CBOLDITALICURL + pV.CBLUE)
             for epoch in range(1, self.epochs + 1):
                 self.costTrained = 0
-                time = _tm.time()
+                time = tm.time()
                 batchGenerator = self.trainDataBase.batchGenerator(self.batchSize)
                 for batch in range(self.numBatches):
                     self.costTrained += self._trainer(batchGenerator.__next__())
-                epochTime = _tm.time() - time
+                epochTime = tm.time() - time
                 trainTime += epochTime
                 self.costTrained /= self.trainDataBase.size
                 trainCosts.append(self.costTrained)
@@ -108,10 +110,10 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
                     nextPrintTime += self.SMOOTH_PRINT_INTERVAL
                     avgTime = trainTime / epoch
                     print(end='\r')
-                    self._statPrinter('Epoch', f"{epoch}/{self.epochs}", prefix=_pV.CBOLDITALICURL + _pV.CBLUE)
-                    self._statPrinter('Cost', f"{self.costTrained:.8f}", prefix=_pV.CYELLOW, suffix='')
+                    self._statPrinter('Epoch', f"{epoch}/{self.epochs}", prefix=pV.CBOLDITALICURL + pV.CBLUE)
+                    self._statPrinter('Cost', f"{self.costTrained:.8f}", prefix=pV.CYELLOW, suffix='')
                     self._statPrinter('Cost-Reduction', f"{(trainCosts[-2] - self.costTrained):.8f}")
-                    self._statPrinter('Time', self.secToHMS(epochTime), prefix=_pV.CBOLD + _pV.CRED2, suffix='')
+                    self._statPrinter('Time', self.secToHMS(epochTime), prefix=pV.CBOLD + pV.CRED2, suffix='')
                     self._statPrinter('Average-Time', self.secToHMS(avgTime), suffix='')
                     self._statPrinter('Eta', self.secToHMS(avgTime * (self.epochs - epoch)), suffix='')
                     self._statPrinter('Elapsed', self.secToHMS(trainTime))
@@ -123,7 +125,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
             self._resetVars()
         else:
             self.profiling = True
-            _cP.runctx("self.train()", globals=globals(), locals=locals())
+            cP.runctx("self.train()", globals=globals(), locals=locals())
             self.profiling = False
 
         if not self.profiling:
@@ -132,12 +134,12 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
     @staticmethod
     def secToHMS(seconds, hms=('h', 'm', 's')):
         encode = f'%S{hms[2]}'
-        if (tim := _tm.gmtime(seconds)).tm_min != 0:
+        if (tim := tm.gmtime(seconds)).tm_min != 0:
             encode = f'%M{hms[1]}' + encode
         if tim.tm_hour != 0:
             encode = f'%H{hms[0]}' + encode
 
-        return _tm.strftime(encode, tim)
+        return tm.strftime(encode, tim)
 
     # todo: re-structure accuracy testing. *L
     def _accuracy(self, inputSet, targetSet, tarShape, size):
@@ -145,13 +147,13 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
             out = self.process(inputSet)
             tar = targetSet
             if tarShape != 1:
-                outIndex = _np.where(out == _np.max(out, axis=1, keepdims=True))[1]
-                targetIndex = _np.where(tar == 1)[1]
+                outIndex = np.where(out == np.max(out, axis=1, keepdims=True))[1]
+                targetIndex = np.where(tar == 1)[1]
             else:
-                outIndex = _np.round(out)
+                outIndex = np.round(out)
                 targetIndex = tar
             result = outIndex == targetIndex
-            result = _np.float32(1) * result
+            result = np.float32(1) * result
         except MemoryError:
             accuracy1 = self._accuracy(inputSet[:(to := size // 2)], targetSet[:to], tarShape, to)
             accuracy2 = self._accuracy(inputSet[to:], targetSet[to:], tarShape, size - to)
@@ -164,7 +166,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=_ABCMeta):
         return self._accuracy(db.inputSet, db.targetSet, db.tarShape, db.size)
 
     def test(self, testDataBase: "DataBase" = None):
-        self._statPrinter('Testing', 'wait...', prefix=_pV.CBOLD + _pV.CYELLOW, suffix='')
+        self._statPrinter('Testing', 'wait...', prefix=pV.CBOLD + pV.CYELLOW, suffix='')
         if self.trainDataBase is not None:
             self.trainAccuracy = self.accuracy(self.trainDataBase)
         if testDataBase is not None:
@@ -208,7 +210,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
 
     def process(self, inputs):
         super(ArtificialNeuralNetwork, self).process(inputs)
-        inputs = _np.array(inputs)
+        inputs = np.array(inputs)
         if inputs.size % self.wbShape[0] == 0:
             inputs = inputs.reshape([-1, self.wbShape[0], 1])
         else:
@@ -228,7 +230,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         self.weightsList[layer] -= self.deltaWeights[layer]
 
     def __deltaInitializer(self):
-        deltaLoss = [(_np.zeros((self.batchSize, self.wbShape[i], 1), dtype=_np.float32))
+        deltaLoss = [(np.zeros((self.batchSize, self.wbShape[i], 1), dtype=np.float32))
                      for i in range(0, self.wbShape.LAYERS)]
         deltaBiases, deltaWeights = self.wbInitializer(self.wbShape)
 

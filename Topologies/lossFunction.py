@@ -1,9 +1,7 @@
-import typing as _tp
+import typing as tp
 from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
 
-import numpy as _np
-
-if _tp.TYPE_CHECKING:
+if tp.TYPE_CHECKING:
     pass
 
 

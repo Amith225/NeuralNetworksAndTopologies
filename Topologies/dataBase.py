@@ -1,12 +1,13 @@
-from utils import NumpyDataCache, AbstractSave, AbstractLoad, Plot
+import typing as tp
+if tp.TYPE_CHECKING:
+    from utils import *
+    from . import *
+    from ..NeuralNetworks import *
 
 import numpy as np
 import numexpr as ne
 
-import typing as tp
-
-if tp.TYPE_CHECKING:
-    pass
+from utils import NumpyDataCache, AbstractSave, AbstractLoad, Plot
 
 
 # todo: implement one-hot-encode function. *

@@ -1,11 +1,12 @@
+import typing as tp
+if tp.TYPE_CHECKING:
+    from utils import *
+    from . import *
+    from ..NeuralNetworks import *
+
 import numpy as np
 
-import typing as tp
 from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
-
-# library imports for type checking
-if tp.TYPE_CHECKING:
-    from utils import WBShape
 
 # setup list or element numpy array of None
 np.NONE = [np.array([None])]

@@ -1,21 +1,19 @@
-from ._printVars import PrintVars as pV
-from utils import AbstractSave
-
-import numpy as np
-
+import typing as tp
+if tp.TYPE_CHECKING:
+    from utils import *
+    from . import *
+    from ..Topologies import *
 import cProfile as cP
 import time as tm
 import warnings as wr
-import typing as tp
 import dill as dl
+
+import numpy as np
+
 from abc import ABCMeta as ABCMeta, abstractmethod as abstractmethod
 
-if tp.TYPE_CHECKING:
-    from utils import WBShape, Activators
-    from Topologies.initializer import WBInitializer
-    from Topologies.optimizer import WBOptimizer
-    from Topologies.lossFunction import LossFunction
-    from Topologies.dataBase import DataBase
+from ._printVars import PrintVars as pV
+from utils import AbstractSave
 
 
 # todo: implement auto save. L
@@ -59,10 +57,10 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def process(self, inputs) -> "_np.ndarray":
+    def process(self, inputs) -> "np.ndarray":
         if self.training:
             wr.showwarning("processing while training in progress, may have unintended conflicts", ResourceWarning,
-                            'neuralNetwork.py->AbstractNeuralNetwork.process', 0)
+                           'neuralNetwork.py->AbstractNeuralNetwork.process', 0)
             return np.NAN
 
     @abstractmethod

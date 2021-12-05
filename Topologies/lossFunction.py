@@ -1,8 +1,10 @@
 import typing as tp
-from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
-
 if tp.TYPE_CHECKING:
-    pass
+    from utils import *
+    from . import *
+    from ..NeuralNetworks import *
+
+from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
 
 
 class LossFunction(metaclass=_ABCMeta):

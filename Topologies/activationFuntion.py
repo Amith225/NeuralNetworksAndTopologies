@@ -1,10 +1,12 @@
+import typing as tp
+if tp.TYPE_CHECKING:
+    from utils import *
+    from . import *
+    from ..NeuralNetworks import *
+
 import numpy as np
 
-import typing as tp
 from abc import ABCMeta as ABCMeta, abstractmethod as abstractmethod
-
-if tp.TYPE_CHECKING:
-    pass
 
 
 class AbstractActivationFunction(metaclass=ABCMeta):

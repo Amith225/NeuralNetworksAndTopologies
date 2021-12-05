@@ -1,14 +1,16 @@
-from utils import copyNumpyList
+import typing as tp
+if tp.TYPE_CHECKING:
+    from utils import *
+    from . import *
+    from ..NeuralNetworks import *
+import warnings as wr
 
 import numpy as np
 import numexpr as ne
 
-import warnings as wr
-import typing as tp
 from abc import ABCMeta as ABCMeta, abstractmethod as abstractmethod
 
-if tp.TYPE_CHECKING:
-    from NeuralNetworks import ArtificialNeuralNetwork
+from utils import copyNumpyList
 
 
 class WBOptimizer(metaclass=ABCMeta):

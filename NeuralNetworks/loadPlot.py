@@ -1,14 +1,14 @@
-from utils import AbstractLoad, Plot
-from NeuralNetworks.neuralNetwork import AbstractNeuralNetwork
+import typing as tp
+if tp.TYPE_CHECKING:
+    from utils import *
+    from . import *
+    from ..Topologies import *
 
 import dill as dl
 import numpy as np
 
-import typing as tp
-
-# library imports for type checking
-if tp.TYPE_CHECKING:
-    pass
+from utils import AbstractLoad, Plot
+from NeuralNetworks.neuralNetwork import AbstractNeuralNetwork
 
 
 class NeuralNetworkParserError(Exception):

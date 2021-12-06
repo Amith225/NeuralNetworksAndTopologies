@@ -44,15 +44,13 @@ class DataBase(AbstractSave, AbstractLoad):
             raise Exception("Both input and output set should be of same size")
         self.inputSetDtype = inputSet.dtype
         self.targetSetDtype = targetSet.dtype
-        self.inputSetShape = inputSet.shape
-        self.targetSetShape = targetSet.shape
 
         inputSet, self.inputSetFactor = self.normalize(np.array(inputSet, dtype=np.float32), normalize)
         targetSet, self.targetSetFactor = self.normalize(np.array(targetSet, dtype=np.float32), normalize)
         if reshapeInp is not None:
-            inputSet = inputSet.reshape(reshapeInp)
+            inputSet = inputSet.reshape((size, *reshapeInp))
         if reshapeTar is not None:
-            inputSet = targetSet.reshape(reshapeTar)
+            inputSet = targetSet.reshape((size, *reshapeTar))
         self.inputSet = NumpyDataCache(inputSet)
         self.targetSet = NumpyDataCache(targetSet)
 
@@ -122,17 +120,5 @@ class DataBase(AbstractSave, AbstractLoad):
         self.batchSize = None
 
 
-# todo: implement output visualization. *#
 class PlotDataBase(Plot):
-    @staticmethod
-    def plotInputSet(db: "DataBase", start, n=1):
-        if len(db.inputSetShape) == 3 and db.inputSetShape[-2:][1] >= 1:
-            if n == 1:
-                PlotDataBase.plotMap(db.inputSet[start])
-            else:
-                PlotDataBase.plotMultiMap(db.inputSet[start:start+n])
-        PlotDataBase.show()
-
-    @staticmethod
-    def plotTargetSet(db):
-        pass
+    pass

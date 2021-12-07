@@ -14,7 +14,10 @@ git gc --prune=now --aggressive
 git push origin <your_branch_name> --force
 
 git remote prune origin
-git repack && git prune-packed
-git reflog expire --now
+git repack
+git prune-packed
+git reflog expire --expire=now
 git gc --aggressive
+
+git filter-repo --analyze
 '''

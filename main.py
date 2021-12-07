@@ -18,6 +18,7 @@ git repack
 git prune-packed
 git reflog expire --expire=now
 git gc --aggressive
+git gc --prune=now
 
 git filter-repo --analyze
 '''

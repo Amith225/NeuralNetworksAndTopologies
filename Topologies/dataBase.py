@@ -10,20 +10,24 @@ import numexpr as ne
 from utils import NumpyDataCache, AbstractSave, AbstractLoad, Plot
 
 
-# todo: implement one-hot-encode function. *
-# fixme: data shape and dtype
 class DataBase(AbstractSave, AbstractLoad):
     DEFAULT_DIR = '\\DataSets\\'
     DEFAULT_NAME = 'db'
     FILE_TYPE = '.zdb'
 
     def saveName(self) -> str:
-        return f"{self.size}s{self.inpShape}i{self.tarShape}o"
+        return f"{self.size}s.{self.inpShape}i.{self.tarShape}o"
 
     def _write(self, dumpFile, *args, **kwargs):
+        saveInputSet = self.inputSet * self.inputSetFactor
+        if self.hotEncodeInp:
+            saveInputSet = self.oneHotDecode(saveInputSet)
+        saveTargetSet = self.targetSet * self.targetSetFactor
+        if self.hotEncodeTar:
+            saveTargetSet = self.oneHotDecode(saveTargetSet)
         np.savez_compressed(dumpFile,
-                            inputSet=(self.inputSet * self.inputSetFactor).astype(self.inputSetDtype),
-                            targetSet=(self.targetSet * self.targetSetFactor).astype(self.targetSetDtype))
+                            inputSet=saveInputSet.astype(self.inputSetDtype),
+                            targetSet=saveTargetSet.astype(self.targetSetDtype))
 
     @classmethod
     def _read(cls, loadFile, *args, **kwargs):
@@ -38,12 +42,27 @@ class DataBase(AbstractSave, AbstractLoad):
     def __init__(self, inputSet: tp.Iterable and tp.Sized,  # input signal
                  targetSet: tp.Iterable and tp.Sized,  # desired output signal
                  normalize: float = None,
+                 hotEncodeInp=False,
+                 hotEncodeTar=False,
                  reshapeInp=None,
                  reshapeTar=None):
         if (size := len(inputSet)) != len(targetSet):
             raise Exception("Both input and output set should be of same size")
         self.inputSetDtype = inputSet.dtype
         self.targetSetDtype = targetSet.dtype
+        self.hotEncodeInp = hotEncodeInp
+        self.hotEncodeTar = hotEncodeTar
+
+        assert not (inpIsOneHot := len(np.shape(inputSet)) == 1) or hotEncodeInp,\
+            "inputSet should not be 1-dimensional, you might want to use hotEncodeInp=True"
+        assert not (tarIsOneHot := len(np.shape(targetSet)) == 1) or hotEncodeTar,\
+            "targetSet should not be 1-dimensional, you might want to use hotEncodeTar=True"
+        if hotEncodeInp:
+            assert inpIsOneHot, "inputSet should have only 1-dimension for one hot encoding"
+            inputSet = self.oneHotEncode(inputSet)
+        if hotEncodeTar:
+            assert tarIsOneHot, "targetSet should have only 1-dimension for one hot encoding"
+            targetSet = self.oneHotEncode(targetSet)
 
         inputSet, self.inputSetFactor = self.normalize(np.array(inputSet, dtype=np.float32), normalize)
         targetSet, self.targetSetFactor = self.normalize(np.array(targetSet, dtype=np.float32), normalize)
@@ -55,12 +74,23 @@ class DataBase(AbstractSave, AbstractLoad):
         self.targetSet = NumpyDataCache(targetSet)
 
         self.size: int = size
-        self.inpShape = inputSet.shape[1]
-        self.tarShape = targetSet.shape[1]
+        self.inpShape = inputSet.shape[1:]
+        self.tarShape = targetSet.shape[1:]
         self.pointer: int = 0
         self.block: bool = False
         self.batchSize: int = 1
         self.indices = list(range(self.size))
+
+    @staticmethod
+    def oneHotEncode(_1dArray):
+        hotEncodedArray = np.zeros((len(_1dArray), max(_1dArray) + 1, 1))
+        hotEncodedArray[np.arange(hotEncodedArray.shape[0]), _1dArray] = 1
+
+        return hotEncodedArray
+
+    @staticmethod
+    def oneHotDecode(_3dArray):
+        return np.where(_3dArray == 1)[1]
 
     # normalize input and target sets within the range of -scale to +scale
     @staticmethod

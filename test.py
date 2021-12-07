@@ -3,8 +3,8 @@ from NeuralNetworks import *
 from Topologies import *
 from utils import *
 
-db = DataBase.load(dataSet.TrainSets.EmnistBalanced, 1, (-1, 1))
-db2 = DataBase.load(dataSet.TestSets.EmnistBalanced, 1, (-1, 1))
+db = DataBase.load(dataSet.TrainSets.EmnistBalanced, normalize=1, reshapeInp=(-1, 1), hotEncodeTar=True)
+db2 = DataBase.load(dataSet.TestSets.EmnistBalanced, normalize=1, reshapeInp=(-1, 1), hotEncodeTar=True)
 
 hiddenShape = 392, 196
 nn = ArtificialNeuralNetwork(wbShape=WBShape(db.inpShape, *hiddenShape, db.tarShape),

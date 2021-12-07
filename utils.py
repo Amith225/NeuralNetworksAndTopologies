@@ -91,14 +91,14 @@ class AbstractSave(metaclass=ABCMeta):
             file = self.DEFAULT_NAME
         if not (fpath := os.path.dirname(file)):
             fpath = os.getcwd() + self.DEFAULT_DIR
-            fname = file
+            fName = file
         else:
             fpath += '\\'
-            fname = os.path.basename(file)
+            fName = os.path.basename(file)
         os.makedirs(fpath, exist_ok=True)
-        if len(fname) >= 1 + len(self.FILE_TYPE) and fname[-4:] == self.FILE_TYPE:
-            fname = fname[:-4]
-        savePath = fpath + fname + self.saveName()
+        if len(fName) >= 1 + len(self.FILE_TYPE) and fName[-4:] == self.FILE_TYPE:
+            fName = fName[:-4]
+        savePath = fpath + fName.replace(' ', '.') + '.' + self.saveName().replace(' ', '')
 
         i = 0
         numSavePath = savePath

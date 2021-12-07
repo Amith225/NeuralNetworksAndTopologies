@@ -6,3 +6,11 @@
 #     D: difficult
 
 # todo: update NEURAL_NETWORKS_AND_ITS_TOPOLOGIES.ipynb file. FL
+
+
+'''
+git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch -r \<to delete>' --prune-empty -- --all
+git reflog expire --all --expire=now
+git gc --prune=now --aggressive
+git push origin <your_branch_name> --force
+'''

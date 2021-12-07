@@ -42,5 +42,5 @@ class PlotNeuralNetwork(Plot):
         minus = np.ones_like(xh)
         minus[0, :] = 0
         xh = xh - minus
-        PlotNeuralNetwork.plotHeight(xh, yh)
+        PlotNeuralNetwork.plotHeight(xh, yh, cluster=True)
         PlotNeuralNetwork.show()

@@ -146,7 +146,6 @@ class AbstractLoad(metaclass=ABCMeta):
         return rVal
 
 
-# todo: improve Plot
 class Plot:
     @staticmethod
     def __init_ax(ax):
@@ -192,14 +191,27 @@ class Plot:
         onclick(fig.page)
 
     @staticmethod
-    def plotHeight(x, y=None, text='', textPos=(.01, .01), col='yellow', ax=None):
+    def plotHeight(x, y=None, cluster=False, text='', textPos=(.01, .01), textC='yellow', ax=None):
         fig, ax = Plot.__init_ax(ax)
         args = (x, y)
         if y is None:
             args = (x,)
-        for i in range(len(x)):
-            ax.plot(*(arg[i] for arg in args if arg[i] is not None), c=np.random.rand(3))
-        ax.text(*textPos, text, transform=ax.transAxes, c=col)
+        if cluster:
+            for i in range(len(x)):
+                ax.plot(*(arg[i] for arg in args if arg[i] is not None), c=np.random.rand(3))
+        else:
+            ax.plot(*args, c=np.random.rand(3))
+        ax.text(*textPos, text, transform=ax.transAxes, c=textC)
+
+        return ax
+
+    @staticmethod
+    def plotMap(_2dVect, text='', textPos=(.01, .01), textC='yellow', ax=None):
+        if len(_2dVect.shape) != 2:
+            raise ValueError("param '_2dVect' must have only 2Dimensions")
+        fig, ax = Plot.__init_ax(ax)
+        ax.imshow(_2dVect)
+        ax.text(*textPos, text, transform=ax.transAxes, c=textC)
 
         return ax
 
@@ -215,19 +227,9 @@ class Plot:
             if (to := (_page + 1) * MAX) > xs.shape[0]:
                 to = xs.shape[0]
             for i, x in enumerate(xs[_page * MAX:to]):
-                Plot.plotHeight([x], [ys[i]], str(text[_page * MAX + i]), ax=axes[i])
+                Plot.plotHeight(x, ys[i], text=str(text[_page * MAX + i]), ax=axes[i])
 
         Plot.__plotMulti(xs.shape[0], plotter, rows, columns)
-
-    @ staticmethod
-    def plotMap(_2dVect, text='', textPos=(.01, .01), textC='yellow', ax=None):
-        if len(_2dVect.shape) != 2:
-            raise ValueError("param '_2dVect' must have only 2Dimensions")
-        fig, ax = Plot.__init_ax(ax)
-        ax.imshow(_2dVect)
-        ax.text(*textPos, text, transform=ax.transAxes, c=textC)
-
-        return ax
 
     @staticmethod
     def plotMultiMap(_3dVect: "np.ndarray", text=None, rows=4, columns=4):
@@ -239,7 +241,7 @@ class Plot:
             if (to := (_page + 1) * MAX) > _3dVect.shape[0]:
                 to = _3dVect.shape[0]
             for i, im in enumerate(_3dVect[_page * MAX:to]):
-                Plot.plotMap(im, str(text[_page * MAX + i]), ax=axes[i])
+                Plot.plotMap(im, text=str(text[_page * MAX + i]), ax=axes[i])
 
         Plot.__plotMulti(_3dVect.shape[0], plotter, rows, columns)
 

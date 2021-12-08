@@ -175,7 +175,6 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
         self._initializeVars()
 
 
-# fixme: improve initialization and de-initialization.
 class ArtificialNeuralNetwork(AbstractNeuralNetwork):
     def __init__(self, wbShape: "WBShape",
                  wbInitializer: "WBInitializer",
@@ -187,14 +186,14 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
 
         self.biasesList, self.weightsList = self.wbInitializer(self.wbShape)
 
+        self._initializeVars()
         self.wbOptimizer = None
-
-        self.wbOutputs, self.target = list(range(self.wbShape.LAYERS)), None
-        self.deltaBiases, self.deltaWeights, self.deltaLoss = None, None, None
+        self.deltaLoss = None
 
     def _initializeVars(self):
         self.wbOutputs, self.target = list(range(self.wbShape.LAYERS)), None
-        self.deltaBiases, self.deltaWeights, self.deltaLoss = None, None, None
+        self.deltaBiases, self.deltaWeights = [np.zeros_like(bias) for bias in self.biasesList],\
+                                              [np.zeros_like(weight) for weight in self.weightsList]
 
     def _forwardPass(self, layer=1):
         self._fire(layer)
@@ -219,7 +218,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         self.wbOutputs[0] = inputs
         self._forwardPass()
         rVal = self.wbOutputs[-1]
-        self.wbOutputs, self.target = list(range(self.wbShape.LAYERS)), None
+        self._initializeVars()
 
         return rVal
 
@@ -231,13 +230,6 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         self.biasesList[layer] -= self.deltaBiases[layer]
         self.weightsList[layer] -= self.deltaWeights[layer]
 
-    def __deltaInitializer(self):
-        deltaLoss = [(np.zeros((self.batchSize, self.wbShape[i], 1), dtype=np.float32))
-                     for i in range(0, self.wbShape.LAYERS)]
-        deltaBiases, deltaWeights = self.wbInitializer(self.wbShape)
-
-        return deltaBiases, deltaWeights, deltaLoss
-
     def _trainer(self, batch):
         self.wbOutputs[0], self.target = batch
         self._forwardPass()
@@ -247,7 +239,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         return loss
 
     def train(self, epochs: "int" = None, batchSize: "int" = None,
-              trainDataBase: "DataBase" = None, lossFunction: "LossFunction" = None,
+              trainDataBase: "DataBase" = None, costFunction: "LossFunction" = None,
               wbOptimizer: "WBOptimizer" = None,
               profile: "bool" = False,
               test: "DataBase" = None):
@@ -257,10 +249,11 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
             self.batchSize = batchSize
         if trainDataBase is not None:
             self.trainDataBase = trainDataBase
-        if lossFunction is not None:
-            self.lossFunction = lossFunction
+        if costFunction is not None:
+            self.lossFunction = costFunction
         if wbOptimizer is not None:
             self.wbOptimizer = wbOptimizer
 
-        self.deltaBiases, self.deltaWeights, self.deltaLoss = self.__deltaInitializer()
-        super(ArtificialNeuralNetwork, self).train(profile, test)
+        self.deltaLoss = [(np.zeros((self.batchSize, self.wbShape[i], 1), dtype=np.float32))
+                          for i in range(0, self.wbShape.LAYERS)]
+        super(ArtificialNeuralNetwork, self).train(profile=profile, test=test)

@@ -3,8 +3,8 @@ from NeuralNetworks import *
 from Topologies import *
 from utils import *
 
-db = DataBase.load(dataSet.TrainSets.EmnistBalanced, normalize=1, reshapeInp=(-1, 1), hotEncodeTar=True)
-db2 = DataBase.load(dataSet.TestSets.EmnistBalanced, normalize=1, reshapeInp=(-1, 1), hotEncodeTar=True)
+db = DataBase.load(dataSet.TrainSets.EmnistBalanced, normalizeInp=1, reshapeInp=(-1, 1))
+db2 = DataBase.load(dataSet.TestSets.EmnistBalanced, normalizeInp=1, reshapeInp=(-1, 1))
 
 hiddenShape = 392, 196
 nn = ArtificialNeuralNetwork(wbShape=WBShape(db.inpShape[0], *hiddenShape, db.tarShape[0]),
@@ -15,11 +15,10 @@ nn = ArtificialNeuralNetwork(wbShape=WBShape(db.inpShape[0], *hiddenShape, db.ta
 
 nn.train(2, 256,
          trainDataBase=db,
-         lossFunction=MeanSquareLossFunction(),
+         costFunction=MeanSquareLossFunction(),
          wbOptimizer=AdagradWBOptimizer(nn),
          profile=False,
-         test=None)
+         test=db2)
 
-nn.save(replace=True)
-
+# nn.save(replace=True)
 # PlotNeuralNetwork.plotCostGraph(nn)

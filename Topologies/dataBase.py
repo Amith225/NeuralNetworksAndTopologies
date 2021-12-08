@@ -3,6 +3,7 @@ if tp.TYPE_CHECKING:
     from utils import *
     from . import *
     from ..NeuralNetworks import *
+import warnings as wr
 
 import numpy as np
 import numexpr as ne
@@ -10,11 +11,11 @@ import numexpr as ne
 from utils import NumpyDataCache, AbstractSave, AbstractLoad, Plot
 
 
-# todo: show warn to normalize if data values are very large. *#
 class DataBase(AbstractSave, AbstractLoad):
     DEFAULT_DIR = '\\DataSets\\'
     DEFAULT_NAME = 'db'
     FILE_TYPE = '.zdb'
+    LARGE_VAL = 5
 
     def saveName(self) -> str:
         return f"{self.size}s.{self.inpShape}i.{self.tarShape}o"
@@ -42,31 +43,31 @@ class DataBase(AbstractSave, AbstractLoad):
 
     def __init__(self, inputSet: tp.Iterable and tp.Sized,  # input signal
                  targetSet: tp.Iterable and tp.Sized,  # desired output signal
-                 normalize: float = None,
-                 hotEncodeInp=False,
-                 hotEncodeTar=False,
+                 normalizeInp: float = None,
+                 normalizeTar: float = None,
                  reshapeInp=None,
                  reshapeTar=None):
         if (size := len(inputSet)) != len(targetSet):
             raise Exception("Both input and output set should be of same size")
         self.inputSetDtype = inputSet.dtype
         self.targetSetDtype = targetSet.dtype
-        self.hotEncodeInp = hotEncodeInp
-        self.hotEncodeTar = hotEncodeTar
-
-        assert not (inpIsOneHot := len(np.shape(inputSet)) == 1) or hotEncodeInp,\
-            "inputSet should not be 1-dimensional, you might want to use hotEncodeInp=True"
-        assert not (tarIsOneHot := len(np.shape(targetSet)) == 1) or hotEncodeTar,\
-            "targetSet should not be 1-dimensional, you might want to use hotEncodeTar=True"
-        if hotEncodeInp:
-            assert inpIsOneHot, "inputSet should have only 1-dimension for one hot encoding"
+        self.hotEncodeInp = False
+        self.hotEncodeTar = False
+        if len(np.shape(inputSet)) == 1:
             inputSet = self.oneHotEncode(inputSet)
-        if hotEncodeTar:
-            assert tarIsOneHot, "targetSet should have only 1-dimension for one hot encoding"
+            self.hotEncodeInp = True
+        if len(np.shape(targetSet)) == 1:
             targetSet = self.oneHotEncode(targetSet)
+            self.hotEncodeTar = True
+        if (maxI := np.max(inputSet)) >= self.LARGE_VAL and normalizeInp is None and not self.hotEncodeInp:
+            wr.showwarning(f"inputSet has element(s) with values till {maxI} which may cause nan training,"
+                           f"use of param 'normalizeInp=<max>' is recommended", FutureWarning, 'dataBase.py', 0)
+        if (maxT := np.max(targetSet)) >= self.LARGE_VAL and normalizeTar is None and not self.hotEncodeTar:
+            wr.showwarning(f"targetSet has element(s) with values till {maxT} which may cause nan training,"
+                           f"use of param 'normalizeTar=<max>' is recommended", FutureWarning, 'dataBase.py', 0)
 
-        inputSet, self.inputSetFactor = self.normalize(np.array(inputSet, dtype=np.float32), normalize)
-        targetSet, self.targetSetFactor = self.normalize(np.array(targetSet, dtype=np.float32), normalize)
+        inputSet, self.inputSetFactor = self.normalize(np.array(inputSet, dtype=np.float32), normalizeInp)
+        targetSet, self.targetSetFactor = self.normalize(np.array(targetSet, dtype=np.float32), normalizeTar)
         if reshapeInp is not None:
             inputSet = inputSet.reshape((size, *reshapeInp))
         if reshapeTar is not None:

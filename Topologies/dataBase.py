@@ -10,6 +10,7 @@ import numexpr as ne
 from utils import NumpyDataCache, AbstractSave, AbstractLoad, Plot
 
 
+# todo: show warn to normalize if data values are very large. *#
 class DataBase(AbstractSave, AbstractLoad):
     DEFAULT_DIR = '\\DataSets\\'
     DEFAULT_NAME = 'db'

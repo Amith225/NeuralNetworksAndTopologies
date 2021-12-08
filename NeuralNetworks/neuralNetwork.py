@@ -24,10 +24,10 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
     SMOOTH_PRINT_INTERVAL = 0.25
 
     def saveName(self) -> str:
-        return f"{self.costTrained:.2f}c{self.epochTrained}e{self.secToHMS(self.timeTrained)}"
+        return f"{int(self.costTrained * 100)}c.{self.epochTrained}e.{self.secToHMS(self.timeTrained)}"
 
-    # todo: improve _write saving of AbstractNeuralNetwork. *
     def _write(self, dumpFile, *args, **kwargs):
+        self._initializeVars()
         trainDataBase = self.trainDataBase
         self.trainDataBase = None
         dl.dump(self, dumpFile)
@@ -75,7 +75,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
     def _trainer(self, batch) -> "float":
         pass
 
-    def _resetVars(self):
+    def _initializeVars(self):
         pass
 
     @staticmethod
@@ -120,7 +120,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
             self.timeTrained += trainTime
             self.costHistory.append(trainCosts)
             self.training = False
-            self._resetVars()
+            self._initializeVars()
         else:
             self.profiling = True
             cP.runctx("self.train()", globals=globals(), locals=locals())
@@ -160,20 +160,22 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
 
         return result.sum() / result.shape[0] * 100
 
-    def accuracy(self, db: "DataBase"):
+    def __accuracy(self, db: "DataBase"):
         return self._accuracy(db.inputSet, db.targetSet, db.tarShape, db.size)
 
     def test(self, testDataBase: "DataBase" = None):
         self._statPrinter('Testing', 'wait...', prefix=pV.CBOLD + pV.CYELLOW, suffix='')
         if self.trainDataBase is not None:
-            self.trainAccuracy = self.accuracy(self.trainDataBase)
+            self.trainAccuracy = self.__accuracy(self.trainDataBase)
         if testDataBase is not None:
-            self.testAccuracy = self.accuracy(testDataBase)
+            self.testAccuracy = self.__accuracy(testDataBase)
         print(end='\r')
         self._statPrinter('Train-Accuracy', f"{self.trainAccuracy}%", suffix='', end='\n')
         self._statPrinter('Test-Accuracy', f"{self.testAccuracy}%", end='\n')
+        self._initializeVars()
 
 
+# fixme: improve initialization and de-initialization.
 class ArtificialNeuralNetwork(AbstractNeuralNetwork):
     def __init__(self, wbShape: "WBShape",
                  wbInitializer: "WBInitializer",
@@ -190,7 +192,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         self.wbOutputs, self.target = list(range(self.wbShape.LAYERS)), None
         self.deltaBiases, self.deltaWeights, self.deltaLoss = None, None, None
 
-    def _resetVars(self):
+    def _initializeVars(self):
         self.wbOutputs, self.target = list(range(self.wbShape.LAYERS)), None
         self.deltaBiases, self.deltaWeights, self.deltaLoss = None, None, None
 
@@ -216,8 +218,10 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
                             "an integral multiple of it")
         self.wbOutputs[0] = inputs
         self._forwardPass()
+        rVal = self.wbOutputs[-1]
+        self.wbOutputs, self.target = list(range(self.wbShape.LAYERS)), None
 
-        return self.wbOutputs[-1]
+        return rVal
 
     def _fire(self, layer):
         self.wbOutputs[layer] = self.activations[layer](self.weightsList[layer] @ self.wbOutputs[layer - 1] +

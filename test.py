@@ -18,6 +18,8 @@ nn.train(2, 256,
          lossFunction=MeanSquareLossFunction(),
          wbOptimizer=AdagradWBOptimizer(nn),
          profile=False,
-         test=db2)
+         test=None)
+
+nn.save(replace=True)
 
 # PlotNeuralNetwork.plotCostGraph(nn)

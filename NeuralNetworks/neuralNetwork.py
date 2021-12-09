@@ -139,36 +139,37 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
 
         return tm.strftime(encode, tim)
 
-    # todo: re-structure accuracy testing. *L
-    def _accuracy(self, inputSet, targetSet, tarShape, size):
-        try:
-            out = self.process(inputSet)
-            tar = targetSet
-            if tarShape != 1:
-                outIndex = np.where(out == np.max(out, axis=1, keepdims=True))[1]
-                targetIndex = np.where(tar == 1)[1]
-            else:
-                outIndex = np.round(out)
-                targetIndex = tar
-            result = outIndex == targetIndex
-            result = np.float32(1) * result
-        except MemoryError:
-            accuracy1 = self._accuracy(inputSet[:(to := size // 2)], targetSet[:to], tarShape, to)
-            accuracy2 = self._accuracy(inputSet[to:], targetSet[to:], tarShape, size - to)
-
-            return (accuracy1 + accuracy2) / 2
+    @staticmethod
+    def _tester(out, tar):
+        if np.shape(tar) != 1:
+            outIndex = np.where(out == np.max(out, axis=1, keepdims=True))[1]
+            targetIndex = np.where(tar == 1)[1]
+        else:
+            outIndex = np.round(out)
+            targetIndex = tar
+        result = outIndex == targetIndex
+        result = np.float32(1) * result
 
         return result.sum() / result.shape[0] * 100
 
-    def __accuracy(self, db: "DataBase"):
-        return self._accuracy(db.inputSet, db.targetSet, db.tarShape, db.size)
+    def accuracy(self, inputSet, targetSet):
+        assert (size := np.shape(inputSet)[0]) == np.shape(targetSet)[0], \
+            "the size of both inputSet and targetSet should be same"
+        try:
+            return self._tester(self.process(inputSet), targetSet)
+        except MemoryError:
+            accuracy1 = self.accuracy(inputSet[:(to := size // 2)], targetSet[:to])
+            accuracy2 = self.accuracy(inputSet[to:], targetSet[to:])
+            return (accuracy1 + accuracy2) / 2
 
     def test(self, testDataBase: "DataBase" = None):
         self._statPrinter('Testing', 'wait...', prefix=pV.CBOLD + pV.CYELLOW, suffix='')
         if self.trainDataBase is not None:
-            self.trainAccuracy = self.__accuracy(self.trainDataBase)
+            db = self.trainDataBase
+            self.trainAccuracy = self.accuracy(db.inputSet, db.targetSet)
         if testDataBase is not None:
-            self.testAccuracy = self.__accuracy(testDataBase)
+            db = testDataBase
+            self.testAccuracy = self.accuracy(db.inputSet, db.targetSet)
         print(end='\r')
         self._statPrinter('Train-Accuracy', f"{self.trainAccuracy}%", suffix='', end='\n')
         self._statPrinter('Test-Accuracy', f"{self.testAccuracy}%", end='\n')

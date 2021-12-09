@@ -7,8 +7,6 @@
 
 # todo: update NEURAL_NETWORKS_AND_ITS_TOPOLOGIES.ipynb file. FL
 
-# todo: separate utils
-
 '''
 git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch -r \<to delete>' --prune-empty -- --all
 git reflog expire --all --expire=now

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="todo: improve _write saving of AbstractNeuralNetwork. (2)">
+    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="todo: implement accuracy history, accuracy plotting, accuracy vs cost plotting. *L#&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NeuralNetworks/neuralNetwork.py" beforeDir="false" afterPath="$PROJECT_DIR$/NeuralNetworks/neuralNetwork.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NeuralNetworks/loadPlot.py" beforeDir="false" afterPath="$PROJECT_DIR$/NeuralNetworks/loadPlot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,8 +71,30 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.test">
+  <component name="RunManager" selected="Python.test2">
     <configuration name="test" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="NeuralNetworksAndTopologies" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test2" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="NeuralNetworksAndTopologies" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -81,7 +104,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test2.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -113,8 +136,9 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.test3" />
       <item itemvalue="Python.test" />
+      <item itemvalue="Python.test2" />
+      <item itemvalue="Python.test3" />
     </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -128,7 +152,8 @@
       <workItem from="1638957409162" duration="139000" />
       <workItem from="1638957594307" duration="9916000" />
       <workItem from="1638970241020" duration="8206000" />
-      <workItem from="1639026814127" duration="2649000" />
+      <workItem from="1639026814127" duration="17039000" />
+      <workItem from="1639058962616" duration="3451000" />
     </task>
     <task id="LOCAL-00001" summary="Merge remote-tracking branch 'origin/main'&#10;&#10;# Conflicts:&#10;#&#9;.idea/NeuralNetworksAndTopologies.iml&#10;#&#9;main.py">
       <created>1638957714061</created>
@@ -179,7 +204,28 @@
       <option name="project" value="LOCAL" />
       <updated>1638986803179</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="todo: re-structure accuracy testing. *L">
+      <created>1639029776721</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1639029776721</updated>
+    </task>
+    <task id="LOCAL-00009" summary="todo: implement accuracy history, accuracy plotting, accuracy vs cost plotting. *L#">
+      <created>1639050588513</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1639050588513</updated>
+    </task>
+    <task id="LOCAL-00010" summary="todo: implement accuracy history, accuracy plotting, accuracy vs cost plotting. *L#&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;">
+      <created>1639050638321</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1639050638321</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -203,10 +249,14 @@
     <MESSAGE value="Merge remote-tracking branch 'origin/main'&#10;&#10;# Conflicts:&#10;#&#9;.idea/NeuralNetworksAndTopologies.iml&#10;#&#9;main.py" />
     <MESSAGE value="todo: improve _write saving of AbstractNeuralNetwork. *#" />
     <MESSAGE value="todo: improve _write saving of AbstractNeuralNetwork. (2)" />
-    <option name="LAST_COMMIT_MESSAGE" value="todo: improve _write saving of AbstractNeuralNetwork. (2)" />
+    <MESSAGE value="todo: re-structure accuracy testing. *L" />
+    <MESSAGE value="todo: implement accuracy history, accuracy plotting, accuracy vs cost plotting. *L#" />
+    <MESSAGE value="todo: implement accuracy history, accuracy plotting, accuracy vs cost plotting. *L#&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
+    <option name="LAST_COMMIT_MESSAGE" value="todo: implement accuracy history, accuracy plotting, accuracy vs cost plotting. *L#&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test.coverage" NAME="test Coverage Results" MODIFIED="1638965083082" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test3.coverage" NAME="test3 Coverage Results" MODIFIED="1638965359263" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test2.coverage" NAME="test2 Coverage Results" MODIFIED="1639033525248" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

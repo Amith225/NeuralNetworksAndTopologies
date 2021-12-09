@@ -35,18 +35,21 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
 
     def __init__(self):
         self.costHistory = []
+        self.accuracyHistory = []
         self.costTrained = 0
         self.timeTrained = 0
         self.epochTrained = 0
-        self.epochs = 1
-        self.batchSize = 32
         self.trainAccuracy = float('nan')
         self.testAccuracy = float('nan')
+
+        self.epochs = 1
+        self.batchSize = 32
         self.numBatches = None
         self.trainDataBase = None
         self.lossFunction = None
         self.training = False
         self.profiling = False
+        self.neverTrained = True
 
     @abstractmethod
     def _forwardPass(self, layer=1):
@@ -72,7 +75,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _trainer(self, batch) -> "float":
+    def _trainer(self, batch) -> ("float", "float"):
         pass
 
     def _initializeVars(self):
@@ -82,13 +85,19 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
     def _statPrinter(key, value, prefix='', suffix=pV.CEND, end=' '):
         print(prefix + f"{key}:{value}" + suffix, end=end)
 
-    def train(self, *args, profile=False, test=None, **kwargs):
+    # fixme: clean up this mess, its too big. DL
+    def train(self, profile=False, test=None):
         if not profile:
-            if len(self.costHistory) == 0:
-                trainCosts = [self.lossFunction(self.process(self.trainDataBase.inputSet[:self.batchSize]),
-                                                self.trainDataBase.targetSet[:self.batchSize])[0]]
+            if self.neverTrained:
+                batchGenerator = self.trainDataBase.batchGenerator(self.batchSize)
+                trainerOutput = self._trainer(batchGenerator.send(-1))
+                self._initializeVars()
+                trainCosts = [trainerOutput[0]]
+                trainAccuracy = [trainerOutput[1]]
+                self.neverTrained = False
             else:
                 trainCosts = [self.costHistory[-1][-1]]
+                trainAccuracy = [self.accuracyHistory[-1][-1]]
             self.training = True
             self.numBatches = int(np.ceil(self.trainDataBase.size / self.batchSize))
             trainTime = 0
@@ -96,14 +105,19 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
             self._statPrinter('Epoch', f"0/{self.epochs}", prefix=pV.CBOLDITALICURL + pV.CBLUE)
             for epoch in range(1, self.epochs + 1):
                 self.costTrained = 0
+                self.trainAccuracy = 0
                 time = tm.time()
                 batchGenerator = self.trainDataBase.batchGenerator(self.batchSize)
                 for batch in range(self.numBatches):
-                    self.costTrained += self._trainer(batchGenerator.__next__())
+                    trainerOutput = self._trainer(batchGenerator.__next__())
+                    self.costTrained += trainerOutput[0]
+                    self.trainAccuracy += trainerOutput[1]
                 epochTime = tm.time() - time
                 trainTime += epochTime
                 self.costTrained /= self.trainDataBase.size
+                self.trainAccuracy /= self.numBatches
                 trainCosts.append(self.costTrained)
+                trainAccuracy.append(self.trainAccuracy)
                 if trainTime >= nextPrintTime or epoch == self.epochs:
                     nextPrintTime += self.SMOOTH_PRINT_INTERVAL
                     avgTime = trainTime / epoch
@@ -119,6 +133,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
             print()
             self.timeTrained += trainTime
             self.costHistory.append(trainCosts)
+            self.accuracyHistory.append(trainAccuracy)
             self.training = False
             self._initializeVars()
         else:
@@ -231,13 +246,13 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         self.biasesList[layer] -= self.deltaBiases[layer]
         self.weightsList[layer] -= self.deltaWeights[layer]
 
-    def _trainer(self, batch):
+    def _trainer(self, batch) -> ("float", "float"):
         self.wbOutputs[0], self.target = batch
         self._forwardPass()
         loss, self.deltaLoss[-1] = self.lossFunction(self.wbOutputs[-1], self.target)
         self._backPropagate()
 
-        return loss
+        return loss, self._tester(self.wbOutputs[-1], self.target)
 
     def train(self, epochs: "int" = None, batchSize: "int" = None,
               trainDataBase: "DataBase" = None, costFunction: "LossFunction" = None,

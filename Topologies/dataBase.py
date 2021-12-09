@@ -120,7 +120,7 @@ class DataBase(AbstractSave, AbstractLoad):
         self.randomize()
 
         def generator() -> tp.Generator:
-            signal = None
+            signal = yield
             while True:
                 if signal == -1 or self.pointer + batch_size >= self.size:
                     rVal = self.__batch()
@@ -129,8 +129,10 @@ class DataBase(AbstractSave, AbstractLoad):
                     return
                 signal = yield self.__batch()
                 self.pointer += batch_size
+        gen = generator()
+        gen.send(None)
 
-        return generator()
+        return gen
 
     # returns batch-set from index pointer to i
     def __batch(self) -> tp.Tuple[np.ndarray, np.ndarray]:
@@ -153,4 +155,6 @@ class DataBase(AbstractSave, AbstractLoad):
 
 
 class PlotDataBase(Plot):
-    pass
+    @staticmethod
+    def showMap():
+        pass

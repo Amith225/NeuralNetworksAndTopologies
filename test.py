@@ -14,7 +14,7 @@ nn = ArtificialNeuralNetwork(wbShape=WBShape(db.inpShape[0], *hiddenShape, db.ta
                                                    Softmax()))
 
 nn.train(2, 256,
-         trainDataBase=db,
+         trainDataBase=db2,
          costFunction=MeanSquareLossFunction(),
          wbOptimizer=AdagradWBOptimizer(nn),
          profile=False,

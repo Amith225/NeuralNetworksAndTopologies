@@ -60,10 +60,10 @@ class DataBase(AbstractSave, AbstractLoad):
             targetSet = self.oneHotEncode(targetSet)
             self.hotEncodeTar = True
         if (maxI := np.max(inputSet)) >= self.LARGE_VAL and normalizeInp is None and not self.hotEncodeInp:
-            wr.showwarning(f"inputSet has element(s) with values till {maxI} which may cause nan training,"
+            wr.showwarning(f"inputSet has element(s) with values till {maxI} which may cause nan training, "
                            f"use of param 'normalizeInp=<max>' is recommended", FutureWarning, 'dataBase.py', 0)
         if (maxT := np.max(targetSet)) >= self.LARGE_VAL and normalizeTar is None and not self.hotEncodeTar:
-            wr.showwarning(f"targetSet has element(s) with values till {maxT} which may cause nan training,"
+            wr.showwarning(f"targetSet has element(s) with values till {maxT} which may cause nan training, "
                            f"use of param 'normalizeTar=<max>' is recommended", FutureWarning, 'dataBase.py', 0)
 
         inputSet, self.inputSetFactor = self.normalize(np.array(inputSet, dtype=np.float32), normalizeInp)

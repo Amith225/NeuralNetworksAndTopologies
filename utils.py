@@ -147,7 +147,6 @@ class AbstractLoad(metaclass=ABCMeta):
         return rVal
 
 
-# fixme: clean up. *DL
 class Plot:
     @staticmethod
     def __init_ax(ax):
@@ -192,75 +191,73 @@ class Plot:
         butPrev.on_clicked(lambda *_: onclick(fig.page - 1))
         onclick(fig.page)
 
-        return ax
+        return axes
 
+    # fixme: there are a lot of params.
     @staticmethod
-    def setLabels(ax, xL='', yL=''):
-        ax.set_ylabel(yL)
-        ax.set_xlabel(xL)
+    def plotHeight(xs, ys=None, cluster=False, join=True,
+                   scatter=False, scatterLabels=None, scatterRotation=0, scatterSize=100,
+                   text='', textPos=(.01, .01), textC='yellow', ax=None, multi=False, rows=4, columns=4):
+        if multi:
+            MAX = rows * columns
+            length = np.shape(xs)[0]
+            if text is None:
+                text = range(length)
+            if scatterLabels is None:
+                scatterLabels = range(length)
+            if ys is None:
+                ys = [None for _ in range(length)]
 
-    # todo: make multi function also. *
-    @staticmethod
-    def plotScatter(xs, ys, labels=None, rotation=0, ax=None):
+            def plotter(_page, axes):
+                if (to := (_page + 1) * MAX) > length:
+                    to = length
+                for ind, x in enumerate(xs[_page * MAX:to]):
+                    Plot.plotHeight(x, ys[ind], cluster, join, scatter, scatterLabels, scatterRotation,
+                                    text=str(text[_page * MAX + ind]), ax=axes[ind])
+
+            return Plot.__plotMulti(xs.shape[0], plotter, rows, columns)
+
         ax = Plot.__init_ax(ax)
-        ax.scatter(xs, ys, s=100, color="gray")
-        for x, y, label in zip(xs, ys, labels):
-            ax.annotate(label, (x, y), rotation=rotation)
-
-    @staticmethod
-    def plotHeight(x, y=None, cluster=False, text='', textPos=(.01, .01), textC='yellow', ax=None):
-        ax = Plot.__init_ax(ax)
-        args = (x, y)
-        if y is None:
-            args = (x,)
-        if cluster:
-            for i in range(len(x)):
-                ax.plot(*(arg[i] for arg in args if arg[i] is not None), c=np.random.rand(3))
-        else:
-            ax.plot(*args, c=np.random.rand(3))
-        ax.text(*textPos, text, transform=ax.transAxes, c=textC)
-
-        return ax
-
-    @staticmethod
-    def plotMap(_2dVect, text='', textPos=(.01, .01), textC='yellow', ax=None):
-        if len(_2dVect.shape) != 2:
-            raise ValueError("param '_2dVect' must have only 2Dimensions")
-        ax = Plot.__init_ax(ax)
-        ax.imshow(_2dVect)
-        ax.text(*textPos, text, transform=ax.transAxes, c=textC)
-
-        return ax
-
-    @staticmethod
-    def plotMultiHeight(xs, ys=None, text=None, rows=4, columns=4):
-        MAX = rows * columns
-        if text is None:
-            text = range(xs.shape[0])
+        args = (xs, ys)
         if ys is None:
-            ys = [None for _ in range(xs.shape[0])]
+            args = (xs,)
+        if not cluster:
+            args = [[arg] for arg in args]
+            scatterLabels = [scatterLabels]
+        for i in range(len(xs)):
+            points = [arg[i] for arg in args if arg[i] is not None]
+            if join:
+                ax.plot(*points, c=np.random.rand(3))
+            if scatter or scatterLabels is not None:
+                ax.scatter(*points, s=scatterSize, color="gray")
+                if scatterLabels is not None:
+                    for *point, label in zip(*points, scatterLabels[i]):
+                        ax.annotate(label, point, rotation=scatterRotation)
+        ax.text(*textPos, text, transform=ax.transAxes, c=textC)
 
-        def plotter(_page, axes):
-            if (to := (_page + 1) * MAX) > xs.shape[0]:
-                to = xs.shape[0]
-            for i, x in enumerate(xs[_page * MAX:to]):
-                Plot.plotHeight(x, ys[i], text=str(text[_page * MAX + i]), ax=axes[i])
-
-        return Plot.__plotMulti(xs.shape[0], plotter, rows, columns)
+        return ax
 
     @staticmethod
-    def plotMultiMap(_3dVect: "np.ndarray", text=None, rows=4, columns=4):
-        MAX = rows * columns
-        if text is None:
-            text = range(_3dVect.shape[0])
+    def plotMap(vect, text=None, textPos=(.01, .01), textC='yellow', ax=None, rows=4, columns=4):
+        if len(np.shape(vect)) != 2:
+            MAX = rows * columns
+            length = np.shape(vect)[0]
+            if text is None:
+                text = range(length)
 
-        def plotter(_page, axes):
-            if (to := (_page + 1) * MAX) > _3dVect.shape[0]:
-                to = _3dVect.shape[0]
-            for i, im in enumerate(_3dVect[_page * MAX:to]):
-                Plot.plotMap(im, text=str(text[_page * MAX + i]), ax=axes[i])
+            def plotter(_page, axes):
+                if (to := (_page + 1) * MAX) > length:
+                    to = length
+                for i, im in enumerate(vect[_page * MAX:to]):
+                    Plot.plotMap(im, text=str(text[_page * MAX + i]), ax=axes[i])
 
-        return Plot.__plotMulti(_3dVect.shape[0], plotter, rows, columns)
+            return Plot.__plotMulti(length, plotter, rows, columns)
+
+        ax = Plot.__init_ax(ax)
+        ax.imshow(vect)
+        ax.text(*textPos, text, transform=ax.transAxes, c=textC)
+
+        return ax
 
     @staticmethod
     def show():

@@ -1,9 +1,9 @@
 import ctypes
 import typing as tp
 if tp.TYPE_CHECKING:
-    from utils import *
     from . import *
     from ..Topologies import *
+    from ..Utils import *
 
 kernel32 = ctypes.windll.kernel32
 kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)

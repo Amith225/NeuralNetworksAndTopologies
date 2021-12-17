@@ -1,6 +1,6 @@
 from NeuralNetworks import *
 from Topologies import *
-from utils import *
+from Utils import *
 from DataSets import dataSet
 
 db = DataBase.load(dataSet.TrainSets.EmnistBalanced)

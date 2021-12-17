@@ -1,14 +1,14 @@
 import typing as tp
 if tp.TYPE_CHECKING:
-    from utils import *
     from . import *
     from ..NeuralNetworks import *
+    from ..Utils import *
 import warnings as wr
 
 import numpy as np
 import numexpr as ne
 
-from utils import NumpyDataCache, AbstractSave, AbstractLoad, Plot
+from Utils import NumpyDataCache, AbstractSave, AbstractLoad, Plot
 
 
 class DataBase(AbstractSave, AbstractLoad):

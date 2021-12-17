@@ -1,8 +1,8 @@
 import typing as tp
 if tp.TYPE_CHECKING:
-    from utils import *
     from . import *
     from ..Topologies import *
+    from ..Utils import *
 import cProfile as cP
 import time as tm
 import warnings as wr
@@ -13,7 +13,7 @@ import numpy as np
 from abc import ABCMeta as ABCMeta, abstractmethod as abstractmethod
 
 from ._printVars import PrintVars as pV
-from utils import AbstractSave
+from Utils import AbstractSave
 
 
 # todo: implement auto save. L
@@ -85,7 +85,6 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
     def _statPrinter(key, value, prefix='', suffix=pV.CEND, end=' '):
         print(prefix + f"{key}:{value}" + suffix, end=end)
 
-    # fixme: clean up this mess, its too big. DL
     def train(self, profile=False, test=None):
         if not profile:
             if self.neverTrained:

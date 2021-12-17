@@ -1,8 +1,7 @@
 from DataSets import dataSet
 from NeuralNetworks import *
 from Topologies import *
-from utils import *
-
+from Utils import *
 db = DataBase.load(dataSet.TrainSets.EmnistBalanced, normalizeInp=1, reshapeInp=(-1, 1))
 db2 = DataBase.load(dataSet.TestSets.EmnistBalanced, normalizeInp=1, reshapeInp=(-1, 1))
 

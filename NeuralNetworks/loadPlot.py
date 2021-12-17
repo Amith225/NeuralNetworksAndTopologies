@@ -1,12 +1,12 @@
 import typing as tp
 if tp.TYPE_CHECKING:
-    from utils import *
     from . import *
     from ..Topologies import *
+    from ..Utils import *
 
 import dill as dl
 
-from utils import AbstractLoad, Plot
+from Utils import AbstractLoad, Plot
 from NeuralNetworks.neuralNetwork import AbstractNeuralNetwork
 
 

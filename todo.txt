@@ -1,6 +1,0 @@
-Priority Annotation:
-    #: working on
-    *: work next
-    L: lazy work
-    F: future work
-    D: difficult

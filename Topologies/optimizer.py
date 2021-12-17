@@ -1,8 +1,8 @@
 import typing as tp
 if tp.TYPE_CHECKING:
-    from utils import *
     from . import *
     from ..NeuralNetworks import *
+    from ..Utils import *
 import warnings as wr
 
 import numpy as np
@@ -10,7 +10,7 @@ import numexpr as ne
 
 from abc import ABCMeta as ABCMeta, abstractmethod as abstractmethod
 
-from utils import copyNumpyList
+from Utils import copyNumpyList
 
 
 class WBOptimizer(metaclass=ABCMeta):

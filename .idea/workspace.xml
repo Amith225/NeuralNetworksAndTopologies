@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="fixme todo: clean up Plot and add contexts. *DL&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
+    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="todo: create Utils directory. *" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -73,14 +73,11 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.test2">
+  <component name="RunManager" selected="Python.test">
     <configuration name="test" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="NeuralNetworksAndTopologies" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -100,6 +97,9 @@
       <module name="NeuralNetworksAndTopologies" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -159,7 +159,8 @@
       <workItem from="1639122587750" duration="2978000" />
       <workItem from="1639292975261" duration="3268000" />
       <workItem from="1639390871003" duration="684000" />
-      <workItem from="1639455388548" duration="4018000" />
+      <workItem from="1639455388548" duration="4893000" />
+      <workItem from="1639734170025" duration="2211000" />
     </task>
     <task id="LOCAL-00001" summary="Merge remote-tracking branch 'origin/main'&#10;&#10;# Conflicts:&#10;#&#9;.idea/NeuralNetworksAndTopologies.iml&#10;#&#9;main.py">
       <created>1638957714061</created>
@@ -259,7 +260,28 @@
       <option name="project" value="LOCAL" />
       <updated>1639459261929</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="fixme todo: clean up Plot and add contexts. *DL&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;">
+      <created>1639460275664</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1639460275664</updated>
+    </task>
+    <task id="LOCAL-00016" summary="todo: create Utils directory. *">
+      <created>1639736171052</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1639736171052</updated>
+    </task>
+    <task id="LOCAL-00017" summary="todo: create Utils directory. *">
+      <created>1639736246035</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1639736246035</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -289,7 +311,8 @@
     <MESSAGE value="todo: implement accuracy history, accuracy plotting, accuracy vs cost plotting. *L#&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
     <MESSAGE value="fixme todo: clean up Plot and add contexts. *DL" />
     <MESSAGE value="fixme todo: clean up Plot and add contexts. *DL&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixme todo: clean up Plot and add contexts. *DL&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
+    <MESSAGE value="todo: create Utils directory. *" />
+    <option name="LAST_COMMIT_MESSAGE" value="todo: create Utils directory. *" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test.coverage" NAME="test Coverage Results" MODIFIED="1638965083082" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

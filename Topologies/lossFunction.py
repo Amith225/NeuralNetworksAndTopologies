@@ -1,8 +1,8 @@
 import typing as tp
 if tp.TYPE_CHECKING:
-    from utils import *
     from . import *
     from ..NeuralNetworks import *
+    from ..Utils import *
 
 from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
 

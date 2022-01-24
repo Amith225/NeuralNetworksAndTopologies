@@ -32,8 +32,8 @@ class WBOptimizer(metaclass=ABCMeta):
         self._evalDelta(layer)
     
     def _evalDelta(self, layer):
-        deltaBiases = self.nn.deltaLoss[layer] * self.nn.activationDerivatives[layer](self.nn.wbOutputs[layer])
-        np.einsum('lkj,lij->ik', self.nn.wbOutputs[layer - 1], deltaBiases, out=self.nn.deltaWeights[layer])
+        deltaBiases = self.nn.deltaLoss[layer] * self.nn.activationDerivatives[layer](self.nn.outputs[layer])
+        np.einsum('lkj,lij->ik', self.nn.outputs[layer - 1], deltaBiases, out=self.nn.deltaWeights[layer])
         self.nn.deltaBiases[layer] = deltaBiases.sum(axis=0)
         self.nn.deltaLoss[layer - 1] = self.nn.weightsList[layer].transpose() @ self.nn.deltaLoss[layer]
 
@@ -54,7 +54,7 @@ class MomentumWBOptimizer(WBOptimizer):
         if alpha is None:
             alpha = learningRate / 10
         super(MomentumWBOptimizer, self).__init__(neural_network, learningRate, alpha)
-        self.prev_delta_biases = [0 for _ in range(self.nn.wbShape.LAYERS)]
+        self.prev_delta_biases = [0 for _ in range(self.nn.shape.LAYERS)]
         self.prev_delta_weights = self.prev_delta_biases.copy()
 
     def _optimize(self, layer):
@@ -74,7 +74,7 @@ class NesterovMomentumWBOptimizer(WBOptimizer):
         if alpha is None:
             alpha = learningRate / 10
         super(NesterovMomentumWBOptimizer, self).__init__(neural_network, learningRate, alpha)
-        self.prev_delta_biases = [0 for _ in range(self.nn.wbShape.LAYERS)]
+        self.prev_delta_biases = [0 for _ in range(self.nn.shape.LAYERS)]
         self.prev_delta_weights = self.prev_delta_biases.copy()
         self.momentum_biases = copyNumpyList(self.nn.biasesList)
         self.momentum_weights = copyNumpyList(self.nn.weightsList)
@@ -83,15 +83,15 @@ class NesterovMomentumWBOptimizer(WBOptimizer):
     
     def _fire(self, layer):
         if self.nn.training:
-            self.nn.wbOutputs[layer] =\
-                self.nn.activations[layer](self.momentum_weights[layer] @ self.nn.wbOutputs[layer - 1] +
+            self.nn.outputs[layer] =\
+                self.nn.activations[layer](self.momentum_weights[layer] @ self.nn.outputs[layer - 1] +
                                            self.momentum_biases[layer])
         else:
             super(self.nn.__class__, self.nn)._fire(layer)  # noqa
 
     def _evalDelta(self, layer):
-        deltaBiases = self.nn.deltaLoss[layer] * self.nn.activationDerivatives[layer](self.nn.wbOutputs[layer])
-        np.einsum('lkj,lij->ik', self.nn.wbOutputs[layer - 1], deltaBiases, out=self.nn.deltaWeights[layer])
+        deltaBiases = self.nn.deltaLoss[layer] * self.nn.activationDerivatives[layer](self.nn.outputs[layer])
+        np.einsum('lkj,lij->ik', self.nn.outputs[layer - 1], deltaBiases, out=self.nn.deltaWeights[layer])
         np.einsum('lij->ij', deltaBiases, out=self.nn.deltaBiases[layer])
         self.nn.deltaLoss[layer - 1] = self.momentum_weights[layer].transpose() @ self.nn.deltaLoss[layer]
 
@@ -126,7 +126,7 @@ class DecayWBOptimizer(WBOptimizer):
 class AdagradWBOptimizer(WBOptimizer):
     def __init__(self, neural_network: 'ArtificialNeuralNetwork', learningRate=0.01, epsilon=np.e ** -8):
         super(AdagradWBOptimizer, self).__init__(neural_network, learningRate, epsilon=epsilon)
-        self.grad_square_biases = [0 for _ in range(self.nn.wbShape.LAYERS)]
+        self.grad_square_biases = [0 for _ in range(self.nn.shape.LAYERS)]
         self.grad_square_weights = self.grad_square_biases.copy()
 
     def _optimize(self, layer):
@@ -155,7 +155,7 @@ class AdagradWBOptimizer(WBOptimizer):
 class RmspropWBOptimizer(WBOptimizer):
     def __init__(self, neural_network: 'ArtificialNeuralNetwork', learningRate=0.001, beta=0.9, epsilon=np.e ** -8):
         super(RmspropWBOptimizer, self).__init__(neural_network, learningRate, beta=beta, epsilon=epsilon)
-        self.grad_square_biases_sum = [0 for _ in range(self.nn.wbShape.LAYERS)]
+        self.grad_square_biases_sum = [0 for _ in range(self.nn.shape.LAYERS)]
         self.grad_square_weights_sum = self.grad_square_biases_sum.copy()
 
     def _optimize(self, layer):
@@ -190,9 +190,9 @@ class AdadeltaWBOptimizer(WBOptimizer):
                        "\nuse 'Rmsprop' instead for stable working", PendingDeprecationWarning,
                        'optimizer.py->AdadeltaWBOptimizer', 0)
         super(AdadeltaWBOptimizer, self).__init__(neural_network, learningRate, beta=beta, epsilon=epsilon)
-        self.grad_square_biases_sum = [0 for _ in range(self.nn.wbShape.LAYERS)]
+        self.grad_square_biases_sum = [0 for _ in range(self.nn.shape.LAYERS)]
         self.grad_square_weights_sum = self.grad_square_biases_sum.copy()
-        self.delta_square_biases_sum = [0 for _ in range(self.nn.wbShape.LAYERS)]
+        self.delta_square_biases_sum = [0 for _ in range(self.nn.shape.LAYERS)]
         self.delta_square_weights_sum = self.delta_square_biases_sum.copy()
 
     def _optimize(self, layer):

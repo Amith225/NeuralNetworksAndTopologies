@@ -6,7 +6,7 @@ db = DataBase.load(dataSet.TrainSets.EmnistBalanced, normalizeInp=1, reshapeInp=
 db2 = DataBase.load(dataSet.TestSets.EmnistBalanced, normalizeInp=1, reshapeInp=(-1, 1))
 
 hiddenShape = 392, 196
-nn = ArtificialNeuralNetwork(wbShape=WBShape(db.inpShape[0], *hiddenShape, db.tarShape[0]),
+nn = ArtificialNeuralNetwork(shape=Shape(db.inpShape[0], *hiddenShape, db.tarShape[0]),
                              wbInitializer=XavierWBInitializer(2),
                              activators=Activators(Prelu(),
                                                    ...,

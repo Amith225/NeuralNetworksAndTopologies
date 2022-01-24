@@ -8,10 +8,12 @@ if tp.TYPE_CHECKING:
     from Topologies.activationFuntion import AbstractActivationFunction
 
 
-class WBShape:
-    def __init__(self, *wbShape):
-        self._shape = tuple(wbShape)
+class Shape:
+    def __init__(self, *shape):
+        self._shape = tuple(shape)
         self.LAYERS = len(self._shape)
+        self.INPUT = self._shape[0]
+        self.OUTPUT = self._shape[-1]
 
     def __getitem__(self, item):
         return self._shape[item]
@@ -64,4 +66,3 @@ class NumpyDataCache(np.ndarray):
             memMap = np.memmap(file, mode='r', shape=array.shape, dtype=array.dtype, offset=file.tell())
 
         return memMap
-

@@ -10,7 +10,7 @@ import dill as dl
 
 import numpy as np
 
-from abc import ABCMeta as ABCMeta, abstractmethod as abstractmethod
+from abc import ABCMeta, abstractmethod
 
 from ._printVars import PrintVars as pV
 from Utils import AbstractSave
@@ -33,7 +33,11 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
         dl.dump(self, dumpFile)
         self.trainDataBase: "DataBase" = trainDataBase
 
-    def __init__(self):
+    def __init__(self, shape: "Shape", initializer, activators: "Activators"):
+        self.shape = shape
+        self.biasesList, self.weightsList = initializer(self.shape)
+        self.activations, self.activationDerivatives = activators(self.shape.LAYERS - 1)
+
         self.costHistory = []
         self.accuracyHistory = []
         self.costTrained = 0
@@ -45,11 +49,18 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
         self.epochs = 1
         self.batchSize = 32
         self.numBatches = None
-        self.trainDataBase = None
-        self.lossFunction = None
         self.training = False
         self.profiling = False
-        self.neverTrained = True
+        self.__neverTrained = True
+
+        self.outputs = None
+        self.target = None
+        self.deltaLoss = None
+        self.loss = None
+
+        self.trainDataBase = None
+        self.lossFunction = None
+        self.optimizer = None
 
     @abstractmethod
     def _forwardPass(self, layer=1):
@@ -60,13 +71,6 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def process(self, inputs) -> "np.ndarray":
-        if self.training:
-            wr.showwarning("processing while training in progress, may have unintended conflicts", ResourceWarning,
-                           'neuralNetwork.py->AbstractNeuralNetwork.process', 0)
-            return np.NAN
-
-    @abstractmethod
     def _fire(self, layer):
         pass
 
@@ -75,11 +79,31 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _trainer(self, batch) -> ("float", "float"):
-        pass
-
     def _initializeVars(self):
         pass
+
+    @abstractmethod
+    def _trainer(self):
+        """assign self.loss and self.deltaLoss here"""
+
+    def process(self, inputs) -> "np.ndarray":
+        if self.training:
+            wr.showwarning("processing while training in progress, may have unintended conflicts", ResourceWarning,
+                           'neuralNetwork.py->AbstractNeuralNetwork.process', 0)
+            return np.NAN
+
+        inputs = np.array(inputs)
+        if inputs.size % self.shape[0] == 0:
+            inputs = inputs.reshape([inputs.size, self.shape[0], -1])  # fixme: make shape.INPUT usable
+        else:
+            raise Exception("InputError: size of input should be same as that of input node of neural network or "
+                            "an integral multiple of it")
+        self.outputs[0] = inputs
+        self._forwardPass()
+        rVal = self.outputs[-1]
+        self._initializeVars()
+
+        return rVal
 
     @staticmethod
     def _statPrinter(key, value, prefix='', suffix=pV.CEND, end=' '):
@@ -87,36 +111,28 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
 
     def train(self, profile=False, test=None):
         if not profile:
-            if self.neverTrained:
-                batchGenerator = self.trainDataBase.batchGenerator(self.batchSize)
-                trainerOutput = self._trainer(batchGenerator.send(-1))
-                self._initializeVars()
-                trainCosts = [trainerOutput[0]]
-                trainAccuracy = [trainerOutput[1]]
-                self.neverTrained = False
-            else:
-                trainCosts = [self.costHistory[-1][-1]]
-                trainAccuracy = [self.accuracyHistory[-1][-1]]
+            if self.__neverTrained:
+                self.outputs[0], self.target = self.trainDataBase.batchGenerator(self.batchSize).send(-1)
+                self._forwardPass(); self._trainer(); self._backPropagate(); self._initializeVars()
+                trainCosts, trainAccuracy = [self.loss], [self._tester(self.outputs[-1], self.target)]
+                self.__neverTrained = False
+            else: trainCosts, trainAccuracy = [self.costHistory[-1][-1]], [self.accuracyHistory[-1][-1]]
             self.training = True
             self.numBatches = int(np.ceil(self.trainDataBase.size / self.batchSize))
             trainTime = 0
             nextPrintTime = self.SMOOTH_PRINT_INTERVAL
             self._statPrinter('Epoch', f"0/{self.epochs}", prefix=pV.CBOLDITALICURL + pV.CBLUE)
             for epoch in range(1, self.epochs + 1):
-                self.costTrained = 0
-                self.trainAccuracy = 0
+                self.costTrained = self.trainAccuracy = 0
                 time = tm.time()
                 batchGenerator = self.trainDataBase.batchGenerator(self.batchSize)
                 for batch in range(self.numBatches):
-                    trainerOutput = self._trainer(batchGenerator.__next__())
-                    self.costTrained += trainerOutput[0]
-                    self.trainAccuracy += trainerOutput[1]
-                epochTime = tm.time() - time
-                trainTime += epochTime
-                self.costTrained /= self.trainDataBase.size
-                self.trainAccuracy /= self.numBatches
-                trainCosts.append(self.costTrained)
-                trainAccuracy.append(self.trainAccuracy)
+                    self.outputs[0], self.target = batchGenerator.__next__()
+                    self._forwardPass(); self._trainer(); self._backPropagate()
+                    self.costTrained += self.loss; self.trainAccuracy += self._tester(self.outputs[-1], self.target)
+                epochTime = tm.time() - time; trainTime += epochTime
+                self.costTrained /= self.trainDataBase.size; self.trainAccuracy /= self.numBatches
+                trainCosts.append(self.costTrained); trainAccuracy.append(self.trainAccuracy)
                 if trainTime >= nextPrintTime or epoch == self.epochs:
                     nextPrintTime += self.SMOOTH_PRINT_INTERVAL
                     avgTime = trainTime / epoch
@@ -131,17 +147,13 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
                 self.epochTrained += 1
             print()
             self.timeTrained += trainTime
-            self.costHistory.append(trainCosts)
-            self.accuracyHistory.append(trainAccuracy)
+            self.costHistory.append(trainCosts); self.accuracyHistory.append(trainAccuracy)
             self.training = False
             self._initializeVars()
         else:
-            self.profiling = True
-            cP.runctx("self.train()", globals=globals(), locals=locals())
-            self.profiling = False
+            self.profiling = True; cP.runctx("self.train()", globals=globals(), locals=locals()); self.profiling = False
 
-        if not self.profiling:
-            self.test(test)
+        if not self.profiling: self.test(test)
 
     @staticmethod
     def secToHMS(seconds, hms=('h', 'm', 's')):
@@ -179,11 +191,9 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
     def test(self, testDataBase: "DataBase" = None):
         self._statPrinter('Testing', 'wait...', prefix=pV.CBOLD + pV.CYELLOW, suffix='')
         if self.trainDataBase is not None:
-            db = self.trainDataBase
-            self.trainAccuracy = self.accuracy(db.inputSet, db.targetSet)
+            self.trainAccuracy = self.accuracy(self.trainDataBase.inputSet, self.trainDataBase.targetSet)
         if testDataBase is not None:
-            db = testDataBase
-            self.testAccuracy = self.accuracy(db.inputSet, db.targetSet)
+            self.testAccuracy = self.accuracy(testDataBase.inputSet, testDataBase.targetSet)
         print(end='\r')
         self._statPrinter('Train-Accuracy', f"{self.trainAccuracy}%", suffix='', end='\n')
         self._statPrinter('Test-Accuracy', f"{self.testAccuracy}%", end='\n')
@@ -191,67 +201,39 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
 
 
 class ArtificialNeuralNetwork(AbstractNeuralNetwork):
-    def __init__(self, wbShape: "WBShape",
-                 wbInitializer: "WBInitializer",
-                 activators: "Activators"):
-        super(ArtificialNeuralNetwork, self).__init__()
-        self.wbShape = wbShape
-        self.wbInitializer = wbInitializer
-        self.activations, self.activationDerivatives = activators(self.wbShape.LAYERS - 1)
-
-        self.biasesList, self.weightsList = self.wbInitializer(self.wbShape)
-
-        self._initializeVars()
-        self.wbOptimizer = None
-        self.deltaLoss = None
-
-    def _initializeVars(self):
-        self.wbOutputs, self.target = list(range(self.wbShape.LAYERS)), None
-        self.deltaBiases, self.deltaWeights = [np.zeros_like(bias) for bias in self.biasesList],\
-                                              [np.zeros_like(weight) for weight in self.weightsList]
-
     def _forwardPass(self, layer=1):
         self._fire(layer)
-        if layer < self.wbShape.LAYERS - 1:
+        if layer < self.shape.LAYERS - 1:
             self._forwardPass(layer + 1)
 
     def _backPropagate(self, layer=-1):
-        if layer <= -self.wbShape.LAYERS:
+        if layer <= -self.shape.LAYERS:
             return
-        self.wbOptimizer(layer)
+        self.optimizer(layer)
         self._wire(layer)
         self._backPropagate(layer - 1)
 
-    def process(self, inputs):
-        super(ArtificialNeuralNetwork, self).process(inputs)
-        inputs = np.array(inputs)
-        if inputs.size % self.wbShape[0] == 0:
-            inputs = inputs.reshape([-1, self.wbShape[0], 1])
-        else:
-            raise Exception("InputError: size of input should be same as that of input node of neural network or "
-                            "an integral multiple of it")
-        self.wbOutputs[0] = inputs
-        self._forwardPass()
-        rVal = self.wbOutputs[-1]
-        self._initializeVars()
-
-        return rVal
-
     def _fire(self, layer):
-        self.wbOutputs[layer] = self.activations[layer](self.weightsList[layer] @ self.wbOutputs[layer - 1] +
-                                                        self.biasesList[layer])
+        self.outputs[layer] = self.activations[layer](self.weightsList[layer] @ self.outputs[layer - 1] +
+                                                      self.biasesList[layer])
 
     def _wire(self, layer):
         self.biasesList[layer] -= self.deltaBiases[layer]
         self.weightsList[layer] -= self.deltaWeights[layer]
 
-    def _trainer(self, batch) -> ("float", "float"):
-        self.wbOutputs[0], self.target = batch
-        self._forwardPass()
-        loss, self.deltaLoss[-1] = self.lossFunction(self.wbOutputs[-1], self.target)
-        self._backPropagate()
+    def _trainer(self):
+        self.loss, self.deltaLoss[-1] = self.lossFunction(self.outputs[-1], self.target)
 
-        return loss, self._tester(self.wbOutputs[-1], self.target)
+    def _initializeVars(self):
+        self.outputs, self.target = list(range(self.shape.LAYERS)), None
+        self.deltaBiases, self.deltaWeights = [np.zeros_like(bias) for bias in self.biasesList],\
+                                              [np.zeros_like(weight) for weight in self.weightsList]
+
+    def __init__(self, shape: "Shape",
+                 initializer: "WBInitializer",
+                 activators: "Activators"):
+        super(ArtificialNeuralNetwork, self).__init__(shape, initializer, activators)
+        self._initializeVars()
 
     def train(self, epochs: "int" = None, batchSize: "int" = None,
               trainDataBase: "DataBase" = None, costFunction: "LossFunction" = None,
@@ -267,8 +249,8 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         if costFunction is not None:
             self.lossFunction = costFunction
         if wbOptimizer is not None:
-            self.wbOptimizer = wbOptimizer
+            self.optimizer = wbOptimizer
 
-        self.deltaLoss = [(np.zeros((self.batchSize, self.wbShape[i], 1), dtype=np.float32))
-                          for i in range(0, self.wbShape.LAYERS)]
+        self.deltaLoss = [(np.zeros((self.batchSize, self.shape[i], 1), dtype=np.float32))
+                          for i in range(0, self.shape.LAYERS)]
         super(ArtificialNeuralNetwork, self).train(profile=profile, test=test)

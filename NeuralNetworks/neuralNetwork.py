@@ -33,9 +33,8 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
         dl.dump(self, dumpFile)
         self.trainDataBase: "DataBase" = trainDataBase
 
-    def __init__(self, shape: "Shape", initializer, activators: "Activators"):
+    def __init__(self, shape: "Shape", activators: "Activators"):
         self.shape = shape
-        self.biasesList, self.weightsList = initializer(self.shape)
         self.activations, self.activationDerivatives = activators(self.shape.LAYERS - 1)
 
         self.costHistory = []
@@ -232,7 +231,12 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
     def __init__(self, shape: "Shape",
                  initializer: "WBInitializer",
                  activators: "Activators"):
-        super(ArtificialNeuralNetwork, self).__init__(shape, initializer, activators)
+        super(ArtificialNeuralNetwork, self).__init__(shape, activators)
+
+        # todo: make this abstract requirement?
+        self.biasesList = initializer(self.shape)
+        self.weightsList = initializer([(s[0], self.shape[i - 1][0]) for i, s in enumerate(self.shape)])
+
         self._initializeVars()
 
     def train(self, epochs: "int" = None, batchSize: "int" = None,

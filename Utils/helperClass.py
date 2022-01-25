@@ -4,19 +4,28 @@ import tempfile as tf
 import numpy as np
 from numpy.lib import format as fm
 
+from .helperFunctions import *
+
 if tp.TYPE_CHECKING:
     from Topologies.activationFuntion import AbstractActivationFunction
 
 
 class Shape:
     def __init__(self, *shape):
-        self._shape = tuple(shape)
+        self._shape = list(shape)
+        self.__format_shape()
         self.LAYERS = len(self._shape)
         self.INPUT = self._shape[0]
         self.OUTPUT = self._shape[-1]
 
     def __getitem__(self, item):
         return self._shape[item]
+
+    def __format_shape(self):
+        for i, layer in enumerate(self._shape):
+            if not iterable(layer):
+                self._shape[i] = (layer, 1)
+        self._shape = tuple(self._shape)
 
     @property
     def shape(self):

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="todo: create Utils directory. *&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;">
+    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="added some todo, made outputs-shape-initializer-biases-weights-activators abstract">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NeuralNetworks/neuralNetwork.py" beforeDir="false" afterPath="$PROJECT_DIR$/NeuralNetworks/neuralNetwork.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Topologies/optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Topologies/optimizer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Topologies/initializer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Topologies/initializer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Utils/helperClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utils/helperClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test2.py" beforeDir="false" afterPath="$PROJECT_DIR$/test2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,7 +78,7 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.test">
+  <component name="RunManager" selected="Python.test2">
     <configuration name="test" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="NeuralNetworksAndTopologies" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -105,9 +105,6 @@
       <module name="NeuralNetworksAndTopologies" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -173,7 +170,8 @@
       <workItem from="1642213418602" duration="3297000" />
       <workItem from="1642223751279" duration="50000" />
       <workItem from="1642663879534" duration="761000" />
-      <workItem from="1643019224064" duration="1081000" />
+      <workItem from="1643019224064" duration="2939000" />
+      <workItem from="1643078772834" duration="520000" />
     </task>
     <task id="LOCAL-00001" summary="Merge remote-tracking branch 'origin/main'&#10;&#10;# Conflicts:&#10;#&#9;.idea/NeuralNetworksAndTopologies.iml&#10;#&#9;main.py">
       <created>1638957714061</created>
@@ -301,7 +299,14 @@
       <option name="project" value="LOCAL" />
       <updated>1639738522005</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="added some todo, made outputs-shape-initializer-biases-weights-activators abstract">
+      <created>1643021514491</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1643021514491</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -333,7 +338,8 @@
     <MESSAGE value="fixme todo: clean up Plot and add contexts. *DL&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
     <MESSAGE value="todo: create Utils directory. *" />
     <MESSAGE value="todo: create Utils directory. *&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
-    <option name="LAST_COMMIT_MESSAGE" value="todo: create Utils directory. *&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
+    <MESSAGE value="added some todo, made outputs-shape-initializer-biases-weights-activators abstract" />
+    <option name="LAST_COMMIT_MESSAGE" value="added some todo, made outputs-shape-initializer-biases-weights-activators abstract" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test.coverage" NAME="test Coverage Results" MODIFIED="1638965083082" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

@@ -17,11 +17,11 @@ class WBInitializer(metaclass=ABCMeta):
     def __init__(self, *args, **kwargs):
         self.sn = np.random.default_rng().standard_normal
 
-    def __call__(self, shape: "Shape") -> tp.Tuple["np.ndarray", "np.ndarray"]:
-        return self._initialize(shape)
+    def __call__(self, uniShape):
+        return self._initialize(uniShape)
 
     @abstractmethod
-    def _initialize(self, shape: "Shape") -> tp.Tuple["np.ndarray", "np.ndarray"]:
+    def _initialize(self, uniShape):
         pass
 
 
@@ -32,13 +32,9 @@ class UniformWBInitializer(WBInitializer):
         self.start = start
         self.stop = stop
 
-    def _initialize(self, shape: "Shape") -> tp.Tuple["np.ndarray", "np.ndarray"]:
-        biases = [np.random.uniform(self.start, self.stop, (shape[i], 1)).astype(dtype=np.float32)
-                  for i in range(1, shape.LAYERS)]
-        weights = [np.random.uniform(self.start, self.stop, (shape[i], shape[i - 1])).astype(dtype=np.float32)
-                   for i in range(1, shape.LAYERS)]
-
-        return np.NONE + biases, np.NONE + weights
+    def _initialize(self, uniShape):
+        return np.NONE + [np.random.uniform(self.start, self.stop, shape).astype(dtype=np.float32)
+                          for shape in uniShape[1:]]
 
 
 class NormalWBInitializer(WBInitializer):
@@ -46,11 +42,8 @@ class NormalWBInitializer(WBInitializer):
         super(NormalWBInitializer, self).__init__()
         self.scale = scale
 
-    def _initialize(self, shape: "Shape") -> tp.Tuple["np.ndarray", "np.ndarray"]:
-        biases = [(self.sn((shape[i], 1), dtype=np.float32)) * self.scale for i in range(1, shape.LAYERS)]
-        weights = [(self.sn((shape[i], shape[i - 1]), dtype=np.float32)) * self.scale for i in range(1, shape.LAYERS)]
-
-        return np.NONE + biases, np.NONE + weights
+    def _initialize(self, uniShape):
+        return np.NONE + [self.sn(shape, dtype=np.float32) * self.scale for shape in uniShape[1:]]
 
 
 class XavierWBInitializer(WBInitializer):
@@ -58,13 +51,9 @@ class XavierWBInitializer(WBInitializer):
         super(XavierWBInitializer, self).__init__()
         self.he = he
 
-    def _initialize(self, shape: "Shape") -> tp.Tuple["np.ndarray", "np.ndarray"]:
-        biases = [self.sn((shape[i], 1), dtype=np.float32) * (self.he / shape[i - 1]) ** 0.5
-                  for i in range(1, shape.LAYERS)]
-        weights = [self.sn((shape[i], shape[i - 1]), dtype=np.float32) * (self.he / shape[i - 1]) ** 0.5
-                   for i in range(1, shape.LAYERS)]
-
-        return np.NONE + biases, np.NONE + weights
+    def _initialize(self, uniShape):
+        np.NONE + [self.sn(shape, dtype=np.float32) * (self.he / np.prod(uniShape[i - 1])**len(uniShape[i - 1])) ** 0.5
+                   for i, shape in enumerate(uniShape[1:])]
 
 
 class NormalizedXavierWBInitializer(WBInitializer):

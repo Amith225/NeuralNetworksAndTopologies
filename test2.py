@@ -3,5 +3,5 @@ from Topologies import *
 from Utils import *
 from DataSets import dataSet
 
-db = DataBase.load(dataSet.TrainSets.EmnistBalanced)
-nn = LoadNeuralNetwork('test.nn.27c.6e.43s.nnt')
+shape = Shape(10, 20, 30)
+print([x.shape for x in UniformWBInitializer()([(shape[i][0], shape[i-1][0]) for i in range(shape.LAYERS)])])

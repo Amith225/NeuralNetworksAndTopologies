@@ -12,7 +12,7 @@ from abc import ABCMeta, abstractmethod
 np.NONE = [np.array([None])]
 
 
-class WBInitializer(metaclass=ABCMeta):
+class Initializer(metaclass=ABCMeta):
     @abstractmethod
     def __init__(self, *args, **kwargs):
         self.sn = np.random.default_rng().standard_normal
@@ -25,10 +25,9 @@ class WBInitializer(metaclass=ABCMeta):
         pass
 
 
-# todo: take single shape and return values
-class UniformWBInitializer(WBInitializer):
+class Uniform(Initializer):
     def __init__(self, start: tp.Union["int", "float"] = -1, stop: tp.Union["int", "float"] = 1):
-        super(UniformWBInitializer, self).__init__()
+        super(Uniform, self).__init__()
         self.start = start
         self.stop = stop
 
@@ -37,34 +36,33 @@ class UniformWBInitializer(WBInitializer):
                           for shape in uniShape[1:]]
 
 
-class NormalWBInitializer(WBInitializer):
+class Normal(Initializer):
     def __init__(self, scale: tp.Union["int", "float"] = 1):
-        super(NormalWBInitializer, self).__init__()
+        super(Normal, self).__init__()
         self.scale = scale
 
     def _initialize(self, uniShape):
         return np.NONE + [self.sn(shape, dtype=np.float32) * self.scale for shape in uniShape[1:]]
 
 
-class XavierWBInitializer(WBInitializer):
+class Xavier(Initializer):
     def __init__(self, he: tp.Union["int", "float"] = 1):
-        super(XavierWBInitializer, self).__init__()
+        super(Xavier, self).__init__()
         self.he = he
 
     def _initialize(self, uniShape):
-        np.NONE + [self.sn(shape, dtype=np.float32) * (self.he / np.prod(uniShape[i - 1])**len(uniShape[i - 1])) ** 0.5
-                   for i, shape in enumerate(uniShape[1:])]
+        return np.NONE + [self.sn(shape, dtype=np.float32) *
+                          (self.he / np.prod(uniShape[i - 1])**(1/len(uniShape[i - 1]))) ** 0.5
+                          for i, shape in enumerate(uniShape[1:])]
 
 
-class NormalizedXavierWBInitializer(WBInitializer):
+class NormalizedXavier(Initializer):
     def __init__(self, he: tp.Union["int", "float"] = 6):
-        super(NormalizedXavierWBInitializer, self).__init__()
+        super(NormalizedXavier, self).__init__()
         self.he = he
 
-    def _initialize(self, shape: "Shape") -> tp.Tuple["np.ndarray", "np.ndarray"]:
-        biases = [self.sn((shape[i], 1), dtype=np.float32) * (self.he / (shape[i - 1] + shape[i])) ** 0.5
-                  for i in range(1, shape.LAYERS)]
-        weights = [self.sn((shape[i], shape[i - 1]), dtype=np.float32) * (self.he / (shape[i - 1] + shape[i])) ** 0.5
-                   for i in range(1, shape.LAYERS)]
-
-        return np.NONE + biases, np.NONE + weights
+    def _initialize(self, uniShape):
+        return np.NONE + [self.sn(shape, dtype=np.float32) *
+                          (self.he /
+                           (np.prod(uniShape[i - 1]) + np.prod(shape))**(2/(len(uniShape[i - 1]) + len(shape)))) ** 0.5
+                          for i, shape in enumerate(uniShape[1:])]

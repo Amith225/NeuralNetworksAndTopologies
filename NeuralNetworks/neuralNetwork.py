@@ -91,12 +91,7 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
                            'neuralNetwork.py->AbstractNeuralNetwork.process', 0)
             return np.NAN
 
-        inputs = np.array(inputs)
-        if inputs.size % self.shape[0] == 0:
-            inputs = inputs.reshape([inputs.size, self.shape[0], -1])  # fixme: make shape.INPUT usable
-        else:
-            raise Exception("InputError: size of input should be same as that of input node of neural network or "
-                            "an integral multiple of it")
+        inputs = np.array(inputs).reshape([-1, *self.shape.INPUT])
         self.outputs[0] = inputs
         self._forwardPass()
         rVal = self.outputs[-1]
@@ -112,8 +107,9 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
         if not profile:
             if self.__neverTrained:
                 self.outputs[0], self.target = self.trainDataBase.batchGenerator(self.batchSize).send(-1)
-                self._forwardPass(); self._trainer(); self._backPropagate(); self._initializeVars()
+                self._forwardPass(); self._trainer(); self._backPropagate()
                 trainCosts, trainAccuracy = [self.loss], [self._tester(self.outputs[-1], self.target)]
+                self._initializeVars()
                 self.__neverTrained = False
             else: trainCosts, trainAccuracy = [self.costHistory[-1][-1]], [self.accuracyHistory[-1][-1]]
             self.training = True
@@ -229,7 +225,7 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
                                               [np.zeros_like(weight) for weight in self.weightsList]
 
     def __init__(self, shape: "Shape",
-                 initializer: "WBInitializer",
+                 initializer: "Initializer",
                  activators: "Activators"):
         super(ArtificialNeuralNetwork, self).__init__(shape, activators)
 
@@ -255,6 +251,6 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         if wbOptimizer is not None:
             self.optimizer = wbOptimizer
 
-        self.deltaLoss = [(np.zeros((self.batchSize, self.shape[i], 1), dtype=np.float32))
+        self.deltaLoss = [(np.zeros((self.batchSize, *self.shape[i]), dtype=np.float32))
                           for i in range(0, self.shape.LAYERS)]
         super(ArtificialNeuralNetwork, self).train(profile=profile, test=test)

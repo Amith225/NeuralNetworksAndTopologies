@@ -1,14 +1,13 @@
 import typing as tp
 if tp.TYPE_CHECKING:
-    from . import *
-    from ..NeuralNetworks import *
-    from ..Utils import *
+    from . import _
+    from ..NeuralNetworks import ArtificialNeuralNetwork
+    from ..Utils import _
 import warnings as wr
+from abc import ABCMeta as ABCMeta, abstractmethod as abstractmethod
 
 import numpy as np
 import numexpr as ne
-
-from abc import ABCMeta as ABCMeta, abstractmethod as abstractmethod
 
 from Utils import copyNumpyList
 

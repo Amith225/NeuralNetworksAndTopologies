@@ -1,13 +1,13 @@
 import typing as tp
+if tp.TYPE_CHECKING:
+    from . import _
+    from ..Topologies import AbstractActivationFunction
+    from ..NeuralNetworks import _
 import tempfile as tf
 
-import numpy as np
 from numpy.lib import format as fm
 
 from .helperFunctions import *
-
-if tp.TYPE_CHECKING:
-    from Topologies.activationFuntion import AbstractActivationFunction
 
 
 class Shape:

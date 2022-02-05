@@ -10,11 +10,11 @@ nn = ArtificialNeuralNetwork(shape=Shape(db.inpShape[0], *hiddenShape, db.tarSha
                              initializer=Xavier(2),
                              activators=Activators(Prelu(),
                                                    ...,
-                                                   Softmax()))
+                                                   Softmax()),
+                             costFunction=MeanSquareLossFunction())
 
 nn.train(2, 256,
          trainDataBase=db,
-         costFunction=MeanSquareLossFunction(),
          wbOptimizer=AdagradWBOptimizer(nn),
          profile=False,
          test=db2)

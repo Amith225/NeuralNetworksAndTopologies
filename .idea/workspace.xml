@@ -1,9 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="save point 1">
+    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="todo.txt: generalize topology classes to AbstractNeuralNetwork. FD (initializer)&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NeuralNetworks/_printVars.py" beforeDir="false" afterPath="$PROJECT_DIR$/NeuralNetworks/_printVars.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NeuralNetworks/loadPlot.py" beforeDir="false" afterPath="$PROJECT_DIR$/NeuralNetworks/loadPlot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NeuralNetworks/neuralNetwork.py" beforeDir="false" afterPath="$PROJECT_DIR$/NeuralNetworks/neuralNetwork.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Topologies/activationFuntion.py" beforeDir="false" afterPath="$PROJECT_DIR$/Topologies/activationFuntion.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Topologies/dataBase.py" beforeDir="false" afterPath="$PROJECT_DIR$/Topologies/dataBase.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Topologies/initializer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Topologies/initializer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Topologies/lossFunction.py" beforeDir="false" afterPath="$PROJECT_DIR$/Topologies/lossFunction.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Topologies/optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Topologies/optimizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Utils/abstractSaveLoad.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utils/abstractSaveLoad.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Utils/helperClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utils/helperClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Utils/helperFunctions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utils/helperFunctions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Utils/plotting.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utils/plotting.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__Future__/CNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/__Future__/CNN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__Future__/temp.py" beforeDir="false" afterPath="$PROJECT_DIR$/__Future__/temp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -17,6 +30,9 @@
         <option value="Python Script" />
       </list>
     </option>
+  </component>
+  <component name="Git.Merge.Settings">
+    <option name="BRANCH" value="experimental_initializer" />
   </component>
   <component name="Git.Settings">
     <excluded-from-favorite>
@@ -87,6 +103,9 @@
       <module name="NeuralNetworksAndTopologies" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -175,6 +194,8 @@
       <workItem from="1642223751279" duration="50000" />
       <workItem from="1642663879534" duration="761000" />
       <workItem from="1643019224064" duration="1081000" />
+      <workItem from="1643168950466" duration="177000" />
+      <workItem from="1644063052534" duration="5829000" />
     </task>
     <task id="LOCAL-00001" summary="Merge remote-tracking branch 'origin/main'&#10;&#10;# Conflicts:&#10;#&#9;.idea/NeuralNetworksAndTopologies.iml&#10;#&#9;main.py">
       <created>1638957714061</created>
@@ -302,7 +323,14 @@
       <option name="project" value="LOCAL" />
       <updated>1639738522005</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="todo.txt: generalize topology classes to AbstractNeuralNetwork. FD (initializer)&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;">
+      <created>1643084563348</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1643084563348</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -334,11 +362,13 @@
     <MESSAGE value="fixme todo: clean up Plot and add contexts. *DL&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
     <MESSAGE value="todo: create Utils directory. *" />
     <MESSAGE value="todo: create Utils directory. *&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
-    <option name="LAST_COMMIT_MESSAGE" value="todo: create Utils directory. *&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
+    <MESSAGE value="todo.txt: generalize topology classes to AbstractNeuralNetwork. FD" />
+    <MESSAGE value="todo.txt: generalize topology classes to AbstractNeuralNetwork. FD (initializer)&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
+    <option name="LAST_COMMIT_MESSAGE" value="todo.txt: generalize topology classes to AbstractNeuralNetwork. FD (initializer)&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test.coverage" NAME="test Coverage Results" MODIFIED="1638965083082" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test3.coverage" NAME="test3 Coverage Results" MODIFIED="1638965359263" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test.coverage" NAME="test Coverage Results" MODIFIED="1643084207760" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test2.coverage" NAME="test2 Coverage Results" MODIFIED="1639033525248" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

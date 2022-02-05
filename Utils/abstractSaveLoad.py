@@ -1,5 +1,9 @@
 import os
-
+import typing as tp
+if tp.TYPE_CHECKING:
+    from . import _
+    from ..Topologies import AbstractActivationFunction
+    from ..NeuralNetworks import _
 from abc import ABCMeta, abstractmethod
 
 

@@ -1,8 +1,8 @@
 import typing as tp
 if tp.TYPE_CHECKING:
-    from . import *
-    from ..NeuralNetworks import *
-    from ..Utils import *
+    from . import _
+    from ..NeuralNetworks import _
+    from ..Utils import _
 import warnings as wr
 
 import numpy as np

@@ -1,12 +1,11 @@
 import typing as tp
 if tp.TYPE_CHECKING:
-    from . import *
-    from ..NeuralNetworks import *
-    from ..Utils import *
+    from . import _
+    from ..NeuralNetworks import _
+    from ..Utils import _
+from abc import ABCMeta, abstractmethod
 
 import numpy as np
-
-from abc import ABCMeta, abstractmethod
 
 # setup list or element numpy array of None
 np.NONE = [np.array([None])]

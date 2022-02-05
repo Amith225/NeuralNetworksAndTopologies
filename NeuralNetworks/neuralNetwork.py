@@ -1,16 +1,15 @@
 import typing as tp
 if tp.TYPE_CHECKING:
-    from . import *
-    from ..Topologies import *
-    from ..Utils import *
+    from . import _
+    from ..Topologies import DataBase, WBOptimizer, LossFunction, Initializer
+    from ..Utils import Shape, Activators
 import cProfile as cP
 import time as tm
 import warnings as wr
-import dill as dl
-
-import numpy as np
-
 from abc import ABCMeta, abstractmethod
+
+import dill as dl
+import numpy as np
 
 from ._printVars import PrintVars as pV
 from Utils import AbstractSave
@@ -33,9 +32,10 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
         dl.dump(self, dumpFile)
         self.trainDataBase: "DataBase" = trainDataBase
 
-    def __init__(self, shape: "Shape", activators: "Activators"):
+    def __init__(self, shape: "Shape", activators: "Activators", costFunction: "LossFunction"):
         self.shape = shape
         self.activations, self.activationDerivatives = activators(self.shape.LAYERS - 1)
+        self.lossFunction = costFunction
 
         self.costHistory = []
         self.accuracyHistory = []
@@ -103,7 +103,17 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
     def _statPrinter(key, value, prefix='', suffix=pV.CEND, end=' '):
         print(prefix + f"{key}:{value}" + suffix, end=end)
 
-    def train(self, profile=False, test=None):
+    def train(self, epochs, batchSize, trainDataBase, profile=False, test=None):
+        if epochs is not None:
+            self.epochs = epochs
+        if batchSize is not None:
+            self.batchSize = batchSize
+        if trainDataBase is not None:
+            self.trainDataBase = trainDataBase
+
+        self.deltaLoss = [(np.zeros((self.batchSize, *self.shape[i]), dtype=np.float32))
+                          for i in range(0, self.shape.LAYERS)]
+
         if not profile:
             if self.__neverTrained:
                 self.outputs[0], self.target = self.trainDataBase.batchGenerator(self.batchSize).send(-1)
@@ -226,8 +236,9 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
 
     def __init__(self, shape: "Shape",
                  initializer: "Initializer",
-                 activators: "Activators"):
-        super(ArtificialNeuralNetwork, self).__init__(shape, activators)
+                 activators: "Activators",
+                 costFunction: "LossFunction"):
+        super(ArtificialNeuralNetwork, self).__init__(shape, activators, costFunction)
 
         # todo: make this abstract requirement?
         self.biasesList = initializer(self.shape)
@@ -236,21 +247,11 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         self._initializeVars()
 
     def train(self, epochs: "int" = None, batchSize: "int" = None,
-              trainDataBase: "DataBase" = None, costFunction: "LossFunction" = None,
-              wbOptimizer: "WBOptimizer" = None,
+              trainDataBase: "DataBase" = None, wbOptimizer: "WBOptimizer" = None,
               profile: "bool" = False,
               test: "DataBase" = None):
-        if epochs is not None:
-            self.epochs = epochs
-        if batchSize is not None:
-            self.batchSize = batchSize
-        if trainDataBase is not None:
-            self.trainDataBase = trainDataBase
-        if costFunction is not None:
-            self.lossFunction = costFunction
         if wbOptimizer is not None:
             self.optimizer = wbOptimizer
 
-        self.deltaLoss = [(np.zeros((self.batchSize, *self.shape[i]), dtype=np.float32))
-                          for i in range(0, self.shape.LAYERS)]
-        super(ArtificialNeuralNetwork, self).train(profile=profile, test=test)
+        super(ArtificialNeuralNetwork, self).train(epochs=epochs, batchSize=batchSize, trainDataBase=trainDataBase,
+                                                   profile=profile, test=test)

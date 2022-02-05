@@ -1,3 +1,9 @@
+import typing as tp
+if tp.TYPE_CHECKING:
+    from . import _
+    from ..Topologies import AbstractActivationFunction
+    from ..NeuralNetworks import _
+
 import numpy as np
 from matplotlib import pyplot as plt, widgets as wg
 

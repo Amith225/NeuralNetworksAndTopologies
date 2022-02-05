@@ -1,21 +1,20 @@
 import typing as tp
 if tp.TYPE_CHECKING:
-    from . import *
-    from ..NeuralNetworks import *
-    from ..Utils import *
+    from . import _
+    from ..NeuralNetworks import _
+    from ..Utils import _
+from abc import ABCMeta, abstractmethod
 
-from abc import ABCMeta as _ABCMeta, abstractmethod as _abstractmethod
 
-
-class LossFunction(metaclass=_ABCMeta):
-    @_abstractmethod
+class LossFunction(metaclass=ABCMeta):
+    @abstractmethod
     def __init__(self, *args, **kwargs):
         pass
 
     def __call__(self, output, target):
         return self._eval(output, target)
 
-    @_abstractmethod
+    @abstractmethod
     def _eval(self, output, target):
         pass
 

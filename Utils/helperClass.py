@@ -5,9 +5,10 @@ if tp.TYPE_CHECKING:
     from ..NeuralNetworks import _
 import tempfile as tf
 
+import numpy as np
 from numpy.lib import format as fm
 
-from .helperFunctions import *
+from .helperFunctions import iterable
 
 
 class Shape:
@@ -21,6 +22,7 @@ class Shape:
     def __getitem__(self, item):
         return self._shape[item]
 
+    # todo: improve Shape.__format_shape
     def __format_shape(self):
         for i, layer in enumerate(self._shape):
             if not iterable(layer):

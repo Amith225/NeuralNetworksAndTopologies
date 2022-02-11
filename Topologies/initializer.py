@@ -44,6 +44,7 @@ class Normal(Initializer):
         return np.NONE + [self.sn(shape, dtype=np.float32) * self.scale for shape in uniShape[1:]]
 
 
+# fixme: needs improvement in np.prod
 class Xavier(Initializer):
     def __init__(self, he: tp.Union["int", "float"] = 1):
         super(Xavier, self).__init__()

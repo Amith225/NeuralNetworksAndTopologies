@@ -1,7 +1,7 @@
 import typing as tp
 if tp.TYPE_CHECKING:
     from . import _
-    from ..Topologies import DataBase, WBOptimizer, LossFunction, Initializer
+    from ..Topologies import DataBase, LossFunction, Initializer
     from ..Utils import Shape, Activators
 import cProfile as cP
 import time as tm
@@ -58,7 +58,6 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
         self.loss = None
 
         self.trainDataBase = None
-        self.lossFunction = None
         self.optimizer = None
 
     @abstractmethod
@@ -103,13 +102,20 @@ class AbstractNeuralNetwork(AbstractSave, metaclass=ABCMeta):
     def _statPrinter(key, value, prefix='', suffix=pV.CEND, end=' '):
         print(prefix + f"{key}:{value}" + suffix, end=end)
 
-    def train(self, epochs, batchSize, trainDataBase, profile=False, test=None):
+    def train(self, epochs: "int",
+              batchSize: "int",
+              trainDataBase: "DataBase",
+              optimizer,
+              profile=False,
+              test=None):
         if epochs is not None:
             self.epochs = epochs
         if batchSize is not None:
             self.batchSize = batchSize
         if trainDataBase is not None:
             self.trainDataBase = trainDataBase
+        if optimizer is not None:
+            self.optimizer = optimizer
 
         self.deltaLoss = [(np.zeros((self.batchSize, *self.shape[i]), dtype=np.float32))
                           for i in range(0, self.shape.LAYERS)]
@@ -245,13 +251,3 @@ class ArtificialNeuralNetwork(AbstractNeuralNetwork):
         self.weightsList = initializer([(s[0], self.shape[i - 1][0]) for i, s in enumerate(self.shape)])
 
         self._initializeVars()
-
-    def train(self, epochs: "int" = None, batchSize: "int" = None,
-              trainDataBase: "DataBase" = None, wbOptimizer: "WBOptimizer" = None,
-              profile: "bool" = False,
-              test: "DataBase" = None):
-        if wbOptimizer is not None:
-            self.optimizer = wbOptimizer
-
-        super(ArtificialNeuralNetwork, self).train(epochs=epochs, batchSize=batchSize, trainDataBase=trainDataBase,
-                                                   profile=profile, test=test)

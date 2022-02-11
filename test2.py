@@ -1,7 +1,17 @@
-from NeuralNetworks import *
-from Topologies import *
 from Utils import *
-from DataSets import dataSet
+from __Future__.CNN import *
+from Topologies import *
 
-shape = Shape(10, 20, 30)
-print([x.shape for x in Uniform()([(shape[i][0], shape[i - 1][0]) for i in range(shape.LAYERS)])])
+cnn = ConvolutionalNeuralNetwork(shape=Shape((28, 28, 3), [(3, 3, 10), (4, 4, 10)], (3, 3, 10)),
+                                 annShape=Shape(100, 47),
+                                 initializer=Normal(),
+                                 annInitializer=Xavier(),
+                                 activators=Activators(Prelu(), ..., Softmax()),
+                                 annActivators=Activators(Prelu(), ..., Softmax()),
+                                 costFunction=MeanSquareLossFunction(),
+                                 strides=[2, 1],
+                                 paddingVal=[0, 0],
+                                 poolingStride=[1, 1], poolingShape=Shape((2, 2), (2, 2)),
+                                 poolingType=ConvolutionalNeuralNetwork.PoolingType.MAX,
+                                 correlationType=ConvolutionalNeuralNetwork.CorrelationType.FULL)
+print(cnn.outputShape)

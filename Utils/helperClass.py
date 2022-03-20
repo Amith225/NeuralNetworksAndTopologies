@@ -34,33 +34,52 @@ class Shape:
         return self._shape
 
 
-class Activators:
-    def __init__(self, *activationFunctions: "AbstractActivationFunction"):
-        self.activationFunctions = activationFunctions
+class Collections:
+    def __init__(self, *collectables):
+        self.collectables = collectables
 
     def __call__(self, length):
         return self.get(length)
 
     def get(self, length):
-        activations = [None]
-        activationDerivatives = [None]
-        prevActivationFunction = None
-        numEllipsis = self.activationFunctions.count(Ellipsis)
-        numActivations = len(self.activationFunctions) - numEllipsis
-        vacancy = length - numActivations
-        for activationFunction in self.activationFunctions:
-            if activationFunction == Ellipsis:
+        trueCollectables = []
+        prevCollectable = None
+        numEllipsis = self.collectables.count(Ellipsis)
+        numCollectables = len(self.collectables) - numEllipsis
+        vacancy = length - numCollectables
+        for collectable in self.collectables:
+            if collectable == Ellipsis:
                 for i in range(filled := (vacancy // numEllipsis)):
-                    activations.append(prevActivationFunction.activation)
-                    activationDerivatives.append(prevActivationFunction.activatedDerivative)
+                    trueCollectables.append(prevCollectable)
                 vacancy -= filled
                 numEllipsis -= 1
                 continue
-            prevActivationFunction = activationFunction
-            activations.append(activationFunction.activation)
-            activationDerivatives.append(activationFunction.activatedDerivative)
+            trueCollectables.append(collectable)
+            prevCollectable = collectable
+
+        return trueCollectables
+
+
+class Activators(Collections):
+    def __init__(self, *activationFunctions: "AbstractActivationFunction"):
+        super(Activators, self).__init__(*activationFunctions)
+
+    def __call__(self, length):
+        activations = [None]
+        activationDerivatives = [None]
+        for e in self.get(length):
+            activations.append(e.activation)
+            activationDerivatives.append(e.activatedDerivative)
 
         return activations, activationDerivatives
+
+
+class Types(Collections):
+    def __init__(self, *types):
+        super(Types, self).__init__(*types)
+
+    def __call__(self, length):
+        return [None] + self.get(length)
 
 
 class NumpyDataCache(np.ndarray):

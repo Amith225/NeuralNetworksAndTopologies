@@ -29,7 +29,8 @@ class WBOptimizer(metaclass=ABCMeta):
     @abstractmethod
     def _optimize(self, layer):
         self._evalDelta(layer)
-    
+
+    # fixme: call this in a better manner
     def _evalDelta(self, layer):
         deltaBiases = self.nn.deltaLoss[layer] * self.nn.activationDerivatives[layer](self.nn.outputs[layer])
         np.einsum('lkj,lij->ik', self.nn.outputs[layer - 1], deltaBiases, out=self.nn.deltaWeights[layer])

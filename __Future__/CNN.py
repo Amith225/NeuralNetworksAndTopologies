@@ -2,7 +2,7 @@ import typing as tp
 if tp.TYPE_CHECKING:
     from ..NeuralNetworks import _
     from ..Topologies import LossFunction, Initializer
-    from ..Utils import Activators
+    from ..Utils import Activators, Types
 
 import numpy as np
 
@@ -12,13 +12,22 @@ from Utils import iterable, Shape
 
 class ConvolutionalNeuralNetwork(AbstractNeuralNetwork):
     def _forwardPass(self, layer=1):
-        pass
+        self._fire(layer)
+        if layer < self.shape.LAYERS - 1:
+            self._forwardPass(layer + 1)
+        else:
+            # ann here
+            pass
 
     def _backPropagate(self, layer=-1):
         pass
 
     def _fire(self, layer):
-        pass
+        ###
+        if not isinstance(self.outputs[layer-1], int):
+            for o in self.outputs[layer-1]:
+                self.crossCorrelate(o, layer)
+        else: pass
 
     def _wire(self, layer):
         pass
@@ -46,39 +55,54 @@ class ConvolutionalNeuralNetwork(AbstractNeuralNetwork):
                  annActivators: "Activators",
                  costFunction: "LossFunction",
                  strides,
-                 paddingVal,
                  poolingStride, poolingShape,
-                 poolingType: "ConvolutionalNeuralNetwork.PoolingType",
-                 correlationType: "ConvolutionalNeuralNetwork.CorrelationType"):
+                 poolingType: "Types",
+                 poolingCorrelationType: "Types",
+                 correlationType: "Types"):
+        super(ConvolutionalNeuralNetwork, self).__init__(shape, activators, costFunction)
         self.strides = self.__formatStrides(strides)
-        self.paddingVal = paddingVal
         self.poolingStride = self.__formatStrides(poolingStride)
         self.poolingShape = poolingShape
-        self.poolingType = poolingType
-        self.correlationType = correlationType
+        self.poolingType = poolingType(self.shape.LAYERS - 1)
+        self.poolingCorrelationType = poolingCorrelationType(self.shape.LAYERS - 1)
+        self.correlationType = correlationType(self.shape.LAYERS - 1)
 
-        super(ConvolutionalNeuralNetwork, self).__init__(shape, activators, costFunction)
-
-        self.outputShape, self.padding = self.__findOutputShapePadding()
-        kernelsShapeFlat = []
-        for s in self.shape:
-            if not iterable(s[0]): kernelsShapeFlat.append(s)
-            else: kernelsShapeFlat.extend(s)
+        self.outputShape, self.padding, self.outputShapeBeforePool, self.poolingPadding = self.__findOutputShapePadding()
+        kernelsShapeFlat = [(1, *self.shape[0])]
+        for i, s in enumerate(self.shape[1:]):
+            i += 1
+            if not iterable(s[0]): kernelsShapeFlat.append((s[0], self.outputShape[i - 1][0], *s[1:]))
+            else: kernelsShapeFlat.extend([(ss[0], self.outputShape[i - 1][0], *ss[1:]) for ss in s])
         kernelsListFlat = initializer(kernelsShapeFlat)
         x = 0
-        self.kernelsList = [kernelsListFlat[i + x] if not iterable(s[0]) else
+        self.kernelsList = [[kernelsListFlat[i + x]] if not iterable(s[0]) else
                             [kernelsListFlat[i + (x := x + y)] for y in range(len(s))]
                             for i, s in enumerate(self.shape)]
         self.biasesList = initializer(self.outputShape)
 
-        annShape = Shape(self.outputShape[-1][0] * self.outputShape[-1][1], *annShape.shape)
+        annShape = Shape(self.outputShape[-1][0] * self.outputShape[-1][1], *annShape)
         self.ann = ArtificialNeuralNetwork(annShape, annInitializer, annActivators, costFunction)
 
         self._initializeVars()
 
+    # todo: check if works in this version, also re-learn why this works kek
+    def crossCorrelate(self, array, layer):
+        kernel = self.kernelsList[layer]
+        for j, k in enumerate(kernel):
+            paddedArray = np.pad(array, ((0, 0), *self.padding[layer][j]))
+            shape = k.shape[1], *self.outputShapeBeforePool[layer][1:], *k.shape[2:]
+            stride = paddedArray.strides[0], *[self.strides[layer][i] * paddedArray.strides[i] for i in (-2, -1)],\
+                     *paddedArray.strides[-2:]
+            crossed = np.lib.stride_tricks.as_strided(paddedArray, shape, stride)
+
+        # return (crossed * kernel).sum(axis=(2, 3))
+
+    # todo: optimize and make more readable, and damn checking is so long
     def __findOutputShapePadding(self):
         outputShape = [self.shape[0]]
+        outShapeBeforePool = [self.shape[0]]
         padding = [None]
+        poolingPadding = [None]
         for i, krShape in enumerate(self.shape[1:]):
             i += 1
             if iterable(krShape[0]):
@@ -86,57 +110,56 @@ class ConvolutionalNeuralNetwork(AbstractNeuralNetwork):
                 subPad = []
                 depth = 0
                 for j, subKrShape in enumerate(krShape):
-                    outShape, pad = self.__findOutPad(outputShape, self.strides[i], subKrShape, self.correlationType)
-                    subShape.append((*outShape, subKrShape[2]))
+                    outShape, pad = self.__findOutPad(outputShape[-1], self.strides[i], subKrShape, self.correlationType[i])
+                    subShape.append((subKrShape[0], *outShape))
                     subPad.append(pad)
-                    depth += subKrShape[2]
-                outShape = *np.maximum.reduce(subShape)[:2], depth
-                subPad += np.subtract(outShape, subShape)[:, :2] * self.strides[i]
-                padding.append([self.__formatPad(e) for e in subPad])
+                    depth += subKrShape[0]
+                outShape = depth, *np.maximum.reduce(subShape)[1:]
+                subPad = [self.__findPadFromOut(outputShape[-1], outShape[1:], self.strides[i], skr) for skr in krShape]
+                padding.append([self.__formatPad(pad) for pad in subPad])
             else:
-                outShape, pad = self.__findOutPad(outputShape, self.strides[i], krShape, self.correlationType)
-                outShape = *outShape, krShape[2]
-                padding.append(self.__formatPad(pad))
-            depth = outShape[2]
-            outShape, poolingPad = self.__findOutPad([outShape], self.poolingStride[i], self.poolingShape[i - 1],
-                                                     ConvolutionalNeuralNetwork.CorrelationType.VALID)
-            outputShape.append((*outShape, depth))
+                outShape, pad = self.__findOutPad(outputShape[-1], self.strides[i], krShape, self.correlationType[i])
+                outShape = krShape[0], *outShape
+                padding.append([self.__formatPad(pad)])
+            depth = outShape[0]
+            outShapeBeforePool.append(outShape)
+            outShape, poolingPad = self.__findOutPad(outShape, self.poolingStride[i], self.poolingShape[i - 1],
+                                                     self.poolingCorrelationType[i])
+            outputShape.append((depth, *outShape))
+            poolingPadding.append(self.__formatPad(poolingPad))
 
-        return outputShape, padding
+        return outputShape, padding, outShapeBeforePool, poolingPadding
 
-    @staticmethod
-    def __findOutPad(outputShape, stride, krShape, correlationType):
-        outShape, rem = np.divmod(np.subtract(outputShape[-1][:2], krShape[:2]), stride)
-        if correlationType == ConvolutionalNeuralNetwork.CorrelationType.VALID:
-            pad = (krShape[:2] - rem) * (rem != 0) + stride
-        elif correlationType == ConvolutionalNeuralNetwork.CorrelationType.FULL:
-            pad = (krShape[:2] - np.int16(1)) * 2 + (krShape[:2] - rem) * (rem != 0) + stride
-        elif correlationType == ConvolutionalNeuralNetwork.CorrelationType.SAME:
-            pad = outputShape[-1][:2] * (stride - np.int16(1)) + krShape[:2] - 1
+    def __findOutPad(self, inputShape, stride, krShape, correlationType):
+        if correlationType == self.CorrelationType.VALID:
+            outputShape = np.ceil((inputShape[1:] - np.array(krShape[1:])) / stride)
+        elif correlationType == self.CorrelationType.FULL:
+            outputShape = np.ceil((inputShape[1:] - np.array(krShape[1:]) + (krShape[1:] - np.int16(1)) * 2) / stride)
+        elif correlationType == self.CorrelationType.SAME:
+            outputShape = np.array(inputShape[1:]) - 1
         else:
             raise IOError()
-        outShape += np.ceil(pad / stride).astype(int)
+        outputShape += 1
+        pad = self.__findPadFromOut(inputShape, outputShape, stride, krShape)
 
-        return outShape, pad
+        return outputShape.astype(np.int16), pad
 
     @staticmethod
-    def __formatStrides(strides):
+    def __findPadFromOut(inputShape, outputShape, stride, krShape):
+        return ((outputShape - np.int16(1)) * stride + krShape[1:] - inputShape[1:]).astype(np.int16)
+
+    def __formatStrides(self, strides):
         newStrides = [None]
-        for stride in strides:
-            if not iterable(stride):
-                stride = stride, stride
-            newStrides.append(stride)
+        if iterable(strides):
+            for stride in strides:
+                if not iterable(stride):
+                    stride = stride, stride
+                newStrides.append(stride)
+        else:
+            return self.__formatStrides([strides for _ in range(self.shape.LAYERS - 1)])
 
         return tuple(newStrides)
 
     @staticmethod
     def __formatPad(pad):
         return ((x := pad[0] // 2), pad[0] - x), ((y := pad[1] // 2), pad[1] - y)
-
-    @staticmethod
-    def __formatPoolingType(poolingType):
-        pass
-
-    @staticmethod
-    def __formatCorrelationType(correlationType):
-        pass

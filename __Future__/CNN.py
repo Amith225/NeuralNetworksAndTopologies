@@ -94,7 +94,6 @@ class ConvolutionalNeuralNetwork(AbstractNeuralNetwork):
             stride = paddedArray.strides[0], *[self.strides[layer][i] * paddedArray.strides[i] for i in (-2, -1)],\
                      *paddedArray.strides[-2:]
             crossed = np.lib.stride_tricks.as_strided(paddedArray, shape, stride)
-
         # return (crossed * kernel).sum(axis=(2, 3))
 
     # todo: optimize and make more readable, and damn checking is so long

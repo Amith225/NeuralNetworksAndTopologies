@@ -7,15 +7,15 @@ db2 = DataBase.load(dataSet.TestSets.EmnistBalanced, normalizeInp=1, reshapeInp=
 
 hiddenShape = 392, 196
 nn = ArtificialNeuralNetwork(shape=Shape(db.inpShape[0], *hiddenShape, db.tarShape[0]),
-                             initializer=Normal(),
+                             initializer=Xavier(2),
                              activators=Activators(Prelu(),
                                                    ...,
                                                    Softmax()),
                              costFunction=MeanSquareLossFunction())
 
-nn.train(2, 64,
+nn.train(1, 64,
          trainDataBase=db,
-         optimizer=GradientDecentWBOptimizer(nn, 0.001),
+         optimizer=AdagradWBOptimizer(nn),
          profile=False,
          test=db2)
 

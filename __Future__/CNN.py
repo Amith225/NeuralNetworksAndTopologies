@@ -16,18 +16,17 @@ class ConvolutionalNeuralNetwork(AbstractNeuralNetwork):
         if layer < self.shape.LAYERS - 1:
             self._forwardPass(layer + 1)
         else:
-            # ann here
-            pass
+            out = self.ann.process(self.outputs[layer].flatten())
+            print(out)
 
     def _backPropagate(self, layer=-1):
         pass
 
     def _fire(self, layer):
-        ###
-        if not isinstance(self.outputs[layer-1], int):
-            for o in self.outputs[layer-1]:
-                self.crossCorrelate(o, layer)
-        else: pass
+        out = np.zeros((len(self.outputs[layer - 1]), *self.outputShape[layer]))
+        for i, o in enumerate(self.outputs[layer-1]):
+            out[i] = self.crossCorrelate(o, layer)
+        self.outputs[layer] = self.activations[layer](out + self.biasesList[layer])
 
     def _wire(self, layer):
         pass
@@ -79,22 +78,45 @@ class ConvolutionalNeuralNetwork(AbstractNeuralNetwork):
                             [kernelsListFlat[i + (x := x + y)] for y in range(len(s))]
                             for i, s in enumerate(self.shape)]
         self.biasesList = initializer(self.outputShape)
+        self.poolList = [np.array([None])] + [np.zeros((self.outputShape[i + 1][0], *s))[None]
+                                              for i, s in enumerate(self.poolingShape)]
 
-        annShape = Shape(self.outputShape[-1][0] * self.outputShape[-1][1], *annShape)
+        annShape = Shape(np.prod(self.outputShape[-1]), *annShape)
         self.ann = ArtificialNeuralNetwork(annShape, annInitializer, annActivators, costFunction)
 
         self._initializeVars()
 
-    # todo: check if works in this version, also re-learn why this works kek
+    # todo: check if works in this version
     def crossCorrelate(self, array, layer):
-        kernel = self.kernelsList[layer]
-        for j, k in enumerate(kernel):
-            paddedArray = np.pad(array, ((0, 0), *self.padding[layer][j]))
-            shape = k.shape[1], *self.outputShapeBeforePool[layer][1:], *k.shape[2:]
-            stride = paddedArray.strides[0], *[self.strides[layer][i] * paddedArray.strides[i] for i in (-2, -1)],\
-                     *paddedArray.strides[-2:]
-            crossed = np.lib.stride_tricks.as_strided(paddedArray, shape, stride)
-        # return (crossed * kernel).sum(axis=(2, 3))
+        crossedStack = []
+        for j, k in enumerate(self.kernelsList[layer]):
+            crossed = self.__crossCorrelate(array, self.padding[layer][j], self.outputShapeBeforePool[layer],
+                                            self.strides[layer], kernel=k)
+            crossedStack.append(crossed)
+        crossedStack = np.vstack(crossedStack)
+        pooled = self.__crossCorrelate(crossedStack, self.poolingPadding[layer], self.outputShape[layer],
+                                       self.poolingStride[layer], kernel=self.poolList[layer],
+                                       poolType=self.poolingType[layer])
+
+        return pooled
+
+    @staticmethod
+    def __crossCorrelate(array, pad, outShape, stride, kernel, poolType=None):
+        paddedArray = np.pad(array, ((0, 0), *pad))
+        shape = kernel.shape[1], *outShape[1:], *kernel.shape[2:]
+        stride = paddedArray.strides[0], *[stride[i] * paddedArray.strides[i] for i in (-2, -1)], \
+                 *paddedArray.strides[-2:]
+        strided = np.lib.stride_tricks.as_strided(paddedArray, shape, stride)
+        if poolType is None:
+            crossed = np.einsum("lxyij, klij -> kxy", strided, kernel)
+        else:
+            if poolType == ConvolutionalNeuralNetwork.PoolingType.MAX:
+                crossed = strided.max(axis=(3, 4))
+            elif poolType == ConvolutionalNeuralNetwork.PoolingType.MEAN:
+                crossed = strided.mean(axis=(3, 4))
+            else: raise ValueError("poolType argument is not valid")
+
+        return crossed
 
     # todo: optimize and make more readable, and damn checking is so long
     def __findOutputShapePadding(self):

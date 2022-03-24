@@ -12,7 +12,7 @@ cnn = ConvolutionalNeuralNetwork(shape=Shape(i, [(10, 3, 3), (10, 4, 4)], (10, 2
                                  activators=Activators(Prelu(), ..., Softmax()),
                                  annActivators=Activators(Prelu(), ..., Softmax()),
                                  costFunction=MeanSquareLossFunction(),
-                                 strides=2,
+                                 strides=(2, 1),
                                  poolingStride=2, poolingShape=Shape((2, 2), (2, 2)),
                                  poolingType=Types(ConvolutionalNeuralNetwork.PoolingType.MAX, ...),
                                  poolingCorrelationType=Types(ConvolutionalNeuralNetwork.CorrelationType.VALID, ...),

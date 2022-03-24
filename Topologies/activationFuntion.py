@@ -87,15 +87,16 @@ class Elu(AbstractActivationFunction):
         return np.where(activatedX <= 0, activatedX + self.ALPHA, self.ONE)
 
 
+# fixme: activatedDerivative might need fixing after the cnn change
 class Softmax(AbstractActivationFunction):
     def __init__(self):
         super(Softmax, self).__init__()
         self.__jacobian = None
 
     def activation(self, x: np.ndarray) -> np.ndarray:
-        numerator = self.E ** (x - x.max(axis=1, keepdims=1))
+        numerator = self.E ** (x - x.max(axis=(-2, -1), keepdims=1))
 
-        return numerator / numerator.sum(axis=1, keepdims=1)
+        return numerator / numerator.sum(axis=(-2, -1), keepdims=1)
 
     def activatedDerivative(self, activatedX: np.ndarray):
         self.__jacobian = (ax := activatedX.transpose([0, 2, 1])[:, :, :, None]) @ ax.transpose([0, 1, 3, 2])

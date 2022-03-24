@@ -1,1 +1,1 @@
-# todo: implement CNN. FD
+# todo: implement CNN. D

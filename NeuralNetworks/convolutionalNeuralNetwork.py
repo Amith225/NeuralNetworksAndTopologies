@@ -1,12 +1,12 @@
 import typing as tp
 if tp.TYPE_CHECKING:
-    from ..NeuralNetworks import _
+    from . import _
     from ..Topologies import LossFunction, Initializer
     from ..Utils import Activators, Types
-
 import numpy as np
 
-from NeuralNetworks import AbstractNeuralNetwork, ArtificialNeuralNetwork
+from .neuralNetwork import AbstractNeuralNetwork
+from .artificialNeuralNetwork import ArtificialNeuralNetwork
 from Utils import iterable, Shape
 
 
@@ -66,7 +66,8 @@ class ConvolutionalNeuralNetwork(AbstractNeuralNetwork):
         self.poolingCorrelationType = poolingCorrelationType(self.shape.LAYERS - 1)
         self.correlationType = correlationType(self.shape.LAYERS - 1)
 
-        self.outputShape, self.padding, self.outputShapeBeforePool, self.poolingPadding = self.__findOutputShapePadding()
+        self.outputShape, self.padding, self.outputShapeBeforePool, self.poolingPadding =\
+            self.__findOutputShapePadding()
         kernelsShapeFlat = [(1, *self.shape[0])]
         for i, s in enumerate(self.shape[1:]):
             i += 1
@@ -86,7 +87,6 @@ class ConvolutionalNeuralNetwork(AbstractNeuralNetwork):
 
         self._initializeVars()
 
-    # todo: check if works in this version
     def crossCorrelate(self, array, layer):
         crossedStack = []
         for j, k in enumerate(self.kernelsList[layer]):

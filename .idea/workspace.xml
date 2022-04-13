@@ -1,57 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="todo: check if works in this version (cross correlation)&#10;cnn brought to production from __Future__ and nn files restructured">
-      <change afterPath="$PROJECT_DIR$/$old/main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/$old/test.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/artificialNN.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/baseNN.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/convolutionalNN.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/Topologies/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/Topologies/activationFunction.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/Topologies/dataBase.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/Topologies/initializer.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/Topologies/lossFunction.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/Topologies/optimizer.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/tools/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/tools/baseClass.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/tools/helperClass.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/tools/helperFunction.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="initial commit">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DataSets/dataSet.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/DataSets/dataSet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DataSets/emnist.balanced.test.18800s.(28,28)i.(47,1)o.zdb" beforeDir="false" afterPath="$PROJECT_DIR$/$old/DataSets/emnist.balanced.test.18800s.(28,28)i.(47,1)o.zdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DataSets/emnist.balanced.train.112800s.(28,28)i.(47,1)o.zdb" beforeDir="false" afterPath="$PROJECT_DIR$/$old/DataSets/emnist.balanced.train.112800s.(28,28)i.(47,1)o.zdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DataSets/xor3.test.8s.(3,1)i.(1,1)o.zdb" beforeDir="false" afterPath="$PROJECT_DIR$/$old/DataSets/xor3.test.8s.(3,1)i.(1,1)o.zdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DataSets/xor3.train.8s.(3,1)i.(1,1)o.zdb" beforeDir="false" afterPath="$PROJECT_DIR$/$old/DataSets/xor3.train.8s.(3,1)i.(1,1)o.zdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LICENSE.txt" beforeDir="false" afterPath="$PROJECT_DIR$/LICENSE.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Models/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/Models/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NeuralNetworks/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/NeuralNetworks/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NeuralNetworks/_printVars.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/NeuralNetworks/_printVars.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NeuralNetworks/artificialNeuralNetwork.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/NeuralNetworks/artificialNeuralNetwork.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NeuralNetworks/convolutionalNeuralNetwork.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/NeuralNetworks/convolutionalNeuralNetwork.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NeuralNetworks/loadPlot.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/NeuralNetworks/loadPlot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NeuralNetworks/neuralNetwork.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/NeuralNetworks/neuralNetwork.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NeuralNetworksAndTopologies.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/$old/NeuralNetworksAndTopologies.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Topologies/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/Topologies/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Topologies/activationFuntion.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/Topologies/activationFuntion.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Topologies/dataBase.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/Topologies/dataBase.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Topologies/initializer.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/Topologies/initializer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Topologies/lossFunction.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/Topologies/lossFunction.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Topologies/optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/Topologies/optimizer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Utils/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/Utils/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Utils/abstractSaveLoad.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/Utils/abstractSaveLoad.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Utils/helperClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/Utils/helperClass.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Utils/helperFunctions.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/Utils/helperFunctions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Utils/plotting.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/Utils/plotting.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__Future__/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/__Future__/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gitCmds.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/artificialNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/artificialNN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/baseNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/baseNN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/convolutionalNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/convolutionalNN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/Topologies/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/Topologies/activationFunction.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/activationFunction.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/Topologies/dataBase.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/dataBase.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/Topologies/initializer.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/initializer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/Topologies/lossFunction.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/lossFunction.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/Topologies/optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/optimizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/tools/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/tools/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/tools/baseClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/tools/baseClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/tools/helperClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/tools/helperClass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/tools/helperFunction.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/tools/helperFunction.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test2.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/test2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test3.py" beforeDir="false" afterPath="$PROJECT_DIR$/$old/test3.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,20 +103,25 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../webHosting" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/DataSets" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\DELL\PycharmProjects\NeuralNetworksAndTopologies\DataSets" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\DELL\PycharmProjects\NeuralNetworksAndTopologies\Models" />
+      <recent name="C:\Users\DELL\PycharmProjects\NeuralNetworksAndTopologies\DataSets" />
       <recent name="C:\Users\DELL\PycharmProjects\NeuralNetworksAndTopologies" />
       <recent name="C:\Users\DELL\PycharmProjects\NeuralNetworksAndTopologies\src" />
       <recent name="C:\Users\DELL\PycharmProjects\NeuralNetworksAndTopologies\old" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.test2">
-    <configuration name="test" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+  <component name="RunManager">
+    <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="NeuralNetworksAndTopologies" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -162,7 +134,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="C:\Users\DELL\PycharmProjects\NeuralNetworksAndTopologies\old\test.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -171,55 +143,11 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="test2" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
-      <module name="NeuralNetworksAndTopologies" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="C:\Users\DELL\PycharmProjects\NeuralNetworksAndTopologies\old\test2.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="test3" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
-      <module name="NeuralNetworksAndTopologies" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="C:\Users\DELL\PycharmProjects\NeuralNetworksAndTopologies\old\test3.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <list>
-      <item itemvalue="Python.test2" />
-      <item itemvalue="Python.test3" />
-      <item itemvalue="Python.test" />
-    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.test" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -266,7 +194,9 @@
       <workItem from="1648207723103" duration="5093000" />
       <workItem from="1648234959768" duration="853000" />
       <workItem from="1648265155227" duration="625000" />
-      <workItem from="1649590700069" duration="3466000" />
+      <workItem from="1649590700069" duration="3589000" />
+      <workItem from="1649669331871" duration="3112000" />
+      <workItem from="1649813578054" duration="18687000" />
     </task>
     <task id="LOCAL-00001" summary="Merge remote-tracking branch 'origin/main'&#10;&#10;# Conflicts:&#10;#&#9;.idea/NeuralNetworksAndTopologies.iml&#10;#&#9;main.py">
       <created>1638957714061</created>
@@ -450,7 +380,14 @@
       <option name="project" value="LOCAL" />
       <updated>1648210793884</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="initial commit">
+      <created>1649594321170</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1649594321170</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -490,11 +427,23 @@
     <MESSAGE value="all changes made to accommodate proper forward_pass in CNN&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
     <MESSAGE value="todo: implement CNN. D  (forward prop done)" />
     <MESSAGE value="todo: check if works in this version (cross correlation)&#10;cnn brought to production from __Future__ and nn files restructured" />
-    <option name="LAST_COMMIT_MESSAGE" value="todo: check if works in this version (cross correlation)&#10;cnn brought to production from __Future__ and nn files restructured" />
+    <MESSAGE value="initial commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="initial commit" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/__init__/NeuralNetworks/baseNN.py</url>
+          <line>209</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test3.coverage" NAME="test3 Coverage Results" MODIFIED="1638965359263" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test.coverage" NAME="test Coverage Results" MODIFIED="1648212011723" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test.coverage" NAME="test Coverage Results" MODIFIED="1649855792692" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test2.coverage" NAME="test2 Coverage Results" MODIFIED="1649591878171" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

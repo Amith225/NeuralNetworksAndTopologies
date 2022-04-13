@@ -1,3 +1,3 @@
-from NeuralNetworks import *
-from tools import *
-from Topologies import *
+from .NeuralNetworks import *
+from .tools import *
+from .Topologies import *

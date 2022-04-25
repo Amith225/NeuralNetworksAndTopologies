@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="initial commit">
+    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="re-organized commit">
+      <change afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/base.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test3.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testNumba.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/artificialNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/artificialNN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/artificialNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/denseNN.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/baseNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/baseNN.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/convolutionalNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/convolutionalNN.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/Topologies/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/Topologies/activationFunction.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/activationFunction.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__/Topologies/dataBase.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/dataBase.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__/Topologies/initializer.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/initializer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/Topologies/lossFunction.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/lossFunction.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__/Topologies/optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/optimizer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__/tools/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/tools/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__/tools/baseClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/tools/baseClass.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__/tools/helperClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/tools/helperClass.py" afterDir="false" />
@@ -120,7 +120,7 @@
       <recent name="C:\Users\DELL\PycharmProjects\NeuralNetworksAndTopologies\old" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.test3">
     <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="NeuralNetworksAndTopologies" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -143,9 +143,55 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="test2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="NeuralNetworksAndTopologies" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test2.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test3" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="NeuralNetworksAndTopologies" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test3.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.test3" />
         <item itemvalue="Python.test" />
+        <item itemvalue="Python.test2" />
       </list>
     </recent_temporary>
   </component>
@@ -196,7 +242,16 @@
       <workItem from="1648265155227" duration="625000" />
       <workItem from="1649590700069" duration="3589000" />
       <workItem from="1649669331871" duration="3112000" />
-      <workItem from="1649813578054" duration="18687000" />
+      <workItem from="1649813578054" duration="24275000" />
+      <workItem from="1649996487298" duration="9526000" />
+      <workItem from="1650091958247" duration="7766000" />
+      <workItem from="1650166627412" duration="9753000" />
+      <workItem from="1650251116466" duration="2984000" />
+      <workItem from="1650603742796" duration="9076000" />
+      <workItem from="1650712056106" duration="5681000" />
+      <workItem from="1650799922893" duration="3587000" />
+      <workItem from="1650807379535" duration="18452000" />
+      <workItem from="1650858958164" duration="6417000" />
     </task>
     <task id="LOCAL-00001" summary="Merge remote-tracking branch 'origin/main'&#10;&#10;# Conflicts:&#10;#&#9;.idea/NeuralNetworksAndTopologies.iml&#10;#&#9;main.py">
       <created>1638957714061</created>
@@ -387,7 +442,14 @@
       <option name="project" value="LOCAL" />
       <updated>1649594321170</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="re-organized commit">
+      <created>1649858511218</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1649858511218</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -428,22 +490,23 @@
     <MESSAGE value="todo: implement CNN. D  (forward prop done)" />
     <MESSAGE value="todo: check if works in this version (cross correlation)&#10;cnn brought to production from __Future__ and nn files restructured" />
     <MESSAGE value="initial commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="initial commit" />
+    <MESSAGE value="re-organized commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="re-organized commit" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/__init__/NeuralNetworks/baseNN.py</url>
-          <line>209</line>
-          <option name="timeStamp" value="4" />
+          <line>207</line>
+          <option name="timeStamp" value="7" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test3.coverage" NAME="test3 Coverage Results" MODIFIED="1638965359263" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test.coverage" NAME="test Coverage Results" MODIFIED="1649855792692" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test2.coverage" NAME="test2 Coverage Results" MODIFIED="1649591878171" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test.coverage" NAME="test Coverage Results" MODIFIED="1650716761469" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test3.coverage" NAME="test3 Coverage Results" MODIFIED="1650864417804" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test2.coverage" NAME="test2 Coverage Results" MODIFIED="1650612625203" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

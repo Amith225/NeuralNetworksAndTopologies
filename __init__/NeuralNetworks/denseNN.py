@@ -3,7 +3,7 @@ import numpy as np
 from .baseNN import AbstractNN
 
 
-class ArtificialNN(AbstractNN):
+class DenseNN(AbstractNN):
     def _forwardPass(self, layer=1):
         self._fire(layer)
         if layer < self.shape.LAYERS - 1: self._forwardPass(layer + 1)
@@ -13,6 +13,12 @@ class ArtificialNN(AbstractNN):
         self.optimizer(layer)
         self._wire(layer)
         self._backPropagate(layer - 1)
+
+    def _evalDelta(self, layer):
+        deltaBiases = self.deltaLoss[layer] * self.activationDerivatives[layer](self.outputs[layer])
+        np.einsum('lkj,lij->ik', self.outputs[layer - 1], deltaBiases, out=self.deltaWeights[layer])
+        self.deltaBiases[layer] = deltaBiases.sum(axis=0)
+        self.deltaLoss[layer - 1] = self.weightsList[layer].transpose() @ self.deltaLoss[layer]
 
     def _fire(self, layer):
         self.outputs[layer] = self.activations[layer](

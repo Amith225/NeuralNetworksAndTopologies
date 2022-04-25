@@ -4,8 +4,6 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 from matplotlib import pyplot as plt, widgets as wg
 
-plt.style.use('dark_background')
-
 
 class AbstractSave(metaclass=ABCMeta):
     DEFAULT_DIR: str
@@ -17,38 +15,31 @@ class AbstractSave(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _write(self, dumpFile, *args, **kwargs):
-        pass
-
-    def save(self, file: str = None, replace: bool = False, *args, **kwargs) -> str:
-        if file is None:
-            file = self.DEFAULT_NAME
+    def save(self, file: str = None, replace: bool = False) -> str:
+        if file is None: file = self.DEFAULT_NAME
         if not (fpath := os.path.dirname(file)):
-            fpath = os.getcwd() + self.DEFAULT_DIR
+            fpath = f"{os.getcwd()}\\{self.DEFAULT_DIR}\\"
             fName = file
         else:
             fpath += '\\'
             fName = os.path.basename(file)
         os.makedirs(fpath, exist_ok=True)
-        if len(fName) >= 1 + len(self.FILE_TYPE) and fName[-4:] == self.FILE_TYPE:
-            fName = fName[:-4]
-        savePath = fpath + fName.replace(' ', '.') + '.' + self.saveName().replace(' ', '')
+        if len(fName) >= (typeLen := 1 + len(self.FILE_TYPE)) and fName[1 - typeLen:] == self.FILE_TYPE:
+            fName = fName[:-typeLen]
+            savePath = f"{fpath}{fName.replace(' ', '_')}"
+        else:
+            savePath = f"{fpath}{fName.replace(' ', '_')}_{self.saveName().replace(' ', '')}"
 
-        i = 0
         numSavePath = savePath
         if not replace:
+            i = 0
             while 1:
-                if i != 0:
-                    numSavePath = savePath + ' (' + str(i) + ')'
-                if os.path.exists(numSavePath + self.FILE_TYPE):
-                    i += 1
-                else:
-                    break
+                if i != 0: numSavePath = f"{savePath} ({i})"
+                if not os.path.exists(f"{numSavePath}.{self.FILE_TYPE}"): break
+                i += 1
 
-        with open(finalPath := (numSavePath + self.FILE_TYPE), 'wb') as dumpFile:
-            self._write(dumpFile, *args, **kwargs)
-
-        return finalPath
+        dumpFile = f"{numSavePath}.{self.FILE_TYPE}"
+        return dumpFile
 
 
 class AbstractLoad(metaclass=ABCMeta):
@@ -57,27 +48,23 @@ class AbstractLoad(metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    def _read(cls, loadFile, *args, **kwargs):
-        pass
-
-    @classmethod
-    def load(cls, file: str, *args, **kwargs):
+    def load(cls, file):
         if file:
             if not (fpath := os.path.dirname(file)):
-                fpath = os.getcwd() + cls.DEFAULT_DIR
+                fpath = f"{os.getcwd()}\\{cls.DEFAULT_DIR}\\"
                 fName = file
             else:
                 fpath += '\\'
                 fName = os.path.basename(file)
         else:
             raise NameError("file not given")
-        if '.' not in fName:
-            fName += cls.FILE_TYPE
+        if '.' not in fName: fName += cls.FILE_TYPE
 
-        with open(fpath + fName, 'rb') as loadFile:
-            rVal = cls._read(loadFile, *args, **kwargs)
+        loadFile = fpath + fName
+        return loadFile
 
-        return rVal
+
+plt.style.use('dark_background')
 
 
 class Plot:

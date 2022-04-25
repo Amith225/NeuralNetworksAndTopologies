@@ -1,3 +1,8 @@
+from typing import *
+if TYPE_CHECKING:
+    from ..Topologies import *
+    from ..NeuralNetworks import *
+
 import tempfile as tf
 import ctypes
 
@@ -5,10 +10,6 @@ import numpy as np
 from numpy.lib import format as fm
 
 from .helperFunction import iterable
-
-
-kernel32 = ctypes.windll.kernel32
-kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
 
 class Shape:
@@ -64,8 +65,8 @@ class Activators(Collections):
         super(Activators, self).__init__(*activationFunctions)
 
     def __call__(self, length):
-        activations = [None]
-        activationDerivatives = [None]
+        activations = [np.NAN]
+        activationDerivatives = [np.NAN]
         for e in self.get(length):
             activations.append(e.activation)
             activationDerivatives.append(e.activatedDerivative)
@@ -74,11 +75,11 @@ class Activators(Collections):
 
 
 class Types(Collections):
-    def __init__(self, *types):
+    def __init__(self, *types: "ConvolutionalNN.PoolingType"):
         super(Types, self).__init__(*types)
 
     def __call__(self, length):
-        return [None] + self.get(length)
+        return [np.NAN] + self.get(length)
 
 
 class NumpyDataCache(np.ndarray):
@@ -95,6 +96,10 @@ class NumpyDataCache(np.ndarray):
             memMap = np.memmap(file, mode='r', shape=array.shape, dtype=array.dtype, offset=file.tell())
 
         return memMap
+
+
+kernel32 = ctypes.windll.kernel32
+kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
 
 class PrintVars:

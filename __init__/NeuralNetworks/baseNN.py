@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 import numpy as np
 
 from ..tools import *
+
 pV = PrintVars
 
 
@@ -44,7 +45,7 @@ class AbstractNN(AbstractSave, AbstractLoad, metaclass=ABCMeta):
         self.costTrained = self.timeTrained = self.epochTrained = 0
         self.trainAccuracy = self.testAccuracy = float('nan')
 
-        self.epochs, self.batchSize = 1, 32
+        self.epochs = self.batchSize = 1
         self.numBatches = None
         self.training = self.profiling = False
         self.__neverTrained = True
@@ -64,6 +65,10 @@ class AbstractNN(AbstractSave, AbstractLoad, metaclass=ABCMeta):
 
     @abstractmethod
     def _backPropagate(self, layer=-1):
+        pass
+
+    # @abstractmethod
+    def _evalDelta(self, layer):
         pass
 
     @abstractmethod
@@ -97,14 +102,6 @@ class AbstractNN(AbstractSave, AbstractLoad, metaclass=ABCMeta):
 
         return out
 
-    def __initializeTrainDep(self):
-        self.outputs = [np.zeros((self.trainDataBase.size, *self.outputShape[i]), dtype=np.float32)
-                        for i in range(self.shape.LAYERS)]
-        self.target = np.zeros((self.trainDataBase.size, *self.outputShape[-1]), dtype=np.float32)
-        self.deltaLoss = [(np.zeros((self.batchSize, *self.shape[i]), dtype=np.float32))
-                          for i in range(self.shape.LAYERS)]
-        self.loss = 0
-
     def __deInitializeTrainDep(self):
         self.outputs = [None for _ in range(self.shape.LAYERS)]
         self.target = None
@@ -112,12 +109,12 @@ class AbstractNN(AbstractSave, AbstractLoad, metaclass=ABCMeta):
         self.loss = None
 
     def train(self,
-              epochs: "int",
-              batchSize: "int",
-              trainDataBase: "DataBase",
-              optimizer,
-              profile=False,
-              test=None):
+              epochs: "int" = None,
+              batchSize: "int" = None,
+              trainDataBase: "DataBase" = None,
+              optimizer=None,
+              profile: "bool" = False,
+              test: Union["bool", "DataBase"] = None):
         if epochs is not None: self.epochs = epochs
         if batchSize is not None: self.batchSize = batchSize
         if trainDataBase is not None: self.trainDataBase = trainDataBase
@@ -134,7 +131,7 @@ class AbstractNN(AbstractSave, AbstractLoad, metaclass=ABCMeta):
             else:
                 trainCosts, trainAccuracy = [self.costHistory[-1][-1]], [self.accuracyHistory[-1][-1]]
 
-            self.__initializeTrainDep()
+            self.__deInitializeTrainDep()
             self.training = True
             self.numBatches = int(np.ceil(self.trainDataBase.size / self.batchSize))
             trainTime = 0
@@ -182,7 +179,8 @@ class AbstractNN(AbstractSave, AbstractLoad, metaclass=ABCMeta):
             cP.runctx("self.train()", globals=globals(), locals=locals())
             self.profiling = False
 
-        if not self.profiling: self.test(test)
+        if not self.profiling:
+            if test or test is None: self.test(test)
 
     def _trainer(self):
         return self.lossFunction(self.outputs[-1], self.target)

@@ -5,18 +5,20 @@ db = DataBase.load(dataSet.TrainSets.EmnistBalanced, normalizeInp=1, reshapeInp=
 db2 = DataBase.load(dataSet.TestSets.EmnistBalanced, normalizeInp=1, reshapeInp=(-1, 1))
 
 hiddenShape = 392, 196
-nn = ArtificialNN(shape=Shape(db.inpShape[0], *hiddenShape, db.tarShape[0]),
-                  initializer=Xavier(2),
-                  activators=Activators(Prelu(),
+nn = DenseNN(shape=Shape(db.inpShape[0], *hiddenShape, db.tarShape[0]),
+             initializer=Xavier(2),
+             activators=Activators(Prelu(),
                                         ...,
                                         Softmax()),
-                  lossFunction=MeanSquareLossFunction())
+             lossFunction=MeanSquareLossFunction())
 
-nn.train(2, 64,
-         trainDataBase=db,
-         optimizer=AdagradWBOptimizer(nn),
-         profile=False,
-         test=db2)
+# nn.train(2, 64,
+#          trainDataBase=db,
+#          optimizer=AdagradWBOptimizer(nn),
+#          profile=False,
+#          test=db2)
+
+print(nn.process(db.inputSet[:10000]).shape)
 
 # nn.save(replace=True)
 # PlotNeuralNetwork.plotCostGraph(nn)

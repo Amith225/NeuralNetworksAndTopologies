@@ -1,7 +1,7 @@
 import warnings as wr
 from typing import *
 if TYPE_CHECKING:
-    from ..NeuralNetworks import ArtificialNeuralNetwork
+    from ..NeuralNetworks import DenseNN
 from abc import ABCMeta as ABCMeta, abstractmethod as abstractmethod
 
 import numpy as np
@@ -12,7 +12,7 @@ from ..tools import copyNumpyList
 
 class WBOptimizer(metaclass=ABCMeta):
     @abstractmethod
-    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate, alpha=float('nan'), beta=float('nan'),
+    def __init__(self, neural_network: "DenseNN", learningRate, alpha=float('nan'), beta=float('nan'),
                  epsilon=float('nan'), *args, **kwargs):
         self.nn = neural_network
         self.LEARNING_RATE = np.float32(learningRate)
@@ -37,7 +37,7 @@ class WBOptimizer(metaclass=ABCMeta):
 
 
 class GradientDecentWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.001):
+    def __init__(self, neural_network: "DenseNN", learningRate=0.001):
         super(GradientDecentWBOptimizer, self).__init__(neural_network, learningRate)
 
     def _optimize(self, layer):
@@ -48,7 +48,7 @@ class GradientDecentWBOptimizer(WBOptimizer):
 
 # fixme: improve momentum optimizers. FL
 class MomentumWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.001, alpha=0.9):
+    def __init__(self, neural_network: "DenseNN", learningRate=0.001, alpha=0.9):
         if alpha is None:
             alpha = learningRate / 10
         super(MomentumWBOptimizer, self).__init__(neural_network, learningRate, alpha)
@@ -67,7 +67,7 @@ class MomentumWBOptimizer(WBOptimizer):
 
 # non verified algorithm
 class NesterovMomentumWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.001, alpha=0.9):
+    def __init__(self, neural_network: "DenseNN", learningRate=0.001, alpha=0.9):
         wr.showwarning("\nNesterovMomentum has tag 'non verified algorithm' and might not work as intended, "
                        "\nuse 'momentum' instead for stable working", PendingDeprecationWarning,
                        'optimizer.py->NesterovMomentumWBOptimizer', 0)
@@ -107,7 +107,7 @@ class NesterovMomentumWBOptimizer(WBOptimizer):
 
 
 class DecayWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: "ArtificialNeuralNetwork", learningRate=0.001, alpha=None):
+    def __init__(self, neural_network: "DenseNN", learningRate=0.001, alpha=None):
         if alpha is None:
             alpha = 1 / learningRate
         super(DecayWBOptimizer, self).__init__(neural_network, learningRate, alpha)
@@ -124,7 +124,7 @@ class DecayWBOptimizer(WBOptimizer):
 
 
 class AdagradWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: 'ArtificialNeuralNetwork', learningRate=0.01, epsilon=np.e ** -8):
+    def __init__(self, neural_network: 'DenseNN', learningRate=0.01, epsilon=np.e ** -8):
         super(AdagradWBOptimizer, self).__init__(neural_network, learningRate, epsilon=epsilon)
         self.grad_square_biases = [0 for _ in range(self.nn.shape.LAYERS)]
         self.grad_square_weights = self.grad_square_biases.copy()
@@ -153,7 +153,7 @@ class AdagradWBOptimizer(WBOptimizer):
 
 
 class RmspropWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: 'ArtificialNeuralNetwork', learningRate=0.001, beta=0.9, epsilon=np.e ** -8):
+    def __init__(self, neural_network: 'DenseNN', learningRate=0.001, beta=0.9, epsilon=np.e ** -8):
         super(RmspropWBOptimizer, self).__init__(neural_network, learningRate, beta=beta, epsilon=epsilon)
         self.grad_square_biases_sum = [0 for _ in range(self.nn.shape.LAYERS)]
         self.grad_square_weights_sum = self.grad_square_biases_sum.copy()
@@ -185,7 +185,7 @@ class RmspropWBOptimizer(WBOptimizer):
 
 # non verified algorithm
 class AdadeltaWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: 'ArtificialNeuralNetwork', learningRate=0.0001, beta=0.9, epsilon=np.e ** -8):
+    def __init__(self, neural_network: 'DenseNN', learningRate=0.0001, beta=0.9, epsilon=np.e ** -8):
         wr.showwarning("\nAdadelta has tag 'non verified algorithm' and might not work as intended, "
                        "\nuse 'Rmsprop' instead for stable working", PendingDeprecationWarning,
                        'optimizer.py->AdadeltaWBOptimizer', 0)

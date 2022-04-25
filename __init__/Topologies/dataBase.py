@@ -8,34 +8,32 @@ from ..tools import NumpyDataCache, AbstractSave, AbstractLoad, Plot
 
 
 class DataBase(AbstractSave, AbstractLoad):
-    DEFAULT_DIR = '\\DataSets\\'
+    DEFAULT_DIR = 'DataSets'
     DEFAULT_NAME = 'db'
     FILE_TYPE = '.zdb'
     LARGE_VAL = 5
 
     def saveName(self) -> str:
-        return f"{self.size}s.{self.inpShape}i.{self.tarShape}o"
+        return f"{self.size}s_{self.inpShape}i_{self.tarShape}o"
 
-    def _write(self, dumpFile, *args, **kwargs):
+    def save(self, file: str = None, replace: bool = False) -> str:
+        dumpFile = super(DataBase, self).save(file, replace)
         saveInputSet = self.inputSet * self.inputSetFactor
-        if self.hotEncodeInp:
-            saveInputSet = self.oneHotDecode(saveInputSet)
+        if self.hotEncodeInp: saveInputSet = self.oneHotDecode(saveInputSet)
         saveTargetSet = self.targetSet * self.targetSetFactor
-        if self.hotEncodeTar:
-            saveTargetSet = self.oneHotDecode(saveTargetSet)
-        np.savez_compressed(dumpFile,
-                            inputSet=saveInputSet.astype(self.inputSetDtype),
+        if self.hotEncodeTar: saveTargetSet = self.oneHotDecode(saveTargetSet)
+        np.savez_compressed(dumpFile, inputSet=saveInputSet.astype(self.inputSetDtype),
                             targetSet=saveTargetSet.astype(self.targetSetDtype))
 
-    @classmethod
-    def _read(cls, loadFile, *args, **kwargs):
-        nnLoader = np.load(loadFile, mmap_mode='r')
-        try:
-            inputSet, targetSet = nnLoader['arr_0'], nnLoader['arr_1']
-        except KeyError:
-            inputSet, targetSet = nnLoader['inputSet'], nnLoader['targetSet']
+        return dumpFile
 
-        return DataBase(inputSet, targetSet, *args, **kwargs)
+    @classmethod
+    def load(cls, file: str, *DataBase_args, **DataBase_kwargs) -> "DataBase":
+        loadFile = super(DataBase, cls).load(file)
+        nnLoader = np.load(loadFile, mmap_mode='r')
+        inputSet, targetSet = nnLoader['inputSet'], nnLoader['targetSet']
+
+        return DataBase(inputSet, targetSet, *DataBase_args, **DataBase_kwargs)
 
     def __init__(self,
                  inputSet: Iterable and Sized,  # input signal
@@ -43,7 +41,9 @@ class DataBase(AbstractSave, AbstractLoad):
                  normalizeInp: float = None,
                  normalizeTar: float = None,
                  reshapeInp=None,
-                 reshapeTar=None):
+                 reshapeTar=None,
+                 oneHotMaxInp=None,
+                 oneHotMaxTar=None):
         if (size := len(inputSet)) != len(targetSet):
             raise Exception("Both input and output set should be of same size")
         self.inputSetDtype = inputSet.dtype
@@ -51,10 +51,10 @@ class DataBase(AbstractSave, AbstractLoad):
         self.hotEncodeInp = False
         self.hotEncodeTar = False
         if len(np.shape(inputSet)) == 1:
-            inputSet = self.oneHotEncode(inputSet)
+            inputSet = self.oneHotEncode(inputSet, oneHotMaxInp)
             self.hotEncodeInp = True
         if len(np.shape(targetSet)) == 1:
-            targetSet = self.oneHotEncode(targetSet)
+            targetSet = self.oneHotEncode(targetSet, oneHotMaxTar)
             self.hotEncodeTar = True
         if (maxI := np.max(inputSet)) >= self.LARGE_VAL and normalizeInp is None and not self.hotEncodeInp:
             wr.showwarning(f"inputSet has element(s) with values till {maxI} which may cause nan training, "
@@ -65,10 +65,8 @@ class DataBase(AbstractSave, AbstractLoad):
 
         inputSet, self.inputSetFactor = self.normalize(np.array(inputSet, dtype=np.float32), normalizeInp)
         targetSet, self.targetSetFactor = self.normalize(np.array(targetSet, dtype=np.float32), normalizeTar)
-        if reshapeInp is not None:
-            inputSet = inputSet.reshape((size, *reshapeInp))
-        if reshapeTar is not None:
-            inputSet = targetSet.reshape((size, *reshapeTar))
+        if reshapeInp is not None: inputSet = inputSet.reshape((size, *reshapeInp))
+        if reshapeTar is not None: inputSet = targetSet.reshape((size, *reshapeTar))
         self.inputSet = NumpyDataCache(inputSet)
         self.targetSet = NumpyDataCache(targetSet)
 
@@ -82,8 +80,9 @@ class DataBase(AbstractSave, AbstractLoad):
         self.indices = list(range(self.size))
 
     @staticmethod
-    def oneHotEncode(_1dArray):
-        hotEncodedArray = np.zeros((len(_1dArray), max(_1dArray) + 1, 1))
+    def oneHotEncode(_1dArray, oneHotMax=None):
+        if oneHotMax is None: oneHotMax = max(_1dArray) + 1
+        hotEncodedArray = np.zeros((len(_1dArray), oneHotMax, 1))
         hotEncodedArray[np.arange(hotEncodedArray.shape[0]), _1dArray] = 1
 
         return hotEncodedArray
@@ -108,28 +107,27 @@ class DataBase(AbstractSave, AbstractLoad):
 
     # returns a generator for input and target sets, each batch-sets of size batchSize at a time
     # send signal '-1' to end generator
-    def batchGenerator(self, batch_size) -> Generator:
+    def batchGenerator(self, batchSize) -> Generator:
         if self.block:
             raise PermissionError("Access Denied: DataBase currently in use, "
                                   "end previous generator before creating a new one\n"
                                   "send signal '-1' to end generator or reach StopIteration")
         self.block = True
-        self.batchSize = batch_size
+        self.batchSize = batchSize
         self.randomize()
 
         def generator() -> Generator:
             signal = yield
             while True:
-                if signal == -1 or self.pointer + batch_size >= self.size:
+                if signal == -1 or self.pointer + batchSize >= self.size:
                     rVal = self.__batch()
                     self.__resetVars()
-                    yield rVal
-                    return
+                    return rVal
                 signal = yield self.__batch()
-                self.pointer += batch_size
+                self.pointer += batchSize
+
         gen = generator()
         gen.send(None)
-
         return gen
 
     # returns batch-set from index pointer to i

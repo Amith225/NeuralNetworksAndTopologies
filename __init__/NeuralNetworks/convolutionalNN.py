@@ -2,7 +2,6 @@ from typing import *
 
 import numpy as np
 
-from .baseNN import AbstractNN
 from .denseNN import DenseNN
 from ..tools import *
 from ..Topologies import *
@@ -25,7 +24,7 @@ class DenseNNForCNN(DenseNN):
         self._backPropagate()
 
 
-class ConvolutionalNN(AbstractNN):
+class ConvolutionalNN():
     def _forwardPass(self, layer=1):
         self._fire(layer)
         if layer < self.shape.LAYERS - 1:
@@ -96,9 +95,9 @@ class ConvolutionalNN(AbstractNN):
 
     def __init__(self,
                  shape: "Shape", annShape: "Shape",
-                 initializer: "AbstractInitializer", annInitializer: "AbstractInitializer",
+                 initializer: "Abstract", annInitializer: "Abstract",
                  activators: "Activators", annActivators: "Activators",
-                 lossFunction: "AbstractLossFunction", annLossFunction: "AbstractLossFunction",
+                 lossFunction: "Abstract", annLossFunction: "Abstract",
                  strides,
                  poolingStride,
                  poolingShape,

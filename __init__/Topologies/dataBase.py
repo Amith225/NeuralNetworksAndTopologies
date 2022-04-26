@@ -4,10 +4,10 @@ from typing import *
 import numpy as np
 import numexpr as ne
 
-from ..tools import NumpyDataCache, AbstractSave, AbstractLoad, Plot
+from ..tools import NumpyDataCache, BaseSave, BaseLoad, Plot
 
 
-class DataBase(AbstractSave, AbstractLoad):
+class DataBase(BaseSave, BaseLoad):
     DEFAULT_DIR = 'DataSets'
     DEFAULT_NAME = 'db'
     FILE_TYPE = '.zdb'
@@ -34,6 +34,9 @@ class DataBase(AbstractSave, AbstractLoad):
         inputSet, targetSet = nnLoader['inputSet'], nnLoader['targetSet']
 
         return DataBase(inputSet, targetSet, *DataBase_args, **DataBase_kwargs)
+
+    def __getitem__(self, item):
+        return self.inputSet[item], self.targetSet[item]
 
     def __init__(self,
                  inputSet: Iterable and Sized,  # input signal

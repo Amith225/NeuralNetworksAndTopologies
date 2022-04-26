@@ -20,7 +20,7 @@ cnn = ConvolutionalNN(shape=Shape(i, [(10, 3, 3), (10, 4, 4)], (10, 2, 2)), annS
 # cP.run("print(cnn.process(np.random.random((l, *i))).astype(np.float32).shape)")
 # print(cnn.process(np.random.random((l, *i)).astype(np.float32)).shape)
 
-from __init__.Topologies import optimizersNew
+from __init__.Topologies import optimizer
 db = DataBase(np.random.random((l, *i)).astype(np.float32), np.random.randint(0, o + 1, l), oneHotMaxTar=o)
 cnn.train(epochs=1,
           batchSize=2,

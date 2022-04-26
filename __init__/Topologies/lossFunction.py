@@ -14,9 +14,9 @@ class AbstractLossFunction(metaclass=ABCMeta):
         pass
 
 
-class MeanSquareLossFunction(AbstractLossFunction):
+class MeanSquare(AbstractLossFunction):
     def __init__(self):
-        super(MeanSquareLossFunction, self).__init__()
+        super(MeanSquare, self).__init__()
 
     def _eval(self, output, target):
         loss = output - target

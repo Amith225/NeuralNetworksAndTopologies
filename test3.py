@@ -1,14 +1,12 @@
-from __init__.NeuralNetworks import base
-from __init__ import ReadOnlyProperty
+import numpy as np
 
+from __init__ import *
 
-# class Shape(base.BaseShape):
-#     @staticmethod
-#     def _formatShapes(shapes) -> tuple:
-#         return tuple(shapes)
-#
-#
-# s = Shape(1, 2, 3, 4)
+n = 1_000_000
+layer = Dense.Layer(Dense.Shape(10, 20), Initializer.Uniform(), Optimizer.GradientDecent())
+print(layer)
 
-x = ReadOnlyProperty([1, 2, 3])
-x[0] = 0
+# layer.forPass(np.random.random((n, *layer.SHAPE.INPUT)))
+# layer.backProp(np.random.random((n, *layer.SHAPE.OUTPUT)))
+# layer.forPass(np.random.random((n, *layer.SHAPE.INPUT)))
+# layer.backProp(np.random.random((n, *layer.SHAPE.OUTPUT)))

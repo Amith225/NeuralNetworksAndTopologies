@@ -1,85 +1,8 @@
-from typing import *
-if TYPE_CHECKING:
-    from ..Topologies import *
-    from ..NeuralNetworks import *
-
-import tempfile as tf
+import tempfile
 import ctypes
 
 import numpy as np
 from numpy.lib import format as fm
-
-from .helperFunction import iterable
-
-
-class Shape:
-    def __init__(self, *shape):
-        self._shape = list(shape)
-        self.__format_shape()
-        self.LAYERS = len(self._shape)
-        self.INPUT = self._shape[0]
-        self.OUTPUT = self._shape[-1]
-
-    def __getitem__(self, item):
-        return self._shape[item]
-
-    def __format_shape(self):
-        for i, layer in enumerate(self._shape):
-            if not iterable(layer):
-                self._shape[i] = (layer, 1)
-        self._shape = tuple(self._shape)
-
-    @property
-    def shape(self):
-        return self._shape
-
-
-class Collections:
-    def __init__(self, *collectables):
-        self.collectables = collectables
-
-    def __call__(self, length):
-        return self.get(length)
-
-    def get(self, length):
-        trueCollectables = []
-        prevCollectable = None
-        numEllipsis = self.collectables.count(Ellipsis)
-        numCollectables = len(self.collectables) - numEllipsis
-        vacancy = length - numCollectables
-        for collectable in self.collectables:
-            if collectable == Ellipsis:
-                for i in range(filled := (vacancy // numEllipsis)):
-                    trueCollectables.append(prevCollectable)
-                vacancy -= filled
-                numEllipsis -= 1
-                continue
-            trueCollectables.append(collectable)
-            prevCollectable = collectable
-
-        return trueCollectables
-
-
-class Activators(Collections):
-    def __init__(self, *activationFunctions: "AbstractActivationFunction"):
-        super(Activators, self).__init__(*activationFunctions)
-
-    def __call__(self, length):
-        activations = [np.NAN]
-        activationDerivatives = [np.NAN]
-        for e in self.get(length):
-            activations.append(e.activation)
-            activationDerivatives.append(e.activatedDerivative)
-
-        return activations, activationDerivatives
-
-
-class Types(Collections):
-    def __init__(self, *types: "ConvolutionalNN.PoolingType"):
-        super(Types, self).__init__(*types)
-
-    def __call__(self, length):
-        return [np.NAN] + self.get(length)
 
 
 class NumpyDataCache(np.ndarray):
@@ -88,7 +11,7 @@ class NumpyDataCache(np.ndarray):
 
     @staticmethod
     def writeNpyCache(array: "np.ndarray") -> np.ndarray:
-        with tf.NamedTemporaryFile(suffix='.npy') as file:
+        with tempfile.NamedTemporaryFile(suffix='.npy') as file:
             np.save(file, array)
             file.seek(0)
             fm.read_magic(file)
@@ -98,11 +21,21 @@ class NumpyDataCache(np.ndarray):
         return memMap
 
 
+class Network:
+    NotImplemented
+
+    def forwardPass(self, _input):
+        pass
+
+    def backPropagation(self, _delta):
+        pass
+
+
 kernel32 = ctypes.windll.kernel32
 kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
 
-class PrintVars:
+class PrintCols:
     CEND = '\33[0m'
     CBOLD = '\33[1m'
     CITALIC = '\33[3m'

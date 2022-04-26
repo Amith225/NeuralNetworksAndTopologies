@@ -1,9 +1,4 @@
-import numpy as np
-
-from .baseNN import AbstractNN
-
-
-class DenseNN(AbstractNN):
+class DenseNN():
     def _forwardPass(self, layer=1):
         self._fire(layer)
         if layer < self.shape.LAYERS - 1: self._forwardPass(layer + 1)

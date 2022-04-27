@@ -44,10 +44,8 @@ class Xavier(BaseInitializer):
         super(Xavier, self).__init__()
         self.he = he
 
-    # fixme: needs improvement in np.prod
     def _initialize(self, shape: "Base.Shape") -> "np.ndarray":
-        return self.rnd.standard_normal(shape.HIDDEN, dtype=np.float32) * (
-                self.he / np.prod(shape.INPUT) ** (1 / len(shape.INPUT))) ** 0.5
+        return self.rnd.standard_normal(shape.HIDDEN, dtype=np.float32) * (self.he / np.prod(shape.INPUT)) ** 0.5
 
 
 class NormalizedXavier(BaseInitializer):
@@ -57,5 +55,5 @@ class NormalizedXavier(BaseInitializer):
 
     def _initialize(self, shape: "Base.Shape"):
         return self.rnd.standard_normal(shape.HIDDEN, dtype=np.float32) * (
-                    self.he / (np.prod(shape.INPUT) + np.prod(shape.OUTPUT)) ** (
-                        2 / (len(shape.INPUT) + len(shape.OUTPUT)))) ** 0.5
+                self.he / (np.prod(shape.INPUT) + np.prod(shape.OUTPUT)) ** (
+                2 / (len(shape.INPUT) + len(shape.OUTPUT)))) ** 0.5

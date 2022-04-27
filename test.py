@@ -1,24 +1,22 @@
-from DataSets import dataSet
 from __init__ import *
+from DataSets import dataSet
+from Models import model
 
-db = DataBase.load(dataSet.TrainSets.EmnistBalanced, normalizeInp=1, reshapeInp=(-1, 1))
-db2 = DataBase.load(dataSet.TestSets.EmnistBalanced, normalizeInp=1, reshapeInp=(-1, 1))
-
-hiddenShape = 392, 196
-nn = DenseNN(shape=Shape(db.inpShape[0], *hiddenShape, db.tarShape[0]),
-             initializer=Xavier(2),
-             activators=Activators(Prelu(),
-                                        ...,
-                                        Softmax()),
-             lossFunction=MeanSquareLossFunction())
-
-# nn.train(2, 64,
-#          trainDataBase=db,
-#          optimizer=AdagradWBOptimizer(nn),
-#          profile=False,
-#          test=db2)
-
-print(nn.process(db.inputSet[:10000]).shape)
-
-# nn.save(replace=True)
-# PlotNeuralNetwork.plotCostGraph(nn)
+db = DataBase.load(dataSet.TrainSets.EmnistBalanced, normalizeInp=1, reshapeInp=(-1, 1),
+                   name='TrainSets.EmnistBalanced')
+db2 = DataBase.load(dataSet.TestSets.EmnistBalanced, normalizeInp=1, reshapeInp=(-1, 1),
+                    name='TestSets.EmnistBalanced')
+# db2 = False
+dense_nn = Dense.NN(shape=Dense.Shape(db.inpShape[0], *(392, 196), db.tarShape[0]),
+                    initializers=None,
+                    activators=None,
+                    lossFunction=None)
+dense_nn.train(epochs=5,
+               batchSize=128,
+               trainDataBase=db,
+               optimizers=Optimizers(Optimizers.AdaGrad(), ...),
+               profile=False,
+               test=db2)
+print(db, '\n')
+print(db2, '\n')
+print(dense_nn, '\n')

@@ -25,10 +25,14 @@ class MagicProperty(property):
                 return _f(*args, **kwargs)
             else:
                 raise AttributeError("Attribute is read only")
+
         return f
 
     def __magic__(self, stack=1):
-        return any(c1 == c2 and c1 is not None for c1, c2 in zip(self.getCaller(stack + 1), self.__obj))
+        caller = self.getCaller(stack + 1)
+        return any(c1 == c2 and c1 is not None for c1, c2 in zip(caller, self.__obj)) or \
+            (any(self.__obj[2] == base.__name__ for base in caller[1].__bases__)
+                if self.__obj[:2] == (None, None) and caller[1] is not None else 0)
 
     @staticmethod
     def getCaller(stack=1):
@@ -40,13 +44,13 @@ class MagicProperty(property):
         return _return
 
 
-def metaMagicProperty(*inherits):
-    class MetaProperty(*inherits, type):
+def makeMetaMagicProperty(*inherits):
+    class MetaProperty(*inherits, type):  # todo: improve implementation method
         def __call__(cls, *args, **kwargs):
             __obj = super(MetaProperty, cls).__call__(*args, **kwargs)
             __dict__ = {}
             for key, val in __obj.__dict__.items():
-                if key.isupper() or (hasattr(__obj, 'toMagicProperty') and key in __obj.toMagicProperty):
+                if key.isupper():
                     __dict__[(_name := '__magic' + key)] = val
                     setattr(cls, key, MagicProperty(lambda self, _name=_name: getattr(self, _name),
                                                     lambda self, _val, _name=_name: setattr(self, _name, _val)))

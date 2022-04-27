@@ -1,27 +1,44 @@
+from ..tools import Collections
 from .dataBase import DataBase, PlotDataBase
 
 
-class ActivationFunction:
-    from .activationFunction import AbstractActivationFunction as Abstract, \
+class Activators(Collections):
+    from .activationFunction import BaseActivationFunction as Base, \
         Sigmoid, Tanh, Relu, Prelu, Elu, Softmax, Softplus
+    Base, Sigmoid, Tanh, Relu, Prelu, Elu, Softmax, Softplus = \
+        Base, Sigmoid, Tanh, Relu, Prelu, Elu, Softmax, Softplus
+
+    def __init__(self, *activationFunctions: "Activators.Base"):
+        super(Activators, self).__init__(*activationFunctions)
 
 
-class Initializer:
+class Initializers(Collections):
     from .initializer import BaseInitializer as Base, \
         Uniform, Normal, Xavier, NormalizedXavier
+    Base, Uniform, Normal, Xavier, NormalizedXavier = \
+        Base, Uniform, Normal, Xavier, NormalizedXavier
+
+    def __init__(self, *initializer: "Initializers.Base"):
+        super(Initializers, self).__init__(*initializer)
+
+
+class Optimizers(Collections):
+    from .optimizer import BaseOptimizer as Base, \
+        GradientDecent, Decay, Momentum, NesterovMomentum, AdaGrad, RmpProp, AdaDelta, Adam
+    Base, GradientDecent, Decay, Momentum, NesterovMomentum, AdaGrad, RmpProp, AdaDelta, Adam = \
+        Base, GradientDecent, Decay, Momentum, NesterovMomentum, AdaGrad, RmpProp, AdaDelta, Adam
+
+    def __init__(self, *optimizers: "Optimizers.Base"):
+        super(Optimizers, self).__init__(*optimizers)
 
 
 class LossFunction:
-    from .lossFunction import AbstractLossFunction as Abstract, \
+    from .lossFunction import BaseLossFunction as Base, \
         MeanSquare
-
-
-class Optimizer:
-    from .optimizer import BaseOptimizer as Base, \
-        GradientDecent, Decay, Momentum, NesterovMomentum, AdaGrad, RmpProp, AdaDelta
+    Base, MeanSquare = Base, MeanSquare
 
 
 __all__ = [
-    "ActivationFunction", "Initializer", "LossFunction", "Optimizer",
+    "Activators", "Initializers", "LossFunction", "Optimizers",
     "DataBase", "PlotDataBase"
 ]

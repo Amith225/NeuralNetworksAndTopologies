@@ -45,7 +45,7 @@ class BaseLoad(metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    def load(cls, file):
+    def load(cls, file) -> "cls":  # noqa
         if file:
             if not (fpath := os.path.dirname(file)):
                 fpath = f"{os.getcwd()}\\{cls.DEFAULT_DIR}\\"

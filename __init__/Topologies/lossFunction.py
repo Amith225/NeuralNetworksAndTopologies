@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class AbstractLossFunction(metaclass=ABCMeta):
+class BaseLossFunction(metaclass=ABCMeta):
     @abstractmethod
     def __init__(self, *args, **kwargs):
         pass
@@ -14,11 +14,10 @@ class AbstractLossFunction(metaclass=ABCMeta):
         pass
 
 
-class MeanSquare(AbstractLossFunction):
+class MeanSquare(BaseLossFunction):
     def __init__(self):
         super(MeanSquare, self).__init__()
 
     def _eval(self, output, target):
-        loss = output - target
-
-        return (loss * loss).sum(), loss
+        delta = output - target
+        return (delta * delta).sum(axis=1).mean(), delta

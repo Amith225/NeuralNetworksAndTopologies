@@ -1,13 +1,17 @@
 import sys
+import time
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     import numpy as np
+
+
+from .helperClass import PrintCols
 
 
 def copyNumpyList(lis: list["np.ndarray"]):
     copyList = []
     for array in lis: copyList.append(array.copy())
-
     return copyList
 
 
@@ -17,6 +21,17 @@ def iterable(var):
         return True
     except TypeError:
         return False
+
+
+def secToHMS(seconds, hms=('h', 'm', 's')):
+    encode = f'%S{hms[2]}'
+    if (tim := time.gmtime(seconds)).tm_min != 0: encode = f'%M{hms[1]}' + encode
+    if tim.tm_hour != 0: encode = f'%H{hms[0]}' + encode
+    return time.strftime(encode, tim)
+
+
+def statPrinter(key, value, *, prefix='', suffix=PrintCols.CEND, end=' '):
+    print(prefix + f"{key}:{value}" + suffix, end=end)
 
 
 def getSize(obj, seen=None, ref=''):

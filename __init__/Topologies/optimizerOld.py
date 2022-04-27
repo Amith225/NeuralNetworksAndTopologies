@@ -36,35 +36,6 @@ class WBOptimizer(metaclass=ABCMeta):
         self.nn.deltaLoss[layer - 1] = self.nn.weightsList[layer].transpose() @ self.nn.deltaLoss[layer]
 
 
-class GradientDecentWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: "DenseNN", learningRate=0.001):
-        super(GradientDecentWBOptimizer, self).__init__(neural_network, learningRate)
-
-    def _optimize(self, layer):
-        super(GradientDecentWBOptimizer, self)._optimize(layer)
-        self.nn.deltaBiases[layer] *= self.LEARNING_RATE
-        self.nn.deltaWeights[layer] *= self.LEARNING_RATE
-
-
-# fixme: improve momentum optimizers. FL
-class MomentumWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: "DenseNN", learningRate=0.001, alpha=0.9):
-        if alpha is None:
-            alpha = learningRate / 10
-        super(MomentumWBOptimizer, self).__init__(neural_network, learningRate, alpha)
-        self.prev_delta_biases = [0 for _ in range(self.nn.shape.LAYERS)]
-        self.prev_delta_weights = self.prev_delta_biases.copy()
-
-    def _optimize(self, layer):
-        super(MomentumWBOptimizer, self)._optimize(layer)
-        self.nn.deltaBiases[layer] = self.prev_delta_biases[layer] = \
-            (self.ALPHA * self.prev_delta_biases[layer] + (1 - self.ALPHA) * self.nn.deltaBiases[
-                layer]) * self.LEARNING_RATE
-        self.nn.deltaWeights[layer] = self.prev_delta_weights[layer] = \
-            (self.ALPHA * self.prev_delta_weights[layer] + (1 - self.ALPHA) * self.nn.deltaWeights[
-                layer]) * self.LEARNING_RATE
-
-
 # non verified algorithm
 class NesterovMomentumWBOptimizer(WBOptimizer):
     def __init__(self, neural_network: "DenseNN", learningRate=0.001, alpha=0.9):
@@ -104,23 +75,6 @@ class NesterovMomentumWBOptimizer(WBOptimizer):
 
         self.momentum_biases[layer] = self.nn.biasesList[layer] - self.ALPHA * self.prev_delta_biases[layer]
         self.momentum_weights[layer] = self.nn.weightsList[layer] - self.ALPHA * self.prev_delta_weights[layer]
-
-
-class DecayWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: "DenseNN", learningRate=0.001, alpha=None):
-        if alpha is None:
-            alpha = 1 / learningRate
-        super(DecayWBOptimizer, self).__init__(neural_network, learningRate, alpha)
-        self.ALPHA = np.float32(alpha)
-        self.decayCount = 0
-
-    def _optimize(self, layer):
-        super(DecayWBOptimizer, self)._optimize(layer)
-        k = self.LEARNING_RATE / (1 + self.decayCount / self.ALPHA)
-        self.nn.deltaBiases[layer] *= k
-        self.nn.deltaWeights[layer] *= k
-
-        self.decayCount += 1 / self.nn.numBatches
 
 
 class AdagradWBOptimizer(WBOptimizer):

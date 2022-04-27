@@ -1,28 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="re-organized commit 2">
-      <change afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/dense.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/tools/collection.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/tools/magic.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__/tools/plot.py" afterDir="false" />
+    <list default="true" id="aedc4db0-e0b2-49c9-8f5c-0926e088dae3" name="Changes" comment="re-structure stable&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/baseNN.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/convolutionalNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/convolutionalNN.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/NeuralNetworks/denseNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/NeuralNetworks/denseNN.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__/Topologies/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__/Topologies/dataBase.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/dataBase.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/Topologies/initializer.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/initializer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/Topologies/lossFunction.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/lossFunction.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/Topologies/optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/Topologies/optimizerOld.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/tools/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/tools/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/tools/baseClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/tools/base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/tools/helperClass.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/tools/helperClass.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__/tools/helperFunction.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__/tools/helperFunction.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test2.py" beforeDir="false" afterPath="$PROJECT_DIR$/test2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test3.py" beforeDir="false" afterPath="$PROJECT_DIR$/test3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -110,7 +94,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$/DataSets" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="terminal" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -124,7 +108,7 @@
       <recent name="C:\Users\DELL\PycharmProjects\NeuralNetworksAndTopologies\src" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.test3">
+  <component name="RunManager" selected="Python.test">
     <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="NeuralNetworksAndTopologies" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -198,8 +182,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.test3" />
         <item itemvalue="Python.test" />
+        <item itemvalue="Python.test3" />
         <item itemvalue="Python.test2" />
       </list>
     </recent_temporary>
@@ -466,7 +450,21 @@
       <option name="project" value="LOCAL" />
       <updated>1650868113751</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="re-structure stable">
+      <created>1651178700775</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1651178700775</updated>
+    </task>
+    <task id="LOCAL-00031" summary="re-structure stable&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;">
+      <created>1651209456720</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1651209456720</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -509,12 +507,14 @@
     <MESSAGE value="initial commit" />
     <MESSAGE value="re-organized commit" />
     <MESSAGE value="re-organized commit 2" />
-    <option name="LAST_COMMIT_MESSAGE" value="re-organized commit 2" />
+    <MESSAGE value="re-structure stable" />
+    <MESSAGE value="re-structure stable&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
+    <option name="LAST_COMMIT_MESSAGE" value="re-structure stable&#10;&#10;Signed-off-by: Amith &lt;amitharun3@gmail.com&gt;" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test3.coverage" NAME="test3 Coverage Results" MODIFIED="1651160860684" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test.coverage" NAME="test Coverage Results" MODIFIED="1651212164634" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$base.coverage" NAME="base Coverage Results" MODIFIED="1650871747282" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/__init__/NeuralNetworks" />
-    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test.coverage" NAME="test Coverage Results" MODIFIED="1650716761469" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test3.coverage" NAME="test3 Coverage Results" MODIFIED="1650968878047" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test2.coverage" NAME="test2 Coverage Results" MODIFIED="1650612625203" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/NeuralNetworksAndTopologies$test2.coverage" NAME="test2 Coverage Results" MODIFIED="1648210423707" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

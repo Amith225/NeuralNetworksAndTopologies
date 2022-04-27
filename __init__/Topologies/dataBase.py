@@ -1,5 +1,5 @@
 import warnings as wr
-from typing import *
+from typing import Iterable, Sized, Generator
 
 import numpy as np
 import numexpr as ne
@@ -8,27 +8,45 @@ from ..tools import NumpyDataCache, BaseSave, BaseLoad, Plot
 
 
 class DataBase(BaseSave, BaseLoad):
+    """
+
+    """
     DEFAULT_DIR = 'DataSets'
     DEFAULT_NAME = 'db'
     FILE_TYPE = '.zdb'
     LARGE_VAL = 5
+
+    def __str__(self):
+        SHAPE = {'SIZE': self.size, 'INPUT': self.inpShape, 'TARGET': self.tarShape}
+        BATCH_SIZE = self.batchSize
+        HOT_ENCODE = {'INPUT': self.hotEncodeInp, 'TARGET': self.hotEncodeTar}
+        SetDType = {'INPUT': self.inputSetDType, 'TARGET': self.targetSetDType}
+        NormFactor = {'INPUT': f"Max:{(Max := self.inputMax)}, "
+                               f"Norm:{(Norm := self.inputSetNormFactor)}, {Max*Norm=}",
+                      'TARGET': f"Max:{(Max := self.targetMax)}, "
+                                f"Norm:{(Norm := self.targetSetNormFactor)}, {Max*Norm=}"}
+        return f"{super(DataBase, self).__str__()[:-1]}:{self.NAME}\n{SHAPE=}, {BATCH_SIZE=}\n" \
+               f"{HOT_ENCODE=}\n{SetDType=}\n{NormFactor=}>"
 
     def saveName(self) -> str:
         return f"{self.size}s_{self.inpShape}i_{self.tarShape}o"
 
     def save(self, file: str = None, replace: bool = False) -> str:
         dumpFile = super(DataBase, self).save(file, replace)
-        saveInputSet = self.inputSet * self.inputSetFactor
+        saveInputSet = self.inputs * self.inputSetNormFactor
         if self.hotEncodeInp: saveInputSet = self.oneHotDecode(saveInputSet)
-        saveTargetSet = self.targetSet * self.targetSetFactor
+        saveTargetSet = self.targets * self.targetSetNormFactor
         if self.hotEncodeTar: saveTargetSet = self.oneHotDecode(saveTargetSet)
-        np.savez_compressed(dumpFile, inputSet=saveInputSet.astype(self.inputSetDtype),
-                            targetSet=saveTargetSet.astype(self.targetSetDtype))
-
+        np.savez_compressed(dumpFile, inputSet=saveInputSet.astype(self.inputSetDType),
+                            targetSet=saveTargetSet.astype(self.targetSetDType))
         return dumpFile
 
     @classmethod
     def load(cls, file: str, *DataBase_args, **DataBase_kwargs) -> "DataBase":
+        """
+        :param file: path like or name
+        :param DataBase_args: normalizeInp, normalizeTar, reshapeInp, reshapeTar, oneHotMaxInp, oneHotMaxTar, name
+        """
         loadFile = super(DataBase, cls).load(file)
         nnLoader = np.load(loadFile, mmap_mode='r')
         inputSet, targetSet = nnLoader['inputSet'], nnLoader['targetSet']
@@ -36,29 +54,20 @@ class DataBase(BaseSave, BaseLoad):
         return DataBase(inputSet, targetSet, *DataBase_args, **DataBase_kwargs)
 
     def __getitem__(self, item):
-        return self.inputSet[item], self.targetSet[item]
+        return self.inputs[(i := self.indices[item])], self.targets[i]
 
     def __init__(self,
-                 inputSet: Iterable and Sized,  # input signal
-                 targetSet: Iterable and Sized,  # desired output signal
-                 normalizeInp: float = None,
-                 normalizeTar: float = None,
-                 reshapeInp=None,
-                 reshapeTar=None,
-                 oneHotMaxInp=None,
-                 oneHotMaxTar=None):
-        if (size := len(inputSet)) != len(targetSet):
-            raise Exception("Both input and output set should be of same size")
-        self.inputSetDtype = inputSet.dtype
-        self.targetSetDtype = targetSet.dtype
-        self.hotEncodeInp = False
-        self.hotEncodeTar = False
-        if len(np.shape(inputSet)) == 1:
-            inputSet = self.oneHotEncode(inputSet, oneHotMaxInp)
-            self.hotEncodeInp = True
-        if len(np.shape(targetSet)) == 1:
-            targetSet = self.oneHotEncode(targetSet, oneHotMaxTar)
-            self.hotEncodeTar = True
+                 inputSet: Iterable and Sized,  targetSet: Iterable and Sized,
+                 normalizeInp: float = None, normalizeTar: float = None,
+                 reshapeInp=None, reshapeTar=None,
+                 oneHotMaxInp=None, oneHotMaxTar=None,
+                 name: str = ''):
+        if (size := len(inputSet)) != len(targetSet): raise Exception("Both input and target set must be of same size")
+        self.NAME = name
+        self.inputSetDType, self.targetSetDType = inputSet.dtype, targetSet.dtype
+        self.hotEncodeInp = self.hotEncodeTar = False
+        if len(np.shape(inputSet)) == 1: inputSet, self.hotEncodeInp = self.oneHotEncode(inputSet, oneHotMaxInp)
+        if len(np.shape(targetSet)) == 1: targetSet, self.hotEncodeTar = self.oneHotEncode(targetSet, oneHotMaxTar)
         if (maxI := np.max(inputSet)) >= self.LARGE_VAL and normalizeInp is None and not self.hotEncodeInp:
             wr.showwarning(f"inputSet has element(s) with values till {maxI} which may cause nan training, "
                            f"use of param 'normalizeInp=<max>' is recommended", FutureWarning, 'dataBase.py', 0)
@@ -66,16 +75,15 @@ class DataBase(BaseSave, BaseLoad):
             wr.showwarning(f"targetSet has element(s) with values till {maxT} which may cause nan training, "
                            f"use of param 'normalizeTar=<max>' is recommended", FutureWarning, 'dataBase.py', 0)
 
-        inputSet, self.inputSetFactor = self.normalize(np.array(inputSet, dtype=np.float32), normalizeInp)
-        targetSet, self.targetSetFactor = self.normalize(np.array(targetSet, dtype=np.float32), normalizeTar)
+        inputSet, self.inputSetNormFactor = self.normalize(np.array(inputSet, dtype=np.float32), normalizeInp)
+        targetSet, self.targetSetNormFactor = self.normalize(np.array(targetSet, dtype=np.float32), normalizeTar)
+        self.inputMax, self.targetMax = inputSet.max(), targetSet.max()
         if reshapeInp is not None: inputSet = inputSet.reshape((size, *reshapeInp))
         if reshapeTar is not None: inputSet = targetSet.reshape((size, *reshapeTar))
-        self.inputSet = NumpyDataCache(inputSet)
-        self.targetSet = NumpyDataCache(targetSet)
+        self.inputs, self.targets = NumpyDataCache(inputSet), NumpyDataCache(targetSet)
 
         self.size: int = size
-        self.inpShape = inputSet.shape[1:]
-        self.tarShape = targetSet.shape[1:]
+        self.inpShape, self.tarShape = inputSet.shape[1:], targetSet.shape[1:]
 
         self.pointer: int = 0
         self.block: bool = False
@@ -88,7 +96,7 @@ class DataBase(BaseSave, BaseLoad):
         hotEncodedArray = np.zeros((len(_1dArray), oneHotMax, 1))
         hotEncodedArray[np.arange(hotEncodedArray.shape[0]), _1dArray] = 1
 
-        return hotEncodedArray
+        return hotEncodedArray, oneHotMax
 
     @staticmethod
     def oneHotDecode(_3dArray):
@@ -96,7 +104,7 @@ class DataBase(BaseSave, BaseLoad):
 
     # normalize input and target sets within the range of -scale to +scale
     @staticmethod
-    def normalize(data, scale: float = None) -> Tuple["np.ndarray", float]:
+    def normalize(data, scale: float = None) -> tuple["np.ndarray", float]:
         if scale is None:
             factor = 1
         else:
@@ -110,7 +118,7 @@ class DataBase(BaseSave, BaseLoad):
 
     # returns a generator for input and target sets, each batch-sets of size batchSize at a time
     # send signal '-1' to end generator
-    def batchGenerator(self, batchSize) -> Generator:
+    def batchGenerator(self, batchSize) -> Generator[tuple["np.ndarray", "np.ndarray"], None, None]:
         if self.block:
             raise PermissionError("Access Denied: DataBase currently in use, "
                                   "end previous generator before creating a new one\n"
@@ -125,7 +133,8 @@ class DataBase(BaseSave, BaseLoad):
                 if signal == -1 or self.pointer + batchSize >= self.size:
                     rVal = self.__batch()
                     self.__resetVars()
-                    return rVal
+                    yield rVal
+                    return
                 signal = yield self.__batch()
                 self.pointer += batchSize
 
@@ -133,16 +142,10 @@ class DataBase(BaseSave, BaseLoad):
         gen.send(None)
         return gen
 
-    # returns batch-set from index pointer to i
     def __batch(self) -> tuple[np.ndarray, np.ndarray]:
-        vacant = 0
-        if (i := self.pointer + self.batchSize) > self.size:
-            i = self.size
-            filled = i - self.pointer
-            vacant = self.batchSize - filled
-        indices = self.indices[self.pointer:i] + self.indices[:vacant]
-        inputBatch = self.inputSet[indices]
-        targetBatch = self.targetSet[indices]
+        indices = self.indices[self.pointer:self.pointer + self.batchSize]
+        inputBatch = self.inputs[indices]
+        targetBatch = self.targets[indices]
 
         return inputBatch, targetBatch
 

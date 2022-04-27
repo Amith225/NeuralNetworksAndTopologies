@@ -1,5 +1,9 @@
 import tempfile
 import ctypes
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..tools import *
 
 import numpy as np
 from numpy.lib import format as fm
@@ -21,20 +25,41 @@ class NumpyDataCache(np.ndarray):
         return memMap
 
 
-class Network:
-    NotImplemented
+class Collections:
+    def __str__(self):
+        return f"{super(Collections, self).__str__()[:-1]}:{self.collectables}>"
 
-    def forwardPass(self, _input):
-        pass
+    # todo: make collectables Type[_<class>] itself, and/or create Collection class generator in general
+    def __init__(self, *collectables):
+        self.collectables = collectables
 
-    def backPropagation(self, _delta):
-        pass
+    def __call__(self, length):
+        return self.get(length)
+
+    def get(self, length):
+        trueCollectables = []
+        prevCollectable = None
+        numEllipsis = self.collectables.count(Ellipsis)
+        numCollectables = len(self.collectables) - numEllipsis
+        vacancy = length - numCollectables
+        for collectable in self.collectables:
+            if collectable == Ellipsis:
+                for i in range(filled := (vacancy // numEllipsis)):
+                    trueCollectables.append(prevCollectable)
+                vacancy -= filled
+                numEllipsis -= 1
+                continue
+            trueCollectables.append(collectable)
+            prevCollectable = collectable
+
+        return trueCollectables
 
 
 kernel32 = ctypes.windll.kernel32
 kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
 
+# noinspection SpellCheckingInspection
 class PrintCols:
     CEND = '\33[0m'
     CBOLD = '\33[1m'

@@ -2,6 +2,8 @@ import time
 import warnings
 import cProfile
 import traceback
+import pstats
+import os
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Union
 
@@ -272,6 +274,61 @@ class BaseNN(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
             return np.NAN
         return self.NETWORK.forwardPass(np.array(_input))
 
+    def profile(self):
+        self.profiling = True
+        prof = cProfile.Profile()
+        prof.runctx("self._train()", locals=locals(), globals=globals())
+        prof.print_stats('cumtime')
+        prof.dump_stats('profile.pstat')
+        with open('profile.txt', 'w') as stream:
+            stats = pstats.Stats('profile.pstat', stream=stream)
+            stats.sort_stats('cumtime')
+            stats.print_stats()
+        os.remove('profile.txt')
+        self.profiling = False
+
+    def _train(self):
+        statPrinter('Epoch', f"0/{self.numEpochs}", prefix=PrintCols.CBOLDITALICURL + PrintCols.CBLUE)
+        self.training = True
+        if self.epochTrained == 0:
+            loss, _, acc = self._trainer(self.trainDataBase[:self.batchSize])
+            trainCosts, trainAccuracies = [loss], [acc]
+        else:
+            trainCosts, trainAccuracies = [self.costHistory[-1][-1]], [self.accuracyHistory[-1][-1]]
+
+        for self.epoch in range(1, self.numEpochs + 1):
+            epochTime = nextPrintTime = 0
+            costTrained = accuracyTrained = 0
+            try:
+                for self.batch, _batch in enumerate(self.trainDataBase.batchGenerator(self.batchSize)):
+                    timeStart = time.time()
+                    loss, delta, acc = self._trainer(_batch)
+                    self.NETWORK.backPropagation(delta)
+                    costTrained += loss
+                    accuracyTrained += acc
+                    batchTime = time.time() - timeStart
+                    epochTime += batchTime
+                    if epochTime >= nextPrintTime or self.batch == self.numBatches - 1:
+                        nextPrintTime += self.STAT_PRINT_INTERVAL
+                        self.printStats(costTrained / (self.batch + 1), trainCosts[-1],
+                                        accuracyTrained / (self.batch + 1), trainAccuracies[-1], epochTime)
+                self.timeTrained += epochTime
+                self.epochTrained += 1
+                self.costTrained = costTrained / self.numBatches
+                self.accuracyTrained = accuracyTrained / self.numBatches
+                trainCosts.append(self.costTrained)
+                trainAccuracies.append(self.accuracyTrained)
+            except Exception:  # noqa
+                traceback.print_exc()
+                warnings.showwarning("unhandled exception occurred while training,"
+                                     "\nquiting training and rolling back to previous auto save", RuntimeWarning,
+                                     'base.py', 0)
+                raise NotImplementedError  # todo: roll back and auto save
+        self.costHistory.append(trainCosts)
+        self.accuracyHistory.append(trainAccuracies)
+        self.training = False
+        statPrinter('', '', end='\n')
+
     def train(self, epochs: int = None,
               batchSize: int = None,
               trainDataBase: "DataBase" = None,
@@ -283,59 +340,15 @@ class BaseNN(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
         if batchSize is not None: self.batchSize = batchSize
         if trainDataBase is not None: self.trainDataBase = trainDataBase
         if optimizers is not None: self.optimizers = optimizers
-        assert isinstance(trainDataBase, DataBase)
-        assert trainDataBase.inpShape == self.SHAPE.INPUT and trainDataBase.tarShape == self.SHAPE.OUTPUT
+        assert isinstance(self.trainDataBase, DataBase)
+        assert self.trainDataBase.inpShape == self.SHAPE.INPUT and self.trainDataBase.tarShape == self.SHAPE.OUTPUT
         if trainDataBase is not None or batchSize is not None:
             self.numBatches = int(np.ceil(self.trainDataBase.size / self.batchSize))
-
         if profile:
-            self.profiling = True
-            cProfile.run("self.train(test=test)")
-            self.profiling = False
+            self.profile()
         else:
-            statPrinter('Epoch', f"0/{self.numEpochs}", prefix=PrintCols.CBOLDITALICURL + PrintCols.CBLUE)
-
-            self.training = True
-            if self.epochTrained == 0:
-                loss, _, acc = self._trainer(self.trainDataBase[:self.batchSize])
-                trainCosts, trainAccuracies = [loss], [acc]
-            else:
-                trainCosts, trainAccuracies = [self.costHistory[-1][-1]], [self.accuracyHistory[-1][-1]]
-
-            for self.epoch in range(1, self.numEpochs + 1):
-                epochTime = nextPrintTime = 0
-                costTrained = accuracyTrained = 0
-                try:
-                    for self.batch, _batch in enumerate(self.trainDataBase.batchGenerator(self.batchSize)):
-                        timeStart = time.time()
-                        loss, delta, acc = self._trainer(_batch)
-                        self.NETWORK.backPropagation(delta)
-                        costTrained += loss
-                        accuracyTrained += acc
-                        batchTime = time.time() - timeStart
-                        epochTime += batchTime
-                        if epochTime >= nextPrintTime or self.batch == self.numBatches - 1:
-                            nextPrintTime += self.STAT_PRINT_INTERVAL
-                            self.printStats(costTrained / (self.batch + 1), trainCosts[-1],
-                                            accuracyTrained / (self.batch + 1), trainAccuracies[-1], epochTime)
-                    self.timeTrained += epochTime
-                    self.epochTrained += 1
-                    self.costTrained = costTrained / self.numBatches
-                    self.accuracyTrained = accuracyTrained / self.numBatches
-                    trainCosts.append(self.costTrained)
-                    trainAccuracies.append(self.accuracyTrained)
-                except Exception:  # noqa
-                    traceback.print_exc()
-                    warnings.showwarning("unhandled exception occurred while training,"
-                                         "\nquiting training and rolling back to previous auto save", RuntimeWarning,
-                                         'base.py', 0)
-                    raise NotImplementedError  # todo: roll back and auto save
-            self.costHistory.append(trainCosts)
-            self.accuracyHistory.append(trainAccuracies)
-            self.training = False
-
-            statPrinter('', '', end='\n')
-            if test or test is None: self.test(test)
+            self._train()
+        if test or test is None: self.test(test)
 
     def printStats(self, loss, prevLoss, acc, prevAcc, epochTime):
         print(end='\r')
@@ -376,12 +389,13 @@ class BaseNN(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
             return (accuracy1 + accuracy2) / 2
 
     def test(self, testDataBase: "DataBase" = None):
-        assert isinstance(testDataBase, DataBase)
-        assert testDataBase.inpShape == self.SHAPE.INPUT and testDataBase.tarShape == self.SHAPE.OUTPUT
         statPrinter('Testing', 'wait...', prefix=PrintCols.CBOLD + PrintCols.CYELLOW, suffix='')
         if self.trainDataBase is not None:
             self.accuracyTrained = self.accuracy(self.trainDataBase.inputs, self.trainDataBase.targets)
-        if testDataBase is not None: self.testAccuracy = self.accuracy(testDataBase.inputs, testDataBase.targets)
+        if testDataBase is not None:
+            assert isinstance(testDataBase, DataBase)
+            assert testDataBase.inpShape == self.SHAPE.INPUT and testDataBase.tarShape == self.SHAPE.OUTPUT
+            self.testAccuracy = self.accuracy(testDataBase.inputs, testDataBase.targets)
         print(end='\r')
         statPrinter('Train-Accuracy', f"{self.accuracyTrained}%", suffix='', end='\n')
         statPrinter('Test-Accuracy', f"{self.testAccuracy}%", end='\n')

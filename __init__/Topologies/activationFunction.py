@@ -81,7 +81,7 @@ class Softmax(BaseActivationFunction):
         return numerator / numerator.sum(axis=-2, keepdims=1)
 
     def activatedDerivative(self, activatedX: np.ndarray):
-        self.__jacobian = np.einsum('...ji, ...ki -> ...ijk', activatedX, activatedX, optimize='greedy')
+        self.__jacobian = np.einsum('...ij,...kj->...jik', activatedX, activatedX, optimize='greedy')
         diagIndexes = np.diag_indices(self.__jacobian.shape[-1])
         self.__jacobian[..., diagIndexes[0], diagIndexes[1]] = \
             (activatedX * (1 - activatedX)).transpose().reshape(self.__jacobian.shape[:-1])

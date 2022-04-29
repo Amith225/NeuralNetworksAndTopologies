@@ -10,7 +10,7 @@ import numexpr as ne
 class RmspropWBOptimizer:
     def __init__(self, neural_network: 'DenseNN', learningRate=0.001, beta=0.9, epsilon=np.e ** -8):
         super(RmspropWBOptimizer, self).__init__(neural_network, learningRate, beta=beta, epsilon=epsilon)
-        self.grad_square_biases_sum = [0 for _ in range(self.nn.shape.LAYERS)]
+        self.grad_square_biases_sum = [0 for _ in range(self.nn.shape.NUM_LAYERS)]
         self.grad_square_weights_sum = self.grad_square_biases_sum.copy()
 
     def _optimize(self, layer):
@@ -45,9 +45,9 @@ class AdadeltaWBOptimizer:
                        "\nuse 'Rmsprop' instead for stable working", PendingDeprecationWarning,
                        'optimizerOld.py->AdadeltaWBOptimizer', 0)
         super(AdadeltaWBOptimizer, self).__init__(neural_network, learningRate, beta=beta, epsilon=epsilon)
-        self.grad_square_biases_sum = [0 for _ in range(self.nn.shape.LAYERS)]
+        self.grad_square_biases_sum = [0 for _ in range(self.nn.shape.NUM_LAYERS)]
         self.grad_square_weights_sum = self.grad_square_biases_sum.copy()
-        self.delta_square_biases_sum = [0 for _ in range(self.nn.shape.LAYERS)]
+        self.delta_square_biases_sum = [0 for _ in range(self.nn.shape.NUM_LAYERS)]
         self.delta_square_weights_sum = self.delta_square_biases_sum.copy()
 
     def _optimize(self, layer):

@@ -2,6 +2,9 @@ from abc import ABCMeta, abstractmethod
 
 
 class BaseLossFunction(metaclass=ABCMeta):
+    def __repr__(self):
+        return f"{self.__class__.__name__}"
+
     @abstractmethod
     def __init__(self, *args, **kwargs):
         pass

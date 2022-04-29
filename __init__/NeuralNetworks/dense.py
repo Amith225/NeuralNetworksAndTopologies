@@ -90,11 +90,13 @@ class DenseNN(BaseNN):
                  lossFunction: "LossFunction.Base" = None):
         super(DenseNN, self).__init__(shape, initializers, activators, lossFunction)
 
-    def _constructNetwork(self) -> "Network":
+    def _constructNetwork(self, initializers: "Initializers" = None,
+                          activators: "Activators" = None,
+                          lossFunction: "LossFunction.Base" = None) -> "Network":
         layers = []
-        for i, _initializer, _optimizer, _aF in zip(range(_length := self.SHAPE.LAYERS - 1),
-                                                    self.INITIALIZERS(_length),
+        for i, _initializer, _optimizer, _aF in zip(range(_length := self.SHAPE.NUM_LAYERS - 1),
+                                                    initializers(_length),
                                                     self.optimizers(_length),  # noqa
-                                                    self.ACTIVATORS(_length)):
+                                                    activators(_length)):
             layers.append(DenseLayer(self.SHAPE[i:i + 2], _initializer, _optimizer, _aF))
-        return Network(*layers, lossFunction=self.LOSS_FUNCTION)
+        return Network(*layers, lossFunction=lossFunction)

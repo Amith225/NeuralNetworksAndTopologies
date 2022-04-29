@@ -16,17 +16,18 @@ class DataBase(BaseSave, BaseLoad):
     FILE_TYPE = '.zdb'
     LARGE_VAL = 5
 
+    def __repr__(self):
+        Shape = {'SIZE': self.size, 'BatchSize': self.batchSize, 'INPUT': self.inpShape, 'TARGET': self.tarShape}
+        return f"<{self.__class__.__name__}:{self.NAME}:{Shape=}>"
+
     def __str__(self):
-        SHAPE = {'SIZE': self.size, 'INPUT': self.inpShape, 'TARGET': self.tarShape}
-        BATCH_SIZE = self.batchSize
-        HOT_ENCODE = {'INPUT': self.hotEncodeInp, 'TARGET': self.hotEncodeTar}
+        HotEncode = {'INPUT': self.hotEncodeInp, 'TARGET': self.hotEncodeTar}
         SetDType = {'INPUT': self.inputSetDType, 'TARGET': self.targetSetDType}
         NormFactor = {'INPUT': f"Max:{(Max := self.inputMax)}, "
                                f"Norm:{(Norm := self.inputSetNormFactor)}, {Max*Norm=}",
                       'TARGET': f"Max:{(Max := self.targetMax)}, "
                                 f"Norm:{(Norm := self.targetSetNormFactor)}, {Max*Norm=}"}
-        return f"{super(DataBase, self).__str__()[:-1]}:{self.NAME}\n{SHAPE=}, {BATCH_SIZE=}\n" \
-               f"{HOT_ENCODE=}\n{SetDType=}\n{NormFactor=}>"
+        return f"{self.__repr__()[:-1]}:\n\t{HotEncode=}\n\t{SetDType=}\n\t{NormFactor=}>"
 
     def saveName(self) -> str:
         return f"{self.size}s_{self.inpShape}i_{self.tarShape}o"

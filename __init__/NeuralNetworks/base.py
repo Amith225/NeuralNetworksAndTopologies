@@ -23,12 +23,8 @@ class BaseShape(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
 
     """
 
-    def __str__(self):
-        LAYERS = self.LAYERS
-        INPUT = self.INPUT
-        HIDDEN = self.HIDDEN
-        OUTPUT = self.OUTPUT
-        return f"{super(BaseShape, self).__str__()[:-1]}:, {LAYERS=}, {INPUT=}, {HIDDEN=}, {OUTPUT=}>"
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.NUM_LAYERS}:{self.RAW_SHAPES}>"
 
     def __save__(self):
         pass
@@ -45,7 +41,7 @@ class BaseShape(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
         self.RAW_SHAPES = shapes
         self.SHAPES = self._formatShapes(shapes)
         assert hash(self.SHAPES)
-        self.LAYERS = len(self.SHAPES)
+        self.NUM_LAYERS = len(self.SHAPES)
         self.INPUT = self.SHAPES[0]
         self.HIDDEN = self.SHAPES[1:-1]
         self.OUTPUT = self.SHAPES[-1]
@@ -79,12 +75,13 @@ class BaseLayer(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
 
     """
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.SHAPE}: Ini={self.INITIALIZER}: Opt={self.optimizer}: " \
+               f"AF={self.ACTIVATION_FUNCTION}>"
+
     def __str__(self):
-        SHAPE = str(self.SHAPE)
-        INITIALIZER = self.INITIALIZER
-        OPTIMIZER = self.optimizer
-        DEPS = ', '.join(f"{dName}:shape{getattr(self, dName).shape}" for dName in self.DEPS)
-        return f"{super(BaseLayer, self).__str__()[:-1]}:\n{SHAPE=}\n{INITIALIZER=}\n{OPTIMIZER=}\n{DEPS=}>"
+        DEPS = ': '.join(f"{dName}:shape{getattr(self, dName).shape}" for dName in self.DEPS)
+        return f"{self.__repr__()[:-1]}:\n{DEPS=}>"
 
     def __save__(self):
         pass
@@ -169,8 +166,14 @@ class Network:
     """
 
     """
+
+    def __repr__(self):
+        LossFunction = self.LOSS_FUNCTION  # noqa
+        return f"{self.__class__.__name__}:{LossFunction=}"
+
     def __str__(self):
-        return super(Network, self).__str__()
+        layers = "\n\t\t".join(repr(layer) for layer in self.LAYERS)
+        return f"{super(Network, self).__str__()}:\n\t\t{layers}"
 
     def __save__(self):
         pass
@@ -207,9 +210,8 @@ class BaseNN(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
     """
 
     """
-
     STAT_PRINT_INTERVAL = 1
-    __optimizers = Optimizers(Optimizers.AdaGrad(), ...)
+    __optimizers = Optimizers(Optimizers.Adam(), ...)
 
     @MagicProperty
     def optimizers(self):
@@ -220,20 +222,16 @@ class BaseNN(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
         self.__optimizers = _optimizers
         self.NETWORK.changeOptimizer(self.__optimizers)
 
+    def __repr__(self):
+        Shape = self.SHAPE
+        Cost, Time, Epochs = self.costTrained, secToHMS(self.timeTrained), self.epochTrained
+        acc = int(self.testAccuracy), int(self.accuracyTrained)
+        return f"<{self.__class__.__name__}:Acc={acc[0]}%,{acc[1]}%: {Cost=:07.4f}: {Time=}: {Epochs=}: {Shape=}>"
+
     def __str__(self):
-        SHAPE = str(self.SHAPE)
-        INITIALIZERS = str(self.INITIALIZERS)
-        ACTIVATORS = str(self.ACTIVATORS)
-        OPTIMIZERS = str(self.optimizers)  # noqa
-        LOSS_FUNCTION = self.LOSS_FUNCTION
-        ACCURACY = {'TRAIN': self.accuracyTrained, 'TEST': self.testAccuracy}
-        NumEpochs, NumBatches, BatchSize = self.numEpochs, self.numBatches, self.batchSize
-        TRAINED = {'COST': self.costTrained, 'TIME': secToHMS(self.timeTrained), 'EPOCH': self.epochTrained,
-                   'RECENT': f"{NumEpochs=}, {NumBatches=}, {BatchSize=}"}
-        TRAIN_DATA_BASE, TEST_DATA_BASE = self.trainDataBase, self.testDataBase
-        NETWORK = self.NETWORK
-        return f"{super(BaseNN, self).__str__()[:-1]}:\n{SHAPE=}\n{INITIALIZERS=}\n{ACTIVATORS=}\n{OPTIMIZERS=}\n" \
-               f"{LOSS_FUNCTION=}\n{ACCURACY=}\n{TRAINED=}\n{TRAIN_DATA_BASE=}\n{TEST_DATA_BASE=}\n{NETWORK=}>"
+        Optimizers = self.optimizers  # noqa
+        TrainDataBase, TestDataBase = self.trainDataBase, self.testDataBase
+        return f"{self.__repr__()[1:-1]}:\n\t{Optimizers=}\n\t{TrainDataBase=}\n\t{TestDataBase=}\n\t{self.NETWORK}"
 
     def __save__(self):
         pass
@@ -243,16 +241,13 @@ class BaseNN(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
                  activators: "Activators" = None,
                  lossFunction: "LossFunction.Base" = None):
         if initializers is None: initializers = Initializers(Initializers.Xavier(2), ..., Initializers.Xavier())
-        if activators is None: activators = Activators(Activators.Prelu(), ..., Activators.Softmax())
+        if activators is None: activators = Activators(Activators.PRelu(), ..., Activators.SoftMax())
         if lossFunction is None: lossFunction = LossFunction.MeanSquare()
 
         self.SHAPE = shape
-        self.INITIALIZERS = initializers
-        self.ACTIVATORS = activators
-        self.LOSS_FUNCTION = lossFunction
 
         self.costHistory, self.accuracyHistory = [], []
-        self.accuracyTrained = self.testAccuracy = float('nan')
+        self.accuracyTrained = self.testAccuracy = 0
         self.costTrained = self.timeTrained = self.epochTrained = 0
 
         self.numEpochs = self.batchSize = 1
@@ -261,10 +256,12 @@ class BaseNN(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
         self.training = self.profiling = False
         self.trainDataBase = self.testDataBase = None
 
-        self.NETWORK = self._constructNetwork()
+        self.NETWORK = self._constructNetwork(initializers, activators, lossFunction)
 
     @abstractmethod
-    def _constructNetwork(self) -> "Network":
+    def _constructNetwork(self, initializers: "Initializers" = None,
+                          activators: "Activators" = None,
+                          lossFunction: "LossFunction.Base" = None) -> "Network":
         pass
 
     def process(self, _input) -> "np.ndarray":

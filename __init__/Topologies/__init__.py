@@ -4,9 +4,9 @@ from .dataBase import DataBase, PlotDataBase
 
 class Activators(Collections):
     from .activationFunction import BaseActivationFunction as Base, \
-        Sigmoid, Tanh, Relu, Prelu, Elu, Softmax, Softplus
+        Sigmoid, TanH, Relu, PRelu, Elu, SoftMax, SoftPlus
     Base, Sigmoid, Tanh, Relu, Prelu, Elu, Softmax, Softplus = \
-        Base, Sigmoid, Tanh, Relu, Prelu, Elu, Softmax, Softplus
+        Base, Sigmoid, TanH, Relu, PRelu, Elu, SoftMax, SoftPlus
 
     def __init__(self, *activationFunctions: "Activators.Base"):
         super(Activators, self).__init__(*activationFunctions)

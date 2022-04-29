@@ -26,8 +26,8 @@ class NumpyDataCache(np.ndarray):
 
 
 class Collections:
-    def __str__(self):
-        return f"{super(Collections, self).__str__()[:-1]}:{self.collectables}>"
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.collectables}>"
 
     # todo: make collectables Type[_<class>] itself, and/or create Collection class generator in general
     def __init__(self, *collectables):
@@ -57,10 +57,8 @@ class Collections:
 
 kernel32 = ctypes.windll.kernel32
 kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-
-
 # noinspection SpellCheckingInspection
-class PrintCols:
+class PrintCols:  # noqa
     CEND = '\33[0m'
     CBOLD = '\33[1m'
     CITALIC = '\33[3m'

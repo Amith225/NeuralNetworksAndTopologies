@@ -9,6 +9,10 @@ class BaseOptimizer(metaclass=ABCMeta):
     __args, __kwargs = (), {}
     ZERO, ONE = np.float32(0), np.float32(1)
 
+    def __repr__(self):
+        lr = self.LEARNING_RATE
+        return f"<{self.__class__.__name__}:{lr=}>"
+
     def __new__(cls, *args, **kwargs):
         cls.__args, cls.__kwargs = args, kwargs
         obj = super(BaseOptimizer, cls).__new__(cls)
@@ -42,6 +46,10 @@ class GradientDecent(BaseOptimizer):
 
 
 class Decay(BaseOptimizer):
+    def __repr__(self):
+        decay = self.DECAY
+        return f"{super(Decay, self).__repr__()[:-1]}: {decay=}>"
+
     def __init__(self, learningRate: float = None, decay: float = None):
         if learningRate is None: learningRate = .001
         super(Decay, self).__init__(learningRate)
@@ -58,6 +66,10 @@ class Decay(BaseOptimizer):
 
 
 class Momentum(BaseOptimizer):
+    def __repr__(self):
+        moment = self.MOMENT
+        return f"{super(Momentum, self).__repr__()[:-1]}: {moment=}>"
+
     def __init__(self, learningRate: float = None, moment: float = None):
         if learningRate is None: learningRate = .001
         super(Momentum, self).__init__(learningRate)
@@ -73,6 +85,10 @@ class Momentum(BaseOptimizer):
 
 
 class NesterovMomentum(BaseOptimizer):
+    def __repr__(self):
+        moment = self.MOMENT
+        return f"{super(NesterovMomentum, self).__repr__()[:-1]}: {moment=}>"
+
     def __init__(self, learningRate: float = None, moment: float = None):
         if learningRate is None: learningRate = .001
         super(NesterovMomentum, self).__init__(learningRate)
@@ -88,6 +104,10 @@ class NesterovMomentum(BaseOptimizer):
 
 
 class AdaGrad(BaseOptimizer):
+    def __repr__(self):
+        eps = self.EPSILON
+        return f"{super(AdaGrad, self).__repr__()[:-1]}: {eps=}>"
+
     def __init__(self, learningRate: float = None, epsilon: float = None):
         if learningRate is None: learningRate = .01
         super(AdaGrad, self).__init__(learningRate)
@@ -114,8 +134,14 @@ class AdaDelta:
 
 
 class Adam(BaseOptimizer):
-    def __init__(self, learningRate: float = None, beta1: float = None, beta2: float = None, epsilon: float = None):
-        if learningRate is None: learningRate = .0005
+    def __repr__(self):
+        b1, b2 = self.BETA1, self.BETA2
+        eps = self.EPSILON
+        return f"{super(Adam, self).__repr__()[:-1]}: {b1=}: {b2=}: {eps=}>"
+
+    def __init__(self, learningRate: float = None, beta1: float = None, beta2: float = None, epsilon: float = None,
+                 decay: float = None):
+        if learningRate is None: learningRate = .001
         super(Adam, self).__init__(learningRate)
         if beta1 is None: beta1 = .9
         self.BETA1 = np.float32(beta1)
@@ -125,9 +151,11 @@ class Adam(BaseOptimizer):
         self.BETA2_BAR = 1 - self.BETA2
         if epsilon is None: epsilon = 1e-7
         self.EPSILON = np.float32(epsilon)
+        if decay is None: decay = NotImplemented  # todo: implement decay on decayCounter?
+        # self.DECAY = np.float32(decay)
+        self.decayCounter = self.ONE
         self.weightedSummationDelta = self.ZERO
         self.weightedSummationSquareDelta = self.ZERO
-        self.decayCounter = self.ONE
 
     def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
         delta = grad(theta)

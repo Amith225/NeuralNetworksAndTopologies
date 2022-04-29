@@ -24,9 +24,9 @@ class Initializers(Collections):
 
 class Optimizers(Collections):
     from .optimizer import BaseOptimizer as Base, \
-        GradientDecent, Decay, Momentum, NesterovMomentum, AdaGrad, RmpProp, AdaDelta, Adam
+        GradientDecent, Decay, Momentum, NesterovMomentum, AdaGrad, RmsProp, AdaDelta, Adam
     Base, GradientDecent, Decay, Momentum, NesterovMomentum, AdaGrad, RmpProp, AdaDelta, Adam = \
-        Base, GradientDecent, Decay, Momentum, NesterovMomentum, AdaGrad, RmpProp, AdaDelta, Adam
+        Base, GradientDecent, Decay, Momentum, NesterovMomentum, AdaGrad, RmsProp, AdaDelta, Adam
 
     def __init__(self, *optimizers: "Optimizers.Base"):
         super(Optimizers, self).__init__(*optimizers)

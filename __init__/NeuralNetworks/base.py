@@ -124,7 +124,7 @@ class BaseLayer(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
         :return: self.outputDelta
         """
         self.inputDelta = _delta
-        self.outputDelta = self._wireAndFindDelta()
+        self.outputDelta = self._wire()
         return self.outputDelta
 
     def changeOptimizer(self, optimizer: "Optimizers.Base"):
@@ -146,14 +146,14 @@ class BaseLayer(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
     def _fire(self) -> "np.ndarray":
         """
         method to use $DEPS & calculate output (input for next layer)
-        :return: self.output
+        :return: value for self.output
         """
 
     @abstractmethod
-    def _wireAndFindDelta(self) -> "np.ndarray":
+    def _wire(self) -> "np.ndarray":
         """
         method to adjust $DEPS & calculate delta for the lower layer
-        :return: self.outputDelta
+        :return: value for self.outputDelta
         """
 
 

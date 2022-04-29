@@ -1,3 +1,4 @@
+from typing import Callable
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
@@ -21,11 +22,11 @@ class BaseOptimizer(metaclass=ABCMeta):
     def __init__(self, learningRate: float):
         self.LEARNING_RATE = np.float32(learningRate)
 
-    def __call__(self, delta: "np.ndarray"):
-        return self._optimize(delta)
+    def __call__(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray"):
+        return self._optimize(grad, theta)
 
     @abstractmethod
-    def _optimize(self, delta: "np.ndarray") -> "np.ndarray":
+    def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
         pass
 
 
@@ -34,7 +35,8 @@ class GradientDecent(BaseOptimizer):
         if learningRate is None: learningRate = .001
         super(GradientDecent, self).__init__(learningRate)
 
-    def _optimize(self, delta: "np.ndarray") -> "np.ndarray":
+    def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
+        delta = grad(theta)
         (local_dict := vars(self)).update(locals())
         return ne.evaluate("delta * LEARNING_RATE", local_dict=local_dict)
 
@@ -47,7 +49,8 @@ class Decay(BaseOptimizer):
         self.DECAY = np.float32(decay)
         self.decayCounter = self.ZERO
 
-    def _optimize(self, delta: "np.ndarray") -> "np.ndarray":
+    def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
+        delta = grad(theta)
         self.decayCounter += self.ONE
         locals()['ONE'] = self.ONE
         (local_dict := vars(self)).update(locals())
@@ -62,7 +65,8 @@ class Momentum(BaseOptimizer):
         self.MOMENT = np.float32(moment)
         self.prevDelta = self.ZERO
 
-    def _optimize(self, delta: "np.ndarray") -> "np.ndarray":
+    def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
+        delta = grad(theta)
         (local_dict := vars(self)).update(locals())
         self.prevDelta = momentDelta = ne.evaluate("LEARNING_RATE * delta + MOMENT * prevDelta", local_dict=local_dict)
         return momentDelta
@@ -70,15 +74,17 @@ class Momentum(BaseOptimizer):
 
 class NesterovMomentum(BaseOptimizer):
     def __init__(self, learningRate: float = None, moment: float = None):
-        raise NotImplementedError
         if learningRate is None: learningRate = .001
         super(NesterovMomentum, self).__init__(learningRate)
         if moment is None: moment = .5
         self.MOMENT = np.float32(moment)
         self.prevDelta = self.ZERO
 
-    def _optimize(self, delta: "np.ndarray") -> "np.ndarray":
-        pass
+    def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
+        delta = grad(theta - self.MOMENT * self.prevDelta)
+        (local_dict := vars(self)).update(locals())
+        self.prevDelta = momentDelta = ne.evaluate("LEARNING_RATE * delta + MOMENT * prevDelta", local_dict=local_dict)
+        return momentDelta
 
 
 class AdaGrad(BaseOptimizer):
@@ -89,19 +95,22 @@ class AdaGrad(BaseOptimizer):
         self.EPSILON = np.float32(epsilon)
         self.summationSquareDelta = self.ZERO
 
-    def _optimize(self, delta: "np.ndarray") -> "np.ndarray":
+    def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
+        delta = grad(theta)
         (local_dict := vars(self)).update(locals())
         self.summationSquareDelta = ne.evaluate('summationSquareDelta + delta * delta', local_dict=local_dict)
         (local_dict := vars(self)).update(locals())
         return ne.evaluate('delta * LEARNING_RATE / sqrt(summationSquareDelta + EPSILON)', global_dict=local_dict)
 
 
-class RmpProp:
-    raise NotImplementedError
+class RmsProp:
+    def __init__(self):
+        raise NotImplementedError
 
 
 class AdaDelta:
-    raise NotImplementedError
+    def __init__(self):
+        raise NotImplementedError
 
 
 class Adam(BaseOptimizer):
@@ -120,7 +129,8 @@ class Adam(BaseOptimizer):
         self.weightedSummationSquareDelta = self.ZERO
         self.decayCounter = self.ONE
 
-    def _optimize(self, delta: "np.ndarray") -> "np.ndarray":
+    def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
+        delta = grad(theta)
         (local_dict := vars(self)).update(locals())
         self.weightedSummationDelta = ne.evaluate(
             "BETA1 * weightedSummationDelta + BETA1_BAR * delta", local_dict=local_dict)

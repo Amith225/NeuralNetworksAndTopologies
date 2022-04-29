@@ -42,23 +42,26 @@ class DenseLayer(BaseLayer):  # todo: pre-set deltas after forwardPass
         self.weights = self.INITIALIZER(UniversalShape(self.SHAPE.INPUT, *(self.SHAPE.OUTPUT[0], self.SHAPE.INPUT[0]),
                                                        self.SHAPE.OUTPUT))
         self.biases = self.INITIALIZER(UniversalShape(self.SHAPE.INPUT, *(self.SHAPE.OUTPUT[0], 1), self.SHAPE.OUTPUT))
+        self.delta = None
+        self.activeDerivedDelta = None
         self._initializeDepOptimizer()
         return ['weights', 'biases']
+
+    def __gradWeights(self, weights):
+        self.delta = weights.transpose() @ self.inputDelta
+        self.activeDerivedDelta = self.inputDelta * self.ACTIVATION_FUNCTION.activatedDerivative(self.output)
+        return np.einsum('lij,loj->oi', self.input, self.activeDerivedDelta, optimize='greedy')
+
+    def __gradBiases(self, _=None):
+        return self.activeDerivedDelta.sum(axis=0)
 
     def _fire(self) -> "np.ndarray":
         return self.ACTIVATION_FUNCTION.activation(self.weights @ self.input + self.biases)
 
-    def _wireAndFindDelta(self) -> "np.ndarray":
-        delta = self.weights.transpose() @ self.inputDelta
-
-        activeDerivedDelta = self.inputDelta * self.ACTIVATION_FUNCTION.activatedDerivative(self.output)
-        deltaWeights = np.einsum('lij,loj->oi', self.input, activeDerivedDelta, optimize='greedy')
-        deltaBiases = activeDerivedDelta.sum(axis=0)
-
-        self.weights -= self.weightOptimizer(deltaWeights)
-        self.biases -= self.biasesOptimizer(deltaBiases)
-
-        return delta
+    def _wire(self) -> "np.ndarray":
+        self.weights -= self.weightOptimizer(self.__gradWeights, self.weights)
+        self.biases -= self.biasesOptimizer(self.__gradBiases, self.biases)
+        return self.delta
 
 
 class DensePlot(BasePlot):

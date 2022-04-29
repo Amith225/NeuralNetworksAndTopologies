@@ -77,35 +77,6 @@ class NesterovMomentumWBOptimizer(WBOptimizer):
         self.momentum_weights[layer] = self.nn.weightsList[layer] - self.ALPHA * self.prev_delta_weights[layer]
 
 
-class AdagradWBOptimizer(WBOptimizer):
-    def __init__(self, neural_network: 'DenseNN', learningRate=0.01, epsilon=np.e ** -8):
-        super(AdagradWBOptimizer, self).__init__(neural_network, learningRate, epsilon=epsilon)
-        self.grad_square_biases = [0 for _ in range(self.nn.shape.LAYERS)]
-        self.grad_square_weights = self.grad_square_biases.copy()
-
-    def _optimize(self, layer):
-        super(AdagradWBOptimizer, self)._optimize(layer)
-        local_dict = {'deltaBias': self.nn.deltaBiases[layer],
-                      'deltaWeight': self.nn.deltaWeights[layer],
-                      'grad_square_bias': self.grad_square_biases[layer],
-                      'grad_square_weight': self.grad_square_weights[layer]}
-        self.grad_square_biases[layer] = ne.evaluate('grad_square_bias + deltaBias*deltaBias',
-                                                     local_dict=local_dict)
-        self.grad_square_weights[layer] = ne.evaluate('grad_square_weight + deltaWeight*deltaWeight',
-                                                      local_dict=local_dict)
-
-        local_dict = {'deltaBias': self.nn.deltaBiases[layer],
-                      'deltaWeight': self.nn.deltaWeights[layer],
-                      'grad_square_bias': self.grad_square_biases[layer],
-                      'grad_square_weight': self.grad_square_weights[layer],
-                      'EPSILON': self.EPSILON,
-                      'LEARNING_RATE': self.LEARNING_RATE}
-        self.nn.deltaBiases[layer] = ne.evaluate('deltaBias * LEARNING_RATE / sqrt(grad_square_bias + EPSILON)',
-                                                 local_dict=local_dict)
-        self.nn.deltaWeights[layer] = ne.evaluate('deltaWeight * LEARNING_RATE / sqrt(grad_square_weight + EPSILON)',
-                                                  local_dict=local_dict)
-
-
 class RmspropWBOptimizer(WBOptimizer):
     def __init__(self, neural_network: 'DenseNN', learningRate=0.001, beta=0.9, epsilon=np.e ** -8):
         super(RmspropWBOptimizer, self).__init__(neural_network, learningRate, beta=beta, epsilon=epsilon)

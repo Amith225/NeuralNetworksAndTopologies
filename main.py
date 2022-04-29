@@ -1,4 +1,4 @@
-# todo: update NEURAL_NETWORKS_AND_ITS_TOPOLOGIES.ipynb file. FL
-# fixme: import management. *L
-# todo: make initializeVars auto
-# todo: create memory release for optimizers
+# todo: dynamic optimizers
+# todo: DataBase shaping using self.SHAPE
+# todo: auto hyperparameter tuning
+# todo: auto train stop, inf train

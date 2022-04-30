@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Audiowide">
     <link rel="stylesheet" href="./style.css">
     <title>Drawing app</title>
 </head>
@@ -12,7 +13,8 @@
         <h1>Draw.</h1>
         <label for="lineWidth">Line Width</label>
         <input id="lineWidth" name='lineWidth' type="number" value="5">
-        <button id="clear">Clear</button>
+        <button id="clear" onclick="ctx.clearRect(0, 0, canvas.width, canvas.height)">Clear</button>
+        <button id="predict" onclick="">Predict</button>
     </div>
     <div class="drawing-board">
         <canvas id="drawing-canvas"></canvas>

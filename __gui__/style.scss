@@ -1,9 +1,14 @@
+$html_body_pad: 2px;
+$box_rad: 10px;
+$box_big_rad: 25px;
+
 html, body {
   max-height: 100%;
   max-width: 100%;
   overflow: hidden;
-  padding: 2px;
+  padding: $html_body_pad;
   margin: 0;
+  background: #7F7FD5;
 }
 
 h1 {
@@ -24,46 +29,51 @@ h1 {
 }
 
 .drawing-board {
-  height: 500px;
+  display: flex;
 }
 
 #drawing-canvas {
   background: gray;
+  border-radius: 0 0 $box_rad 0;
 }
 
 #toolbar {
   display: flex;
   flex-direction: column;
-  font-family: "Lucinda Grande", "Lucinda Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
+  font-family: "Audiowide", sans-serif;
   color: aliceblue;
   width: 100px;
   height: auto;
   background-color: #202020;
-}
+  font-size: 12px;
+  border-radius: $box_rad 0 0 $box_big_rad;
+  backdrop-filter: blur(25px);
 
-@media (pointer: none), (pointer: coarse) {
-  #toolbar {
-    width: 50px;
-    font-size: 6px;
+  input {
+    align-self: center;
+    width: 75%;
+  }
+
+  button {
+    background-color: #1565c0;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    align-self: center;
+    width: 75%;
+    padding: 4px;
+    margin-top: 10px;
+
+    &:hover {
+      background-color: #074c9b;
+    }
+
+    &:active {
+      transform: translate(2%, 2%)
+    }
   }
 }
 
-#toolbar label {
-  font-size: 12px;
-}
-
-#toolbar input {
-  align-self: center;
-  width: 75%;
-}
-
-#toolbar button {
-  background-color: #1565c0;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  align-self: center;
-  width: 75%;
-  padding: 4px;
-  margin-top: 10px;
-}
+//@media (pointer: none), (pointer: coarse) {
+//
+//}

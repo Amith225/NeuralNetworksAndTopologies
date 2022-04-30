@@ -9,20 +9,15 @@ let lineWidth = 5;
 
 canvas.width = 500;
 canvas.height = 500;
+$html_body_pad = 2;  // from style.css
+function re (evt) {canvas.width = Math.min(500, window.innerWidth - toolbar.offsetWidth - 4 * $html_body_pad)}
+re()
+window.addEventListener("resize", re)
 
-function isTouchDevice() {
-  return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
-}
+// function isTouchDevice() {
+//   return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+// }
 
-if (isTouchDevice()) {
-    canvas.width = 250;
-}
-
-toolbar.addEventListener('click', e => {
-    if (e.target.id === 'clear') {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-});
 
 toolbar.addEventListener('change', e => {
     if (e.target.id === 'stroke') {
@@ -83,7 +78,7 @@ function up(evt) {
 }
 
 function getPos(evt) {
-    if(evt.type === 'touchstart' || evt.type === 'touchmove' || evt.type === 'touchend') {
+    if (evt.type === 'touchstart' || evt.type === 'touchmove' || evt.type === 'touchend') {
         let touch = evt.touches[0] || evt.changedTouches[0];
         evt.clientX = touch.pageX;
         evt.clientY = touch.pageY;

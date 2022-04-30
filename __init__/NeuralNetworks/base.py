@@ -211,7 +211,7 @@ class BaseNN(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
 
     """
     STAT_PRINT_INTERVAL = 1
-    __optimizers = Optimizers(Optimizers.Adam(), ...)
+    __optimizers = Optimizers(Optimizers.Adam(), ..., Optimizers.AdaGrad())
 
     @MagicProperty
     def optimizers(self):

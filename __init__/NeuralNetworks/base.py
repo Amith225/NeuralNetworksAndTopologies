@@ -107,20 +107,20 @@ class BaseLayer(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
         self.DEPS = self._defineDeps(*depArgs, **depKwargs)
 
     def forPass(self, _input: "np.ndarray") -> "np.ndarray":
-        """
+        f"""
         method for forward pass of inputs
         :param _input: self.output from the lower layer
-        :return: self.output
+        :return: {self.output}
         """
         self.input = _input
         self.output = self._fire()
         return self.output
 
     def backProp(self, _delta: "np.ndarray") -> "np.ndarray":
-        """
+        f"""
         method for back propagation of deltas
-        :param _delta: self.outputDelta from the higher layer
-        :return: self.outputDelta
+        :param _delta: value for {self.inputDelta} from {self.outputDelta} of the higher layer
+        :return: {self.outputDelta}
         """
         self.inputDelta = _delta
         self.outputDelta = self._wire()
@@ -132,27 +132,25 @@ class BaseLayer(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
 
     @abstractmethod
     def _initializeDepOptimizer(self):
-        """create new optimizer instance for each dep in $DEPS by using self.optimizer.__new_copy__()"""
+        f"""create new optimizer instance for each dep in {self.DEPS} by using {self.optimizer.__new_copy__()}"""
 
     @abstractmethod
     def _defineDeps(self, *depArgs, **depKwargs) -> list['str']:
-        """
+        f"""
         define all dependant objects ($DEPS) for the layer
-        :return: list of $DEPS whose shape is displayed in __str__
+        :return: value for {self.DEPS}
         """
 
     @abstractmethod
     def _fire(self) -> "np.ndarray":
-        """
-        method to use $DEPS & calculate output (input for next layer)
-        :return: value for self.output
+        f"""
+        :return: value for {self.output}, is input for the higher layer
         """
 
     @abstractmethod
     def _wire(self) -> "np.ndarray":
-        """
-        method to adjust $DEPS & calculate delta for the lower layer
-        :return: value for self.outputDelta
+        f"""
+        :return: value for {self.outputDelta}, is delta for the lower layer
         """
 
 
@@ -187,8 +185,14 @@ class Network:
         self.LOSS_FUNCTION = lossFunction
 
     def changeOptimizer(self, _optimizer: Union["Optimizers.Base", "Optimizers"], index: int = None):
+        f"""
+        changes optimizer at index if given else changes all the optimizers to {_optimizer} or 
+        uses given collection {Optimizers}
+        """
+        assert isinstance(_optimizer, (Optimizers, Optimizers.Base))
         if index is None:
-            optimizers = _optimizer.get(len(self.LAYERS))
+            optimizers = _optimizer.get(len(self.LAYERS)) if isinstance(_optimizer, Optimizers) else \
+                (_optimizer,) * len(self.LAYERS)
             for i, layer in enumerate(self.LAYERS):
                 layer.changeOptimizer(optimizers[i])
         else:
@@ -196,11 +200,21 @@ class Network:
             layer.changeOptimizer(_optimizer)
 
     def forwardPass(self, _input) -> "np.ndarray":
+        f"""
+        calls(and sends hierarchical I/O) the forPass method of all the layers
+        :param _input: input for {self.INPUT_LAYER}
+        :return: output of {self.OUTPUT_LAYER}
+        """
         _output = self.INPUT_LAYER.forPass(_input)
         for layer in self.HIDDEN_LAYERS: _output = layer.forPass(_output)
         return self.OUTPUT_LAYER.forPass(_output)
 
     def backPropagation(self, _delta) -> "np.ndarray":
+        f"""
+        calls(and sends hierarchical I/O) the backProp method of all the layers
+        :param _delta: delta for {self.OUTPUT_LAYER}
+        :return: delta of {self.INPUT_LAYER}
+        """
         _delta = self.OUTPUT_LAYER.backProp(_delta)
         for reversedLayer in self.HIDDEN_LAYERS[::-1]: _delta = reversedLayer.backProp(_delta)
         return self.INPUT_LAYER.backProp(_delta)

@@ -44,9 +44,10 @@ class DataBase(BaseSave, BaseLoad):
 
     @classmethod
     def load(cls, file: str, *DataBase_args, **DataBase_kwargs) -> "DataBase":
-        """
+        f"""
         :param file: path like or name
-        :param DataBase_args: normalizeInp, normalizeTar, reshapeInp, reshapeTar, oneHotMaxInp, oneHotMaxTar, name
+        :param DataBase_args: to {DataBase.__init__}(normalizeInp, normalizeTar, reshapeInp, reshapeTar,
+        oneHotMaxInp, oneHotMaxTar, name)
         """
         loadFile = super(DataBase, cls).load(file)
         nnLoader = np.load(loadFile, mmap_mode='r')

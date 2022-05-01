@@ -12,9 +12,9 @@
     <div id="toolbar">
         <h1>Draw.</h1>
         <label for="lineWidth">Line Width</label>
-        <input id="lineWidth" name='lineWidth' type="number" value="5">
+        <input id="lineWidth" name='lineWidth' type="number" value="10">
         <button id="clear" onclick="ctx.clearRect(0, 0, canvas.width, canvas.height)">Clear</button>
-        <button id="predict" onclick="">Predict</button>
+        <button id="predict" onclick="console.log(convertCanvasToArray())">Predict</button>
     </div>
     <div class="drawing-board">
         <canvas id="drawing-canvas"></canvas>

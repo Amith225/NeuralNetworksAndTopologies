@@ -5,19 +5,36 @@ const ctx = canvas.getContext('2d');
 let isDown = false;
 let beginPoint = null;
 let points = [];
-let lineWidth = 5;
+let lineWidth = 10;
 
 canvas.width = 500;
 canvas.height = 500;
 $html_body_pad = 2;  // from style.css
-function re (evt) {canvas.width = Math.min(500, window.innerWidth - toolbar.offsetWidth - 4 * $html_body_pad)}
-re()
-window.addEventListener("resize", re)
+function resize(evt) {
+    canvas.width = Math.min(500, window.innerWidth - toolbar.offsetWidth - 4 * $html_body_pad)
+}
+
+resize()
+window.addEventListener("resize", resize)
 
 // function isTouchDevice() {
 //   return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
 // }
 
+function convertCanvasToArray() {
+    let matrix = []
+    let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    let pos = null;
+    for (let j = 0; j < canvas.height; j++) {
+        let my = []
+        for (let i = 0; i < canvas.width; i++) {
+            pos = (j * canvas.width + i) * 4;
+            my[i] = imgData[pos + 3]
+        }
+        matrix[j] = my
+    }
+    return matrix
+}
 
 toolbar.addEventListener('change', e => {
     if (e.target.id === 'stroke') {
@@ -38,6 +55,7 @@ document.addEventListener('touchmove', move, false);
 document.addEventListener('touchend', up, false)
 
 function down(evt) {
+    if (evt.x )
     isDown = true;
     const {x, y} = getPos(evt);
     points.push({x, y});
@@ -85,8 +103,8 @@ function getPos(evt) {
     }
     let rect = canvas.getBoundingClientRect();
     return {
-        x: Math.min(Math.max(evt.clientX - rect.left, lineWidth), canvas.width - lineWidth),
-        y: Math.min(Math.max(evt.clientY - rect.top, lineWidth), canvas.height - lineWidth)
+        x: Math.min(Math.max(evt.clientX - rect.left, lineWidth / 2), canvas.width - lineWidth / 2),
+        y: Math.min(Math.max(evt.clientY - rect.top, lineWidth / 2), canvas.height - lineWidth / 2)
     }
 }
 

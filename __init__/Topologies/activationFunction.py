@@ -1,4 +1,4 @@
-from typing import *
+from typing import Union
 from abc import ABCMeta, abstractmethod
 
 import numpy as np

@@ -1,4 +1,4 @@
-import warnings as wr
+import warnings
 from typing import Iterable, Sized, Generator
 
 import numpy as np
@@ -59,7 +59,7 @@ class DataBase(BaseSave, BaseLoad):
         return self.inputs[(i := self.indices[item])], self.targets[i]
 
     def __init__(self,
-                 inputSet: Iterable and Sized,  targetSet: Iterable and Sized,
+                 inputSet: Iterable and Sized, targetSet: Iterable and Sized,
                  normalizeInp: float = None, normalizeTar: float = None,
                  reshapeInp=None, reshapeTar=None,
                  oneHotMaxInp=None, oneHotMaxTar=None,
@@ -71,11 +71,11 @@ class DataBase(BaseSave, BaseLoad):
         if len(np.shape(inputSet)) == 1: inputSet, self.hotEncodeInp = self.oneHotEncode(inputSet, oneHotMaxInp)
         if len(np.shape(targetSet)) == 1: targetSet, self.hotEncodeTar = self.oneHotEncode(targetSet, oneHotMaxTar)
         if (maxI := np.max(inputSet)) >= self.LARGE_VAL and normalizeInp is None and not self.hotEncodeInp:
-            wr.showwarning(f"inputSet has element(s) with values till {maxI} which may cause nan training, "
-                           f"use of param 'normalizeInp=<max>' is recommended", FutureWarning, 'dataBase.py', 0)
+            warnings.showwarning(f"inputSet has element(s) with values till {maxI} which may cause nan training, "
+                                 f"use of param 'normalizeInp=<max>' is recommended", FutureWarning, 'dataBase.py', 0)
         if (maxT := np.max(targetSet)) >= self.LARGE_VAL and normalizeTar is None and not self.hotEncodeTar:
-            wr.showwarning(f"targetSet has element(s) with values till {maxT} which may cause nan training, "
-                           f"use of param 'normalizeTar=<max>' is recommended", FutureWarning, 'dataBase.py', 0)
+            warnings.showwarning(f"targetSet has element(s) with values till {maxT} which may cause nan training, "
+                                 f"use of param 'normalizeTar=<max>' is recommended", FutureWarning, 'dataBase.py', 0)
 
         inputSet, self.inputSetNormFactor = self.normalize(np.array(inputSet, dtype=np.float32), normalizeInp)
         targetSet, self.targetSetNormFactor = self.normalize(np.array(targetSet, dtype=np.float32), normalizeTar)

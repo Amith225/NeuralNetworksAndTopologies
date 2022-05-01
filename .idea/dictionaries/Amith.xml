@@ -1,9 +1,36 @@
 <component name="ProjectDictionaryState">
   <dictionary name="Amith">
     <words>
+      <w>cbeige</w>
+      <w>cbeigebg</w>
+      <w>cblackbg</w>
+      <w>cblink</w>
+      <w>cblue</w>
+      <w>cbluebg</w>
+      <w>cbold</w>
+      <w>cbolditalic</w>
+      <w>cbolditalicurl</w>
+      <w>cend</w>
+      <w>cgreen</w>
+      <w>cgreenbg</w>
+      <w>cgrey</w>
+      <w>cgreybg</w>
+      <w>citalic</w>
+      <w>citalicurl</w>
+      <w>credbg</w>
+      <w>cselected</w>
+      <w>curlbold</w>
+      <w>cviolet</w>
+      <w>cvioletbg</w>
+      <w>cwhite</w>
+      <w>cwhitebg</w>
+      <w>cyellow</w>
+      <w>cyellowbg</w>
       <w>fdel</w>
       <w>fget</w>
       <w>fset</w>
+      <w>pstats</w>
+      <w>tempfile</w>
     </words>
   </dictionary>
 </component>

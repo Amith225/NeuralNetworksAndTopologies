@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import numpy as np
 
-
 from .helperClass import PrintCols
 
 

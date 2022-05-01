@@ -55,8 +55,11 @@ class Collections:
         return trueCollectables
 
 
-kernel32 = ctypes.windll.kernel32
-kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+try:
+    kernel32 = ctypes.windll.kernel32
+    kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+except:  # noqa
+    pass
 # noinspection SpellCheckingInspection
 class PrintCols:  # noqa
     CEND = '\33[0m'

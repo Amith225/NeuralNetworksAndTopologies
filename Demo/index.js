@@ -21,19 +21,12 @@ window.addEventListener("resize", resize)
 //   return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
 // }
 
-function convertCanvasToArray() {
-    let matrix = []
-    let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    let pos = null;
-    for (let j = 0; j < canvas.height; j++) {
-        let my = []
-        for (let i = 0; i < canvas.width; i++) {
-            pos = (j * canvas.width + i) * 4;
-            my[i] = imgData[pos + 3]
-        }
-        matrix[j] = my
-    }
-    return matrix
+function convertCanvasToImage() {
+    let py = document.createElement('py-script');
+    py.innerText = " print('hii') ";
+    document.body.appendChild(py);
+    // window.location.href = canvas.toDataURL("image/png").replace(
+    //     "image/png", "image/octet-stream");
 }
 
 toolbar.addEventListener('change', e => {
@@ -55,8 +48,8 @@ document.addEventListener('touchmove', move, false);
 document.addEventListener('touchend', up, false)
 
 function down(evt) {
-    if (evt.x )
-    isDown = true;
+    if (evt.x)
+        isDown = true;
     const {x, y} = getPos(evt);
     points.push({x, y});
     beginPoint = {x, y};

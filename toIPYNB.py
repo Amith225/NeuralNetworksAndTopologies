@@ -3,7 +3,7 @@ from p2j.p2j import p2j
 
 __ignore__ = ["venv", "node_modules", "test.py", "test2.py", "test3.py", "testNumba.py"]
 __bytes__ = []
-__ignore__ += ["toIPYNB.py", ".git", ".idea", ".vs", "__pycache__", "__ipynb__.py"]
+__ignore__ += ["toIPYNB.py", ".git", ".idea", ".vs", "__pycache__", "__ipynb__.py", "process.py"]
 __path__ = os.path.dirname(__file__)
 
 
@@ -31,7 +31,7 @@ def makeIPYNB(path):
         if dirs in __ignore__: continue
         if os.path.isfile(_path := path + '/' + dirs) and os.path.splitext(_path)[1] == '.py':
             print(fName := _path.removeprefix(__path__), ':', sep='')
-            content += '\n# ' + fName + '\n'
+            content += '\n# # ' + fName + '\n'
             with open(_path, 'r') as f:
                 lines = f.readlines()
                 skip_next_line = False
@@ -41,11 +41,14 @@ def makeIPYNB(path):
                         continue
                     _line = line.strip()
                     if _to := importing_or_content_null(lines, i):
+                        _imp_type = ''
                         if 'from ' == _line[:5] or ' from ' in _line:
                             imp = _line.removeprefix('from ').split(' import ')
+                            _imp_type = 'from'
                         elif 'import ' in _line[:7] or ' import ' in _line:
                             imp = _line.removeprefix('import ').split(' as ')
                             if len(imp) == 2: imp[1] = f'as {imp[1]}'
+                            _imp_type = 'import'
                         else:
                             content += line
 
@@ -60,7 +63,7 @@ def makeIPYNB(path):
                                 imp[1].split(', ') if len(imp) == 2 else set())
                             top_level_imports[imp[0]] = _set
                         else:
-                            print("local import purged: ", _line)
+                            print("local import purged: ", _line, [f"{p}/{i}" for i in imp[1].split(', ')])
                             local_imports.update([imp[0]])
                         content += line.replace(line.strip(), f'pass  # {_line}')
                     elif _to is not None:
@@ -90,17 +93,7 @@ def sort_c(_c: dict, *, __secret_dict=None):
     if isinstance(_c, dict):
         for k in _c:
             _c[k].append(sort_c(k, __secret_dict=_c))
-        _c_key = sorted(_c, key=lambda cc: _c[cc][2])
-        # for j, k in enumerate(_c_key):
-        #     if '__init__.py' in k:
-        #         last_kk = j
-        #         for i, kk in enumerate(_c_key):
-        #             if os.path.dirname(kk) == os.path.dirname(k) and kk != k:
-        #                 last_kk = i
-        #         _c_key.insert(last_kk + 1, k)
-        #         _c_key.pop(j + 1 if last_kk <= j else j)
-
-        return _c_key
+        return sorted(_c, key=lambda cc: _c[cc][2])
     elif isinstance(_c, str):
         if _c in __secret_dict:
             rank = 0
@@ -122,3 +115,6 @@ tli = ''.join(f"{'from' if (from_import := len(i) != 0 and tuple(i)[0][:3] != 'a
               f"{', '.join(i)}\n" for k, i in tli.items())
 with open('__ipynb__.py', 'w') as f:
     f.write(tli + '\n' + ''.join(c[k][0] for k in c_key))
+
+p2j('__ipynb__.py', '__ipynb__.ipynb', True)
+os.remove('__ipynb__.py')

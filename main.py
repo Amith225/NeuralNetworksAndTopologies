@@ -15,7 +15,7 @@ dense_nn = Dense.NN(shape=Dense.Shape(db.inpShape[0], *(392, 196), db.tarShape[0
                     initializers=None,
                     activators=None,
                     lossFunction=None)
-dense_nn.train(epochs=5,
+dense_nn.train(epochs=10,
                batchSize=256,
                trainDataBase=db,
                optimizers=None,

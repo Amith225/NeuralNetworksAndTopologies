@@ -29,6 +29,9 @@
       <w>fdel</w>
       <w>fget</w>
       <w>fset</w>
+      <w>imgs</w>
+      <w>ncontour</w>
+      <w>pcontour</w>
       <w>pstats</w>
       <w>tempfile</w>
     </words>

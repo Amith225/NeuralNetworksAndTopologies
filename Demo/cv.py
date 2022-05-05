@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import sys
 
 
 def bordering(_j, _i, connect=8):
@@ -16,18 +17,43 @@ def bordering(_j, _i, connect=8):
     return tuple(rValNew)
 
 
-def floodFill(src, x, y, tarCol, col):
-    if src[y][x] == -1 or src[y][x] == col: return
-    if src[y][x] != tarCol: return
-    src[y][x] = col
-    floodFill(src, x - 1, y, tarCol, col)
-    floodFill(src, x + 1, y, tarCol, col)
-    floodFill(src, x, y - 1, tarCol, col)
-    floodFill(src, x, y + 1, tarCol, col)
-    floodFill(src, x - 1, y + 1, tarCol, col)
-    floodFill(src, x - 1, y - 1, tarCol, col)
-    floodFill(src, x + 1, y + 1, tarCol, col)
-    floodFill(src, x + 1, y - 1, tarCol, col)
+def floodFill(src, tarCol, col, wallCol):
+    y = np.where(src == wallCol)[0][-1]
+    startX = 0
+    while True:
+        y -= 1
+        x = np.where(src[y] == wallCol)[0]
+        if x.shape[0] == 0: break
+        nearest = np.where(x - startX > 0)[0]
+        x = (x[nearest[0]] + x[nearest[0] - 1]) // 2 if nearest.shape[0] != 0 else int(x.mean())
+        startX = x
+        startY = y
+        while True:
+            x += 1
+            if x < 0 or x >= src.shape[1] or y < 0 or y >= src.shape[0]: break
+            if src[y][x] == wallCol or src[y][x] == col: break
+            if src[y][x] != tarCol: break
+            src[y][x] = col
+        x = startX
+        y = startY
+        while True:
+            if x < 0 or x >= src.shape[1] or y < 0 or y >= src.shape[0]: break
+            if src[y][x] == wallCol or src[y][x] == col: break
+            if src[y][x] != tarCol: break
+            src[y][x] = col
+            x -= 1
+        x = startX
+        y = startY + 1
+        while True:
+            if x < 0 or x >= src.shape[1] or y < 0 or y >= src.shape[0]: break
+            if src[y][x] == wallCol or src[y][x] == col: break
+            if src[y][x] != tarCol: break
+            src[y][x] = col
+            x += 1
+            y += 1
+            startY += 1
+        x = startX
+        y = startY
 
 
 def drawContour(src, _contour, col=0, lineWidth=1):
@@ -42,22 +68,8 @@ def drawContour(src, _contour, col=0, lineWidth=1):
             srcCopy[_contour[:, 1], Pcontour[:, 0]] = col
         return srcCopy
     elif lineWidth == -1:
-        srcCopy = drawContour(np.zeros_like(src), _contour, -1)
-        for j, row in enumerate(srcCopy):
-            c = sorted(_contour[np.where(_contour[:, 1] == j)][:, 0])
-            c = np.split(c, np.where(np.diff(c) != 1)[0] + 1)
-            newC = []
-            for cc in c:
-                if len(cc) > 1:
-                    newC.append(cc[-1])
-                elif len(cc) == 1:
-                    newC.append(cc[0])
-            for i, pix in enumerate(row):
-                rightC = []
-                for cc in newC:
-                    if i <= cc: rightC.append(cc)
-                if len(rightC) % 2 != 0: srcCopy[j, i] = 255
-        cv2.imshow('', srcCopy), cv2.waitKey(0), cv2.destroyAllWindows(), cv2.waitKey(1)
+        srcCopy = drawContour(np.zeros_like(src), _contour, 255)
+        floodFill(srcCopy, 0, 255, 255)
         mask = np.where(srcCopy == 0, False, True)
         return mask
     else:

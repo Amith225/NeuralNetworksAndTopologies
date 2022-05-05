@@ -2,12 +2,32 @@ import numpy as np
 import cv2
 
 
-def getGrp(index, _contour):
-    same_y_indexes = np.where(_contour[:, 1] == _contour[index][1])[0]
-    e = np.sort(_contour[same_y_indexes], axis=0)
-    grp = np.split(e, np.where(np.diff(e[:, 0]) != 1)[0] + 1)
-    grp = np.array([[g[0], g[-1]] for g in grp])
-    return same_y_indexes, grp
+def bordering(_j, _i, connect=8):
+    assert connect in (4, 8)
+    mi, mj, pi, pj = _i - 1, _j - 1, _i + 1, _j + 1
+    if connect == 8:
+        rVal = [(_j, pi), (pj, pi), (pj, _i), (pj, mi), (_j, mi), (mj, mi), (mj, _i), (mj, pi)]
+    else:
+        rVal = [(_j, pi), (pj, _i), (_j, mi), (mj, _i)]
+    rValNew = []
+    for r in rVal:
+        if not (r[0] < 0 or r[1] < 0):
+            rValNew.append(r)
+    return tuple(rValNew)
+
+
+def floodFill(src, x, y, tarCol, col):
+    if src[y][x] == -1 or src[y][x] == col: return
+    if src[y][x] != tarCol: return
+    src[y][x] = col
+    floodFill(src, x - 1, y, tarCol, col)
+    floodFill(src, x + 1, y, tarCol, col)
+    floodFill(src, x, y - 1, tarCol, col)
+    floodFill(src, x, y + 1, tarCol, col)
+    floodFill(src, x - 1, y + 1, tarCol, col)
+    floodFill(src, x - 1, y - 1, tarCol, col)
+    floodFill(src, x + 1, y + 1, tarCol, col)
+    floodFill(src, x + 1, y - 1, tarCol, col)
 
 
 def drawContour(src, _contour, col=0, lineWidth=1):
@@ -22,36 +42,26 @@ def drawContour(src, _contour, col=0, lineWidth=1):
             srcCopy[_contour[:, 1], Pcontour[:, 0]] = col
         return srcCopy
     elif lineWidth == -1:
-        mask = src != src
-        index, maxIndex = -1, _contour.shape[0]
-        indexFlags = []
-        prevGrp = None
-        while (index := index + 1) < maxIndex:
-            if index in indexFlags: continue
-            same_y_indexes, grp = getGrp(index, _contour)
-            indexFlags.extend(same_y_indexes)
-            if prevGrp is not None and (length := len(prevGrp) - len(grp)) > 0:
-                prevGrp = grp
-                grp_ = []
-                for i in range(length): grp_.extend([grp[i], grp[i]])
-                grp = np.array(grp_ + list(grp[length:]))
-            else:
-                prevGrp = grp
-            if len(grp) % 2 != 0: grp = np.concatenate((grp, [grp[len(grp) - 2]]))
-            for i, g in enumerate(grp[::2]):
-                a, b = g[0][0], grp[i * 2 + 1][-1][0] + 1
-                if a > b: a, b = b - 1, a + 1
-                mask[g[0][1], a:b] = True
+        srcCopy = drawContour(np.zeros_like(src), _contour, -1)
+        for j, row in enumerate(srcCopy):
+            c = sorted(_contour[np.where(_contour[:, 1] == j)][:, 0])
+            c = np.split(c, np.where(np.diff(c) != 1)[0] + 1)
+            newC = []
+            for cc in c:
+                if len(cc) > 1:
+                    newC.append(cc[-1])
+                elif len(cc) == 1:
+                    newC.append(cc[0])
+            for i, pix in enumerate(row):
+                rightC = []
+                for cc in newC:
+                    if i <= cc: rightC.append(cc)
+                if len(rightC) % 2 != 0: srcCopy[j, i] = 255
+        cv2.imshow('', srcCopy), cv2.waitKey(0), cv2.destroyAllWindows(), cv2.waitKey(1)
+        mask = np.where(srcCopy == 0, False, True)
         return mask
     else:
         raise ValueError("lineWidth must be >= -1")
-
-
-def bordering(_j, _i):
-    mi, mj, pi, pj = _i - 1, _j - 1, _i + 1, _j + 1
-    return [(_j, pi), (pj, pi), (pj, _i),
-            (pj, mi), (_j, mi),
-            (mj, mi), (mj, _i), (mj, pi)]
 
 
 def findContour(src, _hierarchy=None, _contours=None, offset=None, edgePix=None):
@@ -91,6 +101,7 @@ def findContour(src, _hierarchy=None, _contours=None, offset=None, edgePix=None)
         h = [-1, offset, -1, _hierarchy[offset][-1]]
         _hierarchy[offset][0] = offset + 1
     child = findContour(childSrc, [h], edgePix=notEdgePIx)
-    sibling = findContour(nextSrc, [*_hierarchy, *child[0]], contours, offset=offset + len(child[0]) - 1, edgePix=edgePix)
+    sibling = findContour(nextSrc, [*_hierarchy, *child[0]], contours, offset=offset + len(child[0]) - 1,
+                          edgePix=edgePix)
     print(sibling[0])
     return sibling[0], contours

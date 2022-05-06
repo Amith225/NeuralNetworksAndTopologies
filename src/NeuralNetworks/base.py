@@ -37,7 +37,7 @@ class BaseShape(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
         return hash(self.SHAPES)
 
     def __init__(self, *shapes):
-        """do not change the signature of __init__"""
+        """do not change the signature of src"""
         self.RAW_SHAPES = shapes
         self.SHAPES = self._formatShapes(shapes)
         assert hash(self.SHAPES)

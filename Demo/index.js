@@ -6,6 +6,8 @@ let isDown = false;
 let beginPoint = null;
 let points = [];
 let lineWidth = 10;
+let lineWidthInput = document.getElementById('lineWidth');
+lineWidthInput.value = lineWidth
 
 canvas.width = 500;
 canvas.height = 500;
@@ -30,36 +32,26 @@ function convertCanvasToImage() {
 }
 
 toolbar.addEventListener('change', e => {
-    if (e.target.id === 'stroke') {
-        ctx.strokeStyle = e.target.value;
-    }
-
     if (e.target.id === 'lineWidth') {
         lineWidth = e.target.value;
     }
-
 });
 
-document.addEventListener('mousedown', down, false);
+canvas.addEventListener('mousedown', down, false);
 document.addEventListener('mousemove', move, false);
 document.addEventListener('mouseup', up, false);
-document.addEventListener('touchstart', down, false);
+canvas.addEventListener('touchstart', down, false);
 document.addEventListener('touchmove', move, false);
 document.addEventListener('touchend', up, false)
 
 function down(evt) {
-    if (evt.x)
-        isDown = true;
-    const {x, y} = getPos(evt);
-    points.push({x, y});
-    beginPoint = {x, y};
+    isDown = true;
+    points.push(beginPoint = getPos(evt));
 }
 
 function move(evt) {
     if (!isDown) return;
-    const {x, y} = getPos(evt);
-    points.push({x, y});
-
+    points.push(getPos(evt));
     if (points.length > 3) {
         const lastTwoPoints = points.slice(-2);
         const controlPoint = lastTwoPoints[0];
@@ -74,15 +66,6 @@ function move(evt) {
 
 function up(evt) {
     if (!isDown) return;
-    const {x, y} = getPos(evt);
-    points.push({x, y});
-
-    if (points.length > 3) {
-        const lastTwoPoints = points.slice(-2);
-        const controlPoint = lastTwoPoints[0];
-        const endPoint = lastTwoPoints[1];
-        drawLine(beginPoint, controlPoint, endPoint);
-    }
     beginPoint = null;
     isDown = false;
     points = [];

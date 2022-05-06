@@ -48,6 +48,8 @@ h1 {
 #toolbar input {
   align-self: center;
   width: 75%;
+  color: black;
+  padding: 5px;
 }
 #toolbar button {
   background-color: #1565c0;

@@ -5,22 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Audiowide">
     <link rel="stylesheet" href="./style.css">
-    <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css" />
-    <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+<!--    <script defer src="https://pyscript.net/alpha/pyscript.js"></script>-->
     <title>Drawing app</title>
-    <py-env>
-        - numpy
-        - opencv-python
-        - path:
-            - process.py
-    </py-env>
 </head>
 <body>
 <div class="container">
     <div id="toolbar">
         <h1>Draw.</h1>
         <label for="lineWidth">Line Width</label>
-        <input id="lineWidth" name='lineWidth' type="number" value="10">
+        <input id="lineWidth" name='lineWidth' type="number" onclick="lineWidth = lineWidthInput.target.value">
         <button id="clear" onclick="ctx.clearRect(0, 0, canvas.width, canvas.height)">Clear</button>
         <button id="predict" onclick="convertCanvasToImage()">Predict</button>
     </div>
@@ -29,6 +22,5 @@
     </div>
 </div>
 <script src="./index.js"></script>
-<py-repl></py-repl>
 </body>
 </html>

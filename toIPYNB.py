@@ -1,7 +1,7 @@
 import os
 from p2j.p2j import p2j
 
-__ignore__ = ["venv", "node_modules", "test.py", "test2.py", "test3.py", "testNumba.py"]
+__ignore__ = ["venv", "node_modules", "test.py", "test.py", "test3.py", "testNumba.py"]
 __bytes__ = []
 __ignore__ += ["toIPYNB.py", ".git", ".idea", ".vs", "__pycache__", "__ipynb__.py", "process.py"]
 __path__ = os.path.dirname(__file__)
@@ -102,7 +102,7 @@ def sort_c(_c: dict, *, __secret_dict=None):
                 rank += sort_c(next_c, __secret_dict=__secret_dict) + 1
             return rank
         else:
-            if (p := _c.replace('.py', '/') + '__init__.py') not in __secret_dict:
+            if (p := _c.replace('.py', '/') + 'src.py') not in __secret_dict:
                 return 0
             else: return sort_c(p, __secret_dict=__secret_dict)  # noqa
 

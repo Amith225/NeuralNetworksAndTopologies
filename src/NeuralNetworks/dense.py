@@ -13,12 +13,11 @@ class DenseShape(BaseShape):
 
     """
 
-    def __init__(self, *shapes: int):
-        super(DenseShape, self).__init__(*shapes)
+    def __init__(self, inputShape: int, *shapes: int):
+        super(DenseShape, self).__init__(inputShape, *shapes)
 
     @staticmethod
     def _formatShapes(shapes) -> tuple:
-        assert len(shapes) > 0
         formattedShape = []
         for s in shapes:
             assert isinstance(s, int) and s > 0, "all args of *shapes must be integers > 0"
@@ -30,9 +29,6 @@ class DenseLayer(BaseLayer):  # todo: pre-set deltas after forwardPass
     """
 
     """
-
-    def __save__(self):
-        return super(DenseLayer, self).__save__()
 
     def _initializeDepOptimizer(self):
         self.weightOptimizer = self.optimizer.__new_copy__()
@@ -77,9 +73,6 @@ class DenseNN(BaseNN):
     """
 
     """
-
-    def __str__(self):
-        return super(DenseNN, self).__str__()
 
     def __save__(self):
         return super(DenseNN, self).__save__()

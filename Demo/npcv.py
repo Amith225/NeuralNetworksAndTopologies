@@ -86,3 +86,15 @@ def findContour(src, _hierarchy=None, _contours=None, offset=None, edgePix=None)
     child = findContour(childSrc, [*_hierarchy, h], [*_contours, contours], edgePix=notEdgePIx)
     sibling = findContour(nextSrc, *child, offset=len(_hierarchy), edgePix=edgePix)
     return np.array(sibling[0]), sibling[1]
+
+
+def resize(src, x, y):
+    y0, x0 = src.shape
+    newSrc = np.zeros((y, x), dtype='uint8')
+    x1, y1 = x0 / x, y0 / y
+    span = np.ceil((x1, y1)).astype(int) + 1
+    for j, row in enumerate(newSrc):
+        for i, pix in enumerate(row):
+            j_, i_ = int(y1 * j), int(x1 * i)
+            newSrc[j, i] = src[j_:j_+span[1], i_:i_+span[0]].mean()
+    return newSrc

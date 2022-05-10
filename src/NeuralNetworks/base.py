@@ -24,7 +24,7 @@ class BaseShape(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
     """
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.NUM_LAYERS}:{self.RAW_SHAPES}>"
+        return f"<{self.__class__.__name__}:{self.NUM_LAYERS}:{self.SHAPES}>"
 
     def __save__(self):
         pass
@@ -36,10 +36,9 @@ class BaseShape(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
     def __hash__(self):
         return hash(self.SHAPES)
 
-    def __init__(self, *shapes):
-        """do not change the signature of src"""
-        self.RAW_SHAPES = shapes
-        self.SHAPES = self._formatShapes(shapes)
+    def __init__(self, inputShape, *shapes):
+        self.RAW_SHAPES = inputShape, *shapes
+        self.SHAPES = self._formatShapes(self.RAW_SHAPES)
         assert hash(self.SHAPES)
         self.NUM_LAYERS = len(self.SHAPES)
         self.INPUT = self.SHAPES[0]
@@ -99,10 +98,10 @@ class BaseLayer(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
         self.optimizer = optimizer
         self.ACTIVATION_FUNCTION = activationFunction
 
-        self.input = np.zeros((1, *self.SHAPE[0]), dtype=np.float32)
-        self.output = np.zeros((1, *self.SHAPE[-1]), dtype=np.float32)
-        self.inputDelta = np.zeros((1, *self.SHAPE[-1]), dtype=np.float32)
-        self.outputDelta = np.zeros((1, *self.SHAPE[0]), dtype=np.float32)
+        self.input = np.zeros(self.SHAPE[0], dtype=np.float32)
+        self.output = np.zeros(self.SHAPE[-1], dtype=np.float32)
+        self.inputDelta = np.zeros(self.SHAPE[-1], dtype=np.float32)
+        self.outputDelta = np.zeros(self.SHAPE[0], dtype=np.float32)
 
         self.DEPS = self._defineDeps(*depArgs, **depKwargs)
 
@@ -137,7 +136,7 @@ class BaseLayer(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
     @abstractmethod
     def _defineDeps(self, *depArgs, **depKwargs) -> list['str']:
         f"""
-        define all dependant objects ($DEPS) for the layer
+        define all dependant objects for the layer
         :return: value for {self.DEPS}
         """
 

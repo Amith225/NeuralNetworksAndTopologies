@@ -1,14 +1,11 @@
 import tempfile
 import ctypes
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from ..tools import *
 
 import numpy as np
 from numpy.lib import format as fm
 
 
+# fixme: just make as function
 class NumpyDataCache(np.ndarray):
     def __new__(cls, array):
         return cls.writeNpyCache(array)
@@ -25,11 +22,25 @@ class NumpyDataCache(np.ndarray):
         return memMap
 
 
+class NewCopy:
+    __args, __kwargs = (), {}
+
+    def __new__(cls, *args, **kwargs):
+        cls.__args, cls.__kwargs = args, kwargs
+        obj = super(NewCopy, cls).__new__(cls)
+        obj.__init__(*args, **kwargs)  # noqa
+        return obj
+
+    @classmethod
+    def __new_copy__(cls):
+        return cls.__new__(cls, *cls.__args, *cls.__kwargs)
+
+
 class Collections:
     def __repr__(self):
         return f"<{self.__class__.__name__}:{self.collectables}>"
 
-    # todo: make collectables Type[_<class>] itself, and/or create Collection class generator in general
+    # todo: make collectables Type[_<class>] itself, and/or use __copy__?
     def __init__(self, *collectables):
         self.collectables = collectables
 
@@ -58,9 +69,9 @@ class Collections:
 try:
     kernel32 = ctypes.windll.kernel32
     kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-except:  # noqa
+except AttributeError:
     pass
-# noinspection SpellCheckingInspection
+# todo: use NamedTuple
 class PrintCols:  # noqa
     CEND = '\33[0m'
     CBOLD = '\33[1m'

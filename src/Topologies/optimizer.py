@@ -4,24 +4,18 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 import numexpr as ne
 
+from ..tools import NewCopy
 
-class BaseOptimizer(metaclass=ABCMeta):
-    __args, __kwargs = (), {}
+
+class BaseOptimizer(NewCopy, metaclass=ABCMeta):
     ZERO, ONE = np.float32(0), np.float32(1)
 
     def __repr__(self):
         lr = self.LEARNING_RATE
         return f"<{self.__class__.__name__}:{lr=}>"
 
-    def __new__(cls, *args, **kwargs):
-        cls.__args, cls.__kwargs = args, kwargs
-        obj = super(BaseOptimizer, cls).__new__(cls)
-        obj.__init__(*args, **kwargs)
-        return obj
-
-    @classmethod
-    def __new_copy__(cls):
-        return cls.__new__(cls, *cls.__args, *cls.__kwargs)
+    def __save__(self):
+        pass
 
     def __init__(self, learningRate: float):
         self.LEARNING_RATE = np.float32(learningRate)

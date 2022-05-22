@@ -6,6 +6,7 @@ if TYPE_CHECKING:
 import numpy as np
 
 from .base import BaseShape, BaseLayer, BasePlot, BaseNN, UniversalShape, Network
+from ..tools import Collections
 
 
 class ConvShape(BaseShape):
@@ -32,6 +33,43 @@ class ConvShape(BaseShape):
         return tuple(formattedShape)
 
 
+def formatStride(stride) -> tuple:
+    if isinstance(stride, int):
+        assert stride > 0, "integer args of *strides must be > 0"
+        return stride, stride
+    assert isinstance(stride, tuple) and len(stride) == 2 and all(isinstance(s, int) for s in stride), \
+        "non integer args of *strides must be integer tuple of length == 2"
+    return stride
+
+
+class Pooling(Collections):
+    def __init__(self, *pooling: "Pooling.Base"):
+        super(Pooling, self).__init__(*pooling)
+
+    class Base:
+        def __init__(self, stride: Union[int, tuple[int, int]]):
+            self.stride = formatStride(stride)
+
+    class MAX(Base): pass
+
+    class MEAN(Base): pass
+
+
+class Correlation(Collections):
+    def __init__(self, *correlation: "Correlation.Base"):
+        super(Correlation, self).__init__(*correlation)
+
+    class Base:
+        def __init__(self, stride: Union[int, tuple[int, int]]):
+            self.stride = formatStride(stride)
+
+    class VALID(Base): pass
+
+    class FULL(Base): pass
+
+    class SAME(Base): pass
+
+
 class ConvLayer(BaseLayer):
     """
 
@@ -41,10 +79,18 @@ class ConvLayer(BaseLayer):
         return super(ConvLayer, self).__repr__()
 
     def _initializeDepOptimizer(self):
-        pass
+        self.kernelOptimizer = self.optimizer.__new_copy__()
+        self.biasesOptimizer = self.optimizer.__new_copy__()
 
-    def _defineDeps(self, *depArgs, **depKwargs) -> list['str']:
-        pass
+    def _defineDeps(self, correlation: "Correlation.Base" = None, pooling: "Pooling.Base" = None) -> list['str']:
+        if correlation is None: Correlation.VALID(1)
+        if pooling is None: pooling = Pooling.MAX(1)
+        self.pooling = pooling
+        self.correlation = correlation
+        # todo: how will shape be?
+        self.kernels = self.INITIALIZER(UniversalShape(self.SHAPE.INPUT, *self.SHAPE.HIDDEN, self.SHAPE.OUTPUT))
+        self.biases = self.INITIALIZER(UniversalShape(self.SHAPE.INPUT, *self.SHAPE.OUTPUT, self.SHAPE.OUTPUT))
+        return ["kernels", "biases"]
 
     def _fire(self) -> "np.ndarray":
         pass

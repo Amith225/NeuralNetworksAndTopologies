@@ -37,7 +37,7 @@ class DenseLayer(BaseLayer):  # todo: pre-set deltas after forwardPass
     def _defineDeps(self) -> list['str']:
         self.weights = self.INITIALIZER(UniversalShape(self.SHAPE.INPUT, *(self.SHAPE.OUTPUT[0], self.SHAPE.INPUT[0]),
                                                        self.SHAPE.OUTPUT))
-        self.biases = self.INITIALIZER(UniversalShape(self.SHAPE.INPUT, *(self.SHAPE.OUTPUT[0], 1), self.SHAPE.OUTPUT))
+        self.biases = self.INITIALIZER(UniversalShape(self.SHAPE.INPUT, *self.SHAPE.OUTPUT, self.SHAPE.OUTPUT))
         self.delta = None
         self.activeDerivedDelta = None
         self._initializeDepOptimizer()
@@ -83,7 +83,7 @@ class DenseNN(BaseNN):
                  lossFunction: "LossFunction.Base" = None):
         super(DenseNN, self).__init__(shape, initializers, activators, lossFunction)
 
-    def _constructNetwork(self, initializers: "Initializers" = None,
+    def _constructNetwork(self, initializers: "Initializers" = None,  # noqa
                           activators: "Activators" = None,
                           lossFunction: "LossFunction.Base" = None) -> "Network":
         layers = []

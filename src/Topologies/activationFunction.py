@@ -11,6 +11,9 @@ class BaseActivationFunction(metaclass=ABCMeta):
     def __repr__(self):
         return f"<{self.__class__.__name__}>"
 
+    def __save__(self):
+        pass
+
     @abstractmethod
     def activation(self, x: np.ndarray) -> "np.ndarray":
         pass

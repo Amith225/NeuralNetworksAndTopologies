@@ -1,10 +1,11 @@
 from .base import BaseSave, BaseLoad, Plot
-from .helperClass import NumpyDataCache, Collections, PrintCols
+from .helperClass import NumpyDataCache, Collections, PrintCols, NewCopy
 from .helperFunction import copyNumpyList, iterable, secToHMS, statPrinter, getSize
-from .magicProperty import MagicBase, MagicProperty, makeMetaMagicProperty
+from .magicProperty import MagicProperty, makeMetaMagicProperty
 
 __all__ = [
     "BaseSave", "BaseLoad", "Plot",
-    "NumpyDataCache", "Collections", "PrintCols", "copyNumpyList", "iterable", "secToHMS", "statPrinter", "getSize",
-    "MagicBase", "MagicProperty", "makeMetaMagicProperty",
+    "NumpyDataCache", "Collections", "PrintCols", "NewCopy",
+    "copyNumpyList", "iterable", "secToHMS", "statPrinter", "getSize",
+    "MagicProperty", "makeMetaMagicProperty",
 ]

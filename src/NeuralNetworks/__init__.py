@@ -3,7 +3,7 @@ from typing import Type
 from .base import BaseShape, BaseLayer, BasePlot, BaseNN, \
     UniversalShape, Network
 from .dense import DenseShape, DenseLayer, DensePlot, DenseNN
-from .conv import ConvShape, ConvLayer, ConvPlot, ConvNN
+from .conv import ConvShape, ConvLayer, ConvPlot, ConvNN, Correlation, Pooling
 
 
 class Base:

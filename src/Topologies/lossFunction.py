@@ -7,6 +7,9 @@ class BaseLossFunction(metaclass=ABCMeta):
     def __repr__(self):
         return f"{self.__class__.__name__}"
 
+    def __save__(self):
+        pass
+
     def __call__(self, output, target):
         return self._eval(output, target)
 

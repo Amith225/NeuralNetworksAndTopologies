@@ -11,6 +11,9 @@ class BaseInitializer(metaclass=ABCMeta):
     def __repr__(self):
         return f"<{self.__class__.__name__}>"
 
+    def __save__(self):
+        pass
+
     @abstractmethod
     def __init__(self, *args, **kwargs):
         self.rnd = np.random.default_rng()

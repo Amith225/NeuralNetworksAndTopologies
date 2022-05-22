@@ -13,12 +13,12 @@ if TYPE_CHECKING:
 
 import numpy as np
 
-from ..tools import MagicBase, MagicProperty, makeMetaMagicProperty, \
+from ..tools import MagicProperty, makeMetaMagicProperty, \
     PrintCols, iterable, secToHMS, statPrinter
 from ..Topologies import Activators, Initializers, Optimizers, LossFunction, DataBase
 
 
-class BaseShape(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
+class BaseShape(metaclass=makeMetaMagicProperty(ABCMeta)):
     """
 
     """
@@ -69,7 +69,7 @@ class UniversalShape(BaseShape):
             return shapes
 
 
-class BaseLayer(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
+class BaseLayer(metaclass=makeMetaMagicProperty(ABCMeta)):
     """
 
     """
@@ -153,7 +153,7 @@ class BaseLayer(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
         """
 
 
-class BasePlot(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
+class BasePlot(metaclass=makeMetaMagicProperty(ABCMeta)):
     """
 
     """
@@ -219,7 +219,7 @@ class Network:
         return self.INPUT_LAYER.backProp(_delta)
 
 
-class BaseNN(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
+class BaseNN(metaclass=makeMetaMagicProperty(ABCMeta)):
     """
 
     """
@@ -252,7 +252,7 @@ class BaseNN(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
     def __init__(self, shape: "BaseShape",
                  initializers: "Initializers" = None,
                  activators: "Activators" = None,
-                 lossFunction: "LossFunction.Base" = None):
+                 lossFunction: "LossFunction.Base" = None, *ntwArgs, **ntwKwargs):
         if initializers is None: initializers = Initializers(Initializers.Xavier(2), ..., Initializers.Xavier())
         if activators is None: activators = Activators(Activators.PRelu(), ..., Activators.SoftMax())
         if lossFunction is None: lossFunction = LossFunction.MeanSquare()
@@ -269,12 +269,12 @@ class BaseNN(MagicBase, metaclass=makeMetaMagicProperty(ABCMeta)):
         self.training = self.profiling = False
         self.trainDataBase = self.testDataBase = None
 
-        self.NETWORK = self._constructNetwork(initializers, activators, lossFunction)
+        self.NETWORK = self._constructNetwork(initializers, activators, lossFunction, *ntwArgs, **ntwKwargs)
 
     @abstractmethod
     def _constructNetwork(self, initializers: "Initializers" = None,
                           activators: "Activators" = None,
-                          lossFunction: "LossFunction.Base" = None) -> "Network":
+                          lossFunction: "LossFunction.Base" = None, *args, **kwargs) -> "Network":
         pass
 
     def process(self, _input) -> "np.ndarray":

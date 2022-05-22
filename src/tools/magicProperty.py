@@ -1,19 +1,6 @@
 import inspect
 
 
-class MagicBase:
-    def __new__(cls, *args, **kwargs):
-        obj = super(MagicBase, cls).__new__(cls)
-        obj.toMagicProperty = set()
-        return obj
-
-    def __magic_start__(self):
-        self.toMagicProperty = set(self.__dict__.keys())
-
-    def __magic_end__(self):
-        self.toMagicProperty = set(self.__dict__.keys()) - self.toMagicProperty
-
-
 class MagicProperty(property):
     def __init__(self, fget=None, fset=None, fdel=None, doc=None):
         super(MagicProperty, self).__init__(fget, self.makeMagicF(fset), self.makeMagicF(fdel), doc)
@@ -31,7 +18,7 @@ class MagicProperty(property):
     def __magic__(self, stack=1):
         caller = self.getCaller(stack + 1)
         return any(c1 == c2 and c1 is not None for c1, c2 in zip(caller, self.__obj)) or \
-            (any(self.__obj[2] == base.__name__ for base in caller[1].__bases__)
+               (any(self.__obj[2] == base.__name__ for base in caller[1].__bases__)
                 if self.__obj[:2] == (None, None) and caller[1] is not None else 0)
 
     @staticmethod

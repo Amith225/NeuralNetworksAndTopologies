@@ -1,7 +1,10 @@
-from src import Conv
+from src import *
+from DataSets import dataSet
+from Models import model
 
-shape = Conv.Shape((10, 3),
-                   (10, 4, 3),
-                   (5, 3), ..., (5, 4, 5), ..., (10, 3, 3),
-                   (10, 2))
-print(shape)
+cl = Conv.Layer(UniversalShape((3, 28, 28), (10, 3, 3), (5, 4, 4)),
+                Initializers.Xavier(),
+                Optimizers.AdaGrad(),
+                Activators.PRelu())
+
+print(cl)

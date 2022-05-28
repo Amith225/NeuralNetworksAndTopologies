@@ -35,13 +35,12 @@ class DenseLayer(BaseLayer):  # todo: pre-set deltas after forwardPass
         self.biasesOptimizer = self.optimizer.__new_copy__()
 
     def _defineDeps(self) -> list['str']:
-        self.weights = self.INITIALIZER(UniversalShape(self.SHAPE.INPUT, *(self.SHAPE.OUTPUT[0], self.SHAPE.INPUT[0]),
-                                                       self.SHAPE.OUTPUT))
+        self.weight = self.INITIALIZER(UniversalShape(self.SHAPE.INPUT, *(self.SHAPE.OUTPUT[0], self.SHAPE.INPUT[0]),
+                                                      self.SHAPE.OUTPUT))
         self.biases = self.INITIALIZER(UniversalShape(self.SHAPE.INPUT, *self.SHAPE.OUTPUT, self.SHAPE.OUTPUT))
         self.delta = None
         self.activeDerivedDelta = None
-        self._initializeDepOptimizer()
-        return ['weights', 'biases']
+        return ['weight', 'biases']
 
     def __gradWeights(self, weights):  # BottleNeck
         self.delta = np.einsum('oi,...oj->...ij', weights, self.inputDelta, optimize='greedy')
@@ -55,10 +54,10 @@ class DenseLayer(BaseLayer):  # todo: pre-set deltas after forwardPass
 
     def _fire(self) -> "np.ndarray":  # BottleNeck
         return self.ACTIVATION_FUNCTION.activation(
-            np.einsum('oi,...ij->...oj', self.weights, self.input, optimize='greedy') + self.biases)
+            np.einsum('oi,...ij->...oj', self.weight, self.input, optimize='greedy') + self.biases)
 
     def _wire(self) -> "np.ndarray":
-        self.weights -= self.weightOptimizer(self.__gradWeights, self.weights)
+        self.weight -= self.weightOptimizer(self.__gradWeights, self.weight)
         self.biases -= self.biasesOptimizer(self.__gradBiases, self.biases)
         return self.delta
 
@@ -73,9 +72,6 @@ class DenseNN(BaseNN):
     """
 
     """
-
-    def __save__(self):
-        return super(DenseNN, self).__save__()
 
     def __init__(self, shape: "DenseShape",
                  initializers: "Initializers" = None,

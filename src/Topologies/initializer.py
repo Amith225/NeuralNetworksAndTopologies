@@ -1,24 +1,37 @@
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 if TYPE_CHECKING:
     from ..NeuralNetworks import *
 
-import numpy as np
-
 
 class BaseInitializer(metaclass=ABCMeta):
+    rnd = np.random.default_rng()
+
     def __repr__(self):
         return f"<{self.__class__.__name__}>"
 
-    def __save__(self):
-        pass
+    def __new__(cls, *args, **kwargs):
+        cls.RAW_ARGS = args
+        cls.RAW_KWARGS = kwargs
+        return super(BaseInitializer, cls).__new__(cls)
 
-    @abstractmethod
-    def __init__(self, *args, **kwargs):
-        self.rnd = np.random.default_rng()
+    def __save__(self) -> tuple["str", "tuple", "dict"]:
+        return self.__class__.__name__, self.RAW_ARGS, self.RAW_KWARGS
+
+    @staticmethod
+    def __load__(name, raw_args, raw_kwargs) -> "BaseInitializer":
+        return globals()[name](*raw_args, **raw_kwargs)
 
     def __call__(self, shape: "Base.Shape") -> "np.ndarray":
+        """
+        :param shape: a UniversalShape with UniversalShape(...).INPUT as the lower layer,
+        UniversalShape(...).HIDDEN as the desired shape for initialization,
+        UniversalShape(...).OUTPUT as the higher layer
+        :return: 
+        """
         return self._initialize(shape)
 
     @abstractmethod
@@ -33,7 +46,6 @@ class Uniform(BaseInitializer):
         return f"{super(Uniform, self).__repr__()[:-1]}: {start=}: {stop}>"
 
     def __init__(self, start: "float" = -1, stop: "float" = 1):
-        super(Uniform, self).__init__()
         self.start = start
         self.stop = stop
 
@@ -47,7 +59,6 @@ class Normal(BaseInitializer):
         return f"{super(Normal, self).__repr__()[:-1]}: {scale=}>"
 
     def __init__(self, scale: "float" = 1):
-        super(Normal, self).__init__()
         self.scale = scale
 
     def _initialize(self, shape: "Base.Shape") -> "np.ndarray":
@@ -60,7 +71,6 @@ class Xavier(BaseInitializer):
         return f"{super(Xavier, self).__repr__()[:-1]}: {he=}>"
 
     def __init__(self, he: "float" = 1):
-        super(Xavier, self).__init__()
         self.he = he
 
     def _initialize(self, shape: "Base.Shape") -> "np.ndarray":
@@ -73,7 +83,6 @@ class NormalizedXavier(BaseInitializer):
         return f"{super(NormalizedXavier, self).__repr__()[:-1]}: {he=}>"
 
     def __init__(self, he: "float" = 6):
-        super(NormalizedXavier, self).__init__()
         self.he = he
 
     def _initialize(self, shape: "Base.Shape"):

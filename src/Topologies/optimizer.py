@@ -14,8 +14,19 @@ class BaseOptimizer(NewCopy, metaclass=ABCMeta):
         lr = self.LEARNING_RATE
         return f"<{self.__class__.__name__}:{lr=}>"
 
-    def __save__(self):
-        pass
+    def __new__(cls, *args, **kwargs):
+        cls.RAW_ARGS = args
+        cls.RAW_KWARGS = kwargs
+        return super(BaseOptimizer, cls).__new__(cls)
+
+    def __save__(self) -> tuple["str", "tuple", "dict", "dict"]:
+        return self.__class__.__name__, self.RAW_ARGS, self.RAW_KWARGS, self.__dict__
+
+    @staticmethod
+    def __load__(name, raw_args, raw_kwargs, __dict__) -> "BaseOptimizer":
+        _return = globals()[name](*raw_args, **raw_kwargs)
+        _return.__dict__.update(__dict__)
+        return _return
 
     def __init__(self, learningRate: float):
         self.LEARNING_RATE = np.float32(learningRate)

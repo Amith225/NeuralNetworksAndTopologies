@@ -3,6 +3,7 @@
 # todo: auto hyperparameter tuning: Grid search, Population-based natural selection
 # todo: auto train stop, inf train
 # todo: database save inputs, targets, labels separately
+# todo: string hyperparams
 from src import *
 from DataSets import dataSet
 from Models import model

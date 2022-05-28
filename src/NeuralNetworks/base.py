@@ -104,6 +104,7 @@ class BaseLayer(metaclass=makeMetaMagicProperty(ABCMeta)):
         self.outputDelta = np.zeros(self.SHAPE[0], dtype=np.float32)
 
         self.DEPS = self._defineDeps(*depArgs, **depKwargs)
+        self._initializeDepOptimizer()
 
     def forPass(self, _input: "np.ndarray") -> "np.ndarray":
         f"""

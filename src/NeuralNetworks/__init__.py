@@ -29,5 +29,6 @@ class Conv:
 
 __all__ = [
     "Base", "Dense", "Conv",
-    "UniversalShape", "Network"
+    "UniversalShape", "Network",
+    "Pooling", "Correlation"
 ]

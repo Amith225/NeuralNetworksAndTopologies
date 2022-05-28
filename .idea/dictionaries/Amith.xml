@@ -30,7 +30,9 @@
       <w>fget</w>
       <w>fset</w>
       <w>imgs</w>
+      <w>jacobian</w>
       <w>ncontour</w>
+      <w>nesterov</w>
       <w>npcv</w>
       <w>pcontour</w>
       <w>pstats</w>

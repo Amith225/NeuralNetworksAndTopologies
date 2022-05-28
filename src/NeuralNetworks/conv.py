@@ -47,7 +47,13 @@ class Pooling(Collections):
         super(Pooling, self).__init__(*pooling)
 
     class Base:
-        def __init__(self, stride: Union[int, tuple[int, int]]):
+        def __repr__(self):
+            return f"<{self.__class__.__name__}:{self.stride}:{self.shape}>"
+
+        def __init__(self, shape: Union[int, tuple[int, int]] = None, stride: Union[int, tuple[int, int]] = None):
+            if shape is None: shape = 2
+            self.shape = formatStride(shape)
+            if stride is None: stride = self.shape
             self.stride = formatStride(stride)
 
     class MAX(Base): pass
@@ -60,7 +66,11 @@ class Correlation(Collections):
         super(Correlation, self).__init__(*correlation)
 
     class Base:
-        def __init__(self, stride: Union[int, tuple[int, int]]):
+        def __repr__(self):
+            return f"<{self.__class__.__name__}:{self.stride}>"
+
+        def __init__(self, stride: Union[int, tuple[int, int]] = None):
+            if stride is None: stride = 1
             self.stride = formatStride(stride)
 
     class VALID(Base): pass
@@ -75,28 +85,52 @@ class ConvLayer(BaseLayer):
 
     """
 
-    def __repr__(self):
-        return super(ConvLayer, self).__repr__()
-
     def _initializeDepOptimizer(self):
         self.kernelOptimizer = self.optimizer.__new_copy__()
         self.biasesOptimizer = self.optimizer.__new_copy__()
 
     def _defineDeps(self, correlation: "Correlation.Base" = None, pooling: "Pooling.Base" = None) -> list['str']:
-        if correlation is None: Correlation.VALID(1)
-        if pooling is None: pooling = Pooling.MAX(1)
+        if correlation is None: correlation = Correlation.VALID()
+        if pooling is None: pooling = Pooling.MAX()
         self.pooling = pooling
         self.correlation = correlation
-        # todo: how will shape be?
-        self.kernels = self.INITIALIZER(UniversalShape(self.SHAPE.INPUT, *self.SHAPE.HIDDEN, self.SHAPE.OUTPUT))
-        self.biases = self.INITIALIZER(UniversalShape(self.SHAPE.INPUT, *self.SHAPE.OUTPUT, self.SHAPE.OUTPUT))
-        return ["kernels", "biases"]
+        self.kernelShape, self.kernelPad, self.kernelOut = \
+            self.__findKernelPadOut(self.SHAPE.INPUT, self.SHAPE.OUTPUT, self.correlation.__class__,
+                                    self.correlation.stride)
+        _, self.poolPad, self.poolOut = \
+            self.__findKernelPadOut(self.kernelOut, (self.kernelShape[0], *self.pooling.shape),
+                                    self.correlation.__class__, self.pooling.stride)
+        self.kernel = self.INITIALIZER(UniversalShape(self.SHAPE.HIDDEN, *self.kernelShape, self.SHAPE.OUTPUT))
+        self.biases = self.INITIALIZER(UniversalShape(self.SHAPE.HIDDEN, *self.poolOut, self.SHAPE.OUTPUT))
+        self.delta = None
+        self.activeDerivedDelta = None
+        return ["kernel", "biases"]
 
     def _fire(self) -> "np.ndarray":
         pass
 
     def _wire(self) -> "np.ndarray":
         pass
+
+    @staticmethod
+    def __findKernelPadOut(kernelInput, kernelBaseShape, correlation, stride):
+        kernel = kernelBaseShape[0], kernelInput[0], *kernelBaseShape[1:]
+        if correlation is Correlation.VALID:
+            out = np.ceil((np.array(kernelInput[-2:]) - kernel[-2:]) / stride) + 1
+        elif correlation is Correlation.FULL:
+            out = np.ceil((np.array(kernelInput[-2:]) - kernel[-2:] +
+                           2 * (kernel[-2:] - np.int16(1))) / stride) + 1  # noqa
+        elif correlation is Correlation.SAME:
+            out = np.array(kernelInput[-2:])
+        else:
+            raise ValueError("Invalid correlation type")
+        pad = ConvLayer.__findPadFromOut(kernelInput, out, stride, kernel)
+        out = kernel[0], *out.astype(np.int16)
+        return kernel, tuple(pad.tolist()), out
+
+    @staticmethod
+    def __findPadFromOut(inp, out, stride, kernel):
+        return ((out - 1) * stride + kernel[-2:] - inp[-2:]).astype(np.int16)
 
 
 class ConvPlot(BasePlot):

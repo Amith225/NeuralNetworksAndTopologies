@@ -4,6 +4,7 @@
 # todo: auto train stop, inf train
 # todo: database save inputs, targets, labels separately
 # todo: string hyperparams
+# todo: look into "NamedTuple"
 from src import *
 from DataSets import dataSet
 from Models import model

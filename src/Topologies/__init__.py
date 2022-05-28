@@ -7,7 +7,7 @@ from .initializer import BaseInitializer, \
 from .optimizer import BaseOptimizer, \
         GradientDecent, Decay, Momentum, NesterovMomentum, AdaGrad, RmsProp, AdaDelta, Adam
 from .lossFunction import BaseLossFunction, \
-        MeanSquare
+        MeanSquare, CrossEntropy
 
 
 class Activators(Collections):
@@ -35,7 +35,8 @@ class Optimizers(Collections):
 
 
 class LossFunction:
-    Base, MeanSquare = BaseLossFunction, MeanSquare
+    Base, MeanSquare, CrossEntropy = \
+        BaseLossFunction, MeanSquare, CrossEntropy
 
 
 __all__ = [

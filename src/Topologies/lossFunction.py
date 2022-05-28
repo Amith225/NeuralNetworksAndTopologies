@@ -33,6 +33,7 @@ class MeanSquare(BaseLossFunction):
         return (delta * delta).sum(axis=1).mean(), delta
 
 
+# fixme: make this work
 class CrossEntropy(BaseLossFunction):
     def _eval(self, output, target):
         cross = -np.log(output) * target

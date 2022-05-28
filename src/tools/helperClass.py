@@ -40,7 +40,13 @@ class Collections:
     def __repr__(self):
         return f"<{self.__class__.__name__}:{self.collectables}>"
 
-    # todo: make collectables Type[_<class>] itself, and/or use __copy__?
+    # todo::
+    def __save__(self):
+        raise NotImplementedError
+
+    def __load__(self):
+        raise NotImplementedError
+
     def __init__(self, *collectables):
         self.collectables = collectables
 
@@ -55,8 +61,8 @@ class Collections:
         vacancy = length - numCollectables
         for collectable in self.collectables:
             if collectable == Ellipsis:
-                for i in range(filled := (vacancy // numEllipsis)):
-                    trueCollectables.append(prevCollectable)
+                filled = vacancy // numEllipsis
+                trueCollectables.extend([prevCollectable] * filled)
                 vacancy -= filled
                 numEllipsis -= 1
                 continue

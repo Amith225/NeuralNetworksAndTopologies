@@ -403,7 +403,7 @@ class BaseNN(metaclass=makeMetaMagicProperty(ABCMeta)):
             self.testAccuracy = self.accuracy(testDataBase.inputs, testDataBase.targets)
         print(end='\r')
         statPrinter('Train-Accuracy', f"{self.accuracyTrained}%", suffix='', end='\n')
-        statPrinter('Test-Accuracy', f"{self.testAccuracy}%", end='\n')
+        statPrinter('Tests-Accuracy', f"{self.testAccuracy}%", end='\n')
 
     @staticmethod
     def _tester(_output: "np.ndarray", _target: "np.ndarray") -> "np.ndarray":

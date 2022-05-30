@@ -116,5 +116,5 @@ tli = ''.join(f"{'from' if (from_import := len(i) != 0 and tuple(i)[0][:3] != 'a
 with open('__ipynb__.py', 'w') as f:
     f.write(tli + '\n' + ''.join(c[k][0] for k in c_key))
 
-p2j('__ipynb__.py', '__ipynb__.ipynb', True)
+p2j('__ipynb__.py', '../__ipynb__.ipynb', True)
 os.remove('__ipynb__.py')

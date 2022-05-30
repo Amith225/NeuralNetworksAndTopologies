@@ -1,27 +1,20 @@
-from typing import Union, Type
+from typing import Union
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
+from ..tools import DunderSaveLoad
 
-class BaseActivationFunction(metaclass=ABCMeta):
+
+class BaseActivationFunction(DunderSaveLoad, metaclass=ABCMeta):
     ONE = np.float32(1)
     E = np.float32(np.e)
 
     def __repr__(self):
         return f"<{self.__class__.__name__}>"
 
-    def __new__(cls, *args, **kwargs):
-        cls.RAW_ARGS = args
-        cls.RAW_KWARGS = kwargs
-        return super(BaseActivationFunction, cls).__new__(cls)
-
-    def __save__(self) -> tuple["str", "tuple", "dict"]:
-        return self.__class__.__name__, self.RAW_ARGS, self.RAW_KWARGS
-
-    @staticmethod
-    def __load__(name, raw_args, raw_kwargs) -> "BaseActivationFunction":
-        return globals()[name](*raw_args, **raw_kwargs)
+    def __init__(self):
+        pass
 
     @abstractmethod
     def activation(self, x: np.ndarray) -> "np.ndarray":

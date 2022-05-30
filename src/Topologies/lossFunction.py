@@ -2,22 +2,15 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
+from ..tools import DunderSaveLoad
 
-class BaseLossFunction(metaclass=ABCMeta):
+
+class BaseLossFunction(DunderSaveLoad, metaclass=ABCMeta):
     def __repr__(self):
         return f"{self.__class__.__name__}"
 
-    def __new__(cls, *args, **kwargs):
-        cls.RAW_ARGS = args
-        cls.RAW_KWARGS = kwargs
-        return super(BaseLossFunction, cls).__new__(cls)
-
-    def __save__(self) -> tuple["str", "tuple", "dict"]:
-        return self.__class__.__name__, self.RAW_ARGS, self.RAW_KWARGS
-
-    @staticmethod
-    def __load__(name, raw_args, raw_kwargs) -> "BaseLossFunction":
-        return globals()[name](*raw_args, **raw_kwargs)
+    def __init__(self):
+        pass
 
     def __call__(self, output, target):
         return self._eval(output, target)

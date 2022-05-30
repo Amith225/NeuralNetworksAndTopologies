@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from ..Topologies import *
-
 import numpy as np
 
 from .base import BaseShape, BaseLayer, BasePlot, BaseNN, UniversalShape, Network
+
+if TYPE_CHECKING:
+    from ..Topologies import *
 
 
 class DenseShape(BaseShape):
@@ -42,7 +42,7 @@ class DenseLayer(BaseLayer):  # todo: pre-set deltas after forwardPass
         self.activeDerivedDelta = None
         return ['weight', 'biases']
 
-    def __gradWeights(self, weights):  # BottleNeck
+    def __gradWeight(self, weights):  # BottleNeck
         self.delta = np.einsum('oi,...oj->...ij', weights, self.inputDelta, optimize='greedy')
         self.activeDerivedDelta = \
             np.einsum('...ij,...ij->...ij', self.inputDelta, self.ACTIVATION_FUNCTION.activatedDerivative(self.output),
@@ -57,7 +57,7 @@ class DenseLayer(BaseLayer):  # todo: pre-set deltas after forwardPass
             np.einsum('oi,...ij->...oj', self.weight, self.input, optimize='greedy') + self.biases)
 
     def _wire(self) -> "np.ndarray":
-        self.weight -= self.weightOptimizer(self.__gradWeights, self.weight)
+        self.weight -= self.weightOptimizer(self.__gradWeight, self.weight)
         self.biases -= self.biasesOptimizer(self.__gradBiases, self.biases)
         return self.delta
 

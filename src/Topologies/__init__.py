@@ -1,4 +1,4 @@
-from ..tools import Collections
+from ..tools import Collections, DunderSaveLoad
 from .dataBase import DataBase, PlotDataBase
 from .activationFunction import BaseActivationFunction, \
         Sigmoid, TanH, Relu, PRelu, Elu, SoftMax, SoftPlus
@@ -10,7 +10,7 @@ from .lossFunction import BaseLossFunction, \
         MeanSquare, CrossEntropy
 
 
-class Activators(Collections):
+class Activators(Collections, DunderSaveLoad):
     Base, Sigmoid, TanH, Relu, PRelu, Elu, SoftMax, SoftPlus = \
         BaseActivationFunction, Sigmoid, TanH, Relu, PRelu, Elu, SoftMax, SoftPlus
 
@@ -18,7 +18,7 @@ class Activators(Collections):
         super(Activators, self).__init__(*activationFunctions)
 
 
-class Initializers(Collections):
+class Initializers(Collections, DunderSaveLoad):
     Base, Uniform, Normal, Xavier, NormalizedXavier = \
         BaseInitializer, Uniform, Normal, Xavier, NormalizedXavier
 
@@ -26,7 +26,7 @@ class Initializers(Collections):
         super(Initializers, self).__init__(*initializer)
 
 
-class Optimizers(Collections):
+class Optimizers(Collections, DunderSaveLoad):
     Base, GradientDecent, Decay, Momentum, NesterovMomentum, AdaGrad, RmpProp, AdaDelta, Adam = \
         BaseOptimizer, GradientDecent, Decay, Momentum, NesterovMomentum, AdaGrad, RmsProp, AdaDelta, Adam
 

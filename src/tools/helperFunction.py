@@ -2,10 +2,10 @@ import sys
 import time
 from typing import TYPE_CHECKING
 
+from .printCols import PrintCols
+
 if TYPE_CHECKING:
     import numpy as np
-
-from .helperClass import PrintCols
 
 
 def copyNumpyList(lis: list["np.ndarray"]):
@@ -33,6 +33,7 @@ def statPrinter(key, value, *, prefix='', suffix=PrintCols.CEND, end=' '):
     print(prefix + f"{key}:{value}" + suffix, end=end)
 
 
+# fixme: improve
 def getSize(obj, seen=None, ref=''):
     """Recursively finds size of objects"""
     size = sys.getsizeof(obj)
@@ -55,3 +56,16 @@ def getSize(obj, seen=None, ref=''):
         print(ref, '\n')
 
     return size
+
+
+def string_import(name):
+    components = name.split('.')
+    mod = __import__(components[0])
+    for comp in components[1:]:
+        mod = getattr(mod, comp)
+    return mod
+
+
+def load(name, raw_args, raw_kwargs, kwargs=None):
+    if kwargs is None: kwargs = {}
+    return string_import(name).__load__(raw_args, raw_kwargs, **kwargs)

@@ -1,12 +1,12 @@
 from typing import TYPE_CHECKING, Union
 
-if TYPE_CHECKING:
-    from ..Topologies import *
-
 import numpy as np
 
 from .base import BaseShape, BaseLayer, BasePlot, BaseNN, UniversalShape, Network
 from ..tools import Collections
+
+if TYPE_CHECKING:
+    from ..Topologies import *
 
 
 class ConvShape(BaseShape):
@@ -107,10 +107,10 @@ class ConvLayer(BaseLayer):
         return ["kernel", "biases"]
 
     def _fire(self) -> "np.ndarray":
-        pass
+        raise NotImplementedError
 
     def _wire(self) -> "np.ndarray":
-        pass
+        raise NotImplementedError
 
     @staticmethod
     def __findKernelPadOut(kernelInput, kernelBaseShape, correlation, stride):

@@ -3,27 +3,17 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from ..tools import DunderSaveLoad
+
 if TYPE_CHECKING:
     from ..NeuralNetworks import *
 
 
-class BaseInitializer(metaclass=ABCMeta):
+class BaseInitializer(DunderSaveLoad, metaclass=ABCMeta):
     rnd = np.random.default_rng()
 
     def __repr__(self):
         return f"<{self.__class__.__name__}>"
-
-    def __new__(cls, *args, **kwargs):
-        cls.RAW_ARGS = args
-        cls.RAW_KWARGS = kwargs
-        return super(BaseInitializer, cls).__new__(cls)
-
-    def __save__(self) -> tuple["str", "tuple", "dict"]:
-        return self.__class__.__name__, self.RAW_ARGS, self.RAW_KWARGS
-
-    @staticmethod
-    def __load__(name, raw_args, raw_kwargs) -> "BaseInitializer":
-        return globals()[name](*raw_args, **raw_kwargs)
 
     def __call__(self, shape: "Base.Shape") -> "np.ndarray":
         """

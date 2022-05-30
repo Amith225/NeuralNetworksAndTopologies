@@ -4,29 +4,19 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 import numexpr as ne
 
-from ..tools import NewCopy
+from ..tools import DunderSaveLoad, load
 
 
-class BaseOptimizer(NewCopy, metaclass=ABCMeta):
+class BaseOptimizer(DunderSaveLoad, metaclass=ABCMeta):
     ZERO, ONE = np.float32(0), np.float32(1)
+    _dict = True
 
     def __repr__(self):
         lr = self.LEARNING_RATE
         return f"<{self.__class__.__name__}:{lr=}>"
 
-    def __new__(cls, *args, **kwargs):
-        cls.RAW_ARGS = args
-        cls.RAW_KWARGS = kwargs
-        return super(BaseOptimizer, cls).__new__(cls)
-
-    def __save__(self) -> tuple["str", "tuple", "dict", "dict"]:
-        return self.__class__.__name__, self.RAW_ARGS, self.RAW_KWARGS, self.__dict__
-
-    @staticmethod
-    def __load__(name, raw_args, raw_kwargs, __dict__) -> "BaseOptimizer":
-        _return = globals()[name](*raw_args, **raw_kwargs)
-        _return.__dict__.update(__dict__)
-        return _return
+    def __new_copy__(self):
+        return load(*self.__save__())
 
     def __init__(self, learningRate: float):
         self.LEARNING_RATE = np.float32(learningRate)

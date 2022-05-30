@@ -7,27 +7,23 @@ import os
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Union
 
+import numpy as np
+
+from ..tools import MagicProperty, makeMetaMagicProperty, PrintCols, iterable, secToHMS, statPrinter, DunderSaveLoad
+from ..Topologies import Activators, Initializers, Optimizers, LossFunction, DataBase
+
 if TYPE_CHECKING:
     from ..tools import *
     from ..Topologies import *
 
-import numpy as np
 
-from ..tools import MagicProperty, makeMetaMagicProperty, \
-    PrintCols, iterable, secToHMS, statPrinter
-from ..Topologies import Activators, Initializers, Optimizers, LossFunction, DataBase
-
-
-class BaseShape(metaclass=makeMetaMagicProperty(ABCMeta)):
+class BaseShape(DunderSaveLoad, metaclass=makeMetaMagicProperty(ABCMeta)):
     """
 
     """
 
     def __repr__(self):
         return f"<{self.__class__.__name__}:{self.NUM_LAYERS}:{self.SHAPES}>"
-
-    def __save__(self):
-        pass
 
     def __getitem__(self, item):
         shapes = self.RAW_SHAPES[item]
@@ -69,10 +65,11 @@ class UniversalShape(BaseShape):
             return shapes
 
 
-class BaseLayer(metaclass=makeMetaMagicProperty(ABCMeta)):
+class BaseLayer(DunderSaveLoad, metaclass=makeMetaMagicProperty(ABCMeta)):
     """
 
     """
+    _dict = True
 
     def __repr__(self):
         return f"<{self.__class__.__name__}:{self.SHAPE}: Ini={self.INITIALIZER}: Opt={self.optimizer}: " \
@@ -81,9 +78,6 @@ class BaseLayer(metaclass=makeMetaMagicProperty(ABCMeta)):
     def __str__(self):
         DEPS = ': '.join(f"{dName}:shape{getattr(self, dName).shape}" for dName in self.DEPS)
         return f"{self.__repr__()[:-1]}:\n{DEPS=}>"
-
-    def __save__(self):
-        pass
 
     def __init__(self, shape: "BaseShape",
                  initializer: "Initializers.Base",
@@ -113,8 +107,8 @@ class BaseLayer(metaclass=makeMetaMagicProperty(ABCMeta)):
         :return: {self.output}
         """
         self.input = _input
-        self.output = self._fire()
-        return self.output
+        self.output = out = self._fire()
+        return out
 
     def backProp(self, _delta: "np.ndarray") -> "np.ndarray":
         f"""

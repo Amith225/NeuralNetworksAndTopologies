@@ -1,8 +1,8 @@
 from src import *
+import pickle
 
-coo = Dense.Layer(shape=Dense.Shape(784, 398),
+coo = Dense.Layer(shape=Dense.Shape(100, 200, 300),
                   initializer=Initializers.Xavier(5),
                   optimizer=Optimizers.Adam(epsilon=2),
                   activationFunction=Activators.PRelu())
-print(coo, id(coo))
-print(coo2 := load(*coo.__save__()), id(coo2))
+print(coo.__save__()[2]["shape"].save)

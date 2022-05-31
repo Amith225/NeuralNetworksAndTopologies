@@ -34,7 +34,7 @@ def statPrinter(key, value, *, prefix='', suffix=PrintCols.CEND, end=' '):
 
 
 # fixme: improve
-def getSize(obj, seen=None, ref=''):
+def getSize(obj, seen=None, depth=0):
     """Recursively finds size of objects"""
     size = sys.getsizeof(obj)
     if seen is None: seen = set()
@@ -42,18 +42,15 @@ def getSize(obj, seen=None, ref=''):
     # Important mark as seen *before* entering recursion to gracefully handle
     # self-referential objects
     seen.add(obj_id)
-    ref += str(obj.__class__)
     if isinstance(obj, dict):
-        size += sum([getSize(obj[k], seen, ref + str(k)) for k in obj.keys()])
-        size += sum([getSize(k, seen, ref) for k in obj.keys()])
+        for k in obj.keys():
+            siz = getSize(obj[k], seen, depth + 1) + getSize(k, seen, depth + 1)
+            print('\t' * depth, 'dict', k, siz, sep=': ')
+            size += siz
     elif hasattr(obj, '__dict__'):
-        size += getSize(obj.__dict__, seen, ref)
+        size += getSize(obj.__dict__, seen, depth + 1)
     elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
-        size += sum([getSize(i, seen, ref) for i in obj])
-
-    if size > 1024 * 10:  # show files > 10Mb
-        print(obj.__class__, size)
-        print(ref, '\n')
+        size += sum([getSize(i, seen) for i in obj], depth + 1)
 
     return size
 

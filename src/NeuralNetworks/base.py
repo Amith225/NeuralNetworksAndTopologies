@@ -1,3 +1,8 @@
+from typing import TYPE_CHECKING, Union
+if TYPE_CHECKING:
+    from ..tools import *
+    from ..Topologies import *
+
 import time
 import warnings
 import cProfile
@@ -5,19 +10,14 @@ import traceback
 import pstats
 import os
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Union
 
 import numpy as np
 
-from ..tools import MagicProperty, makeMetaMagicProperty, PrintCols, iterable, secToHMS, statPrinter, DunderSaveLoad
+from ..tools import PrintCols, iterable, secToHMS, statPrinter, DunderSaveLoad
 from ..Topologies import Activators, Initializers, Optimizers, LossFunction, DataBase
 
-if TYPE_CHECKING:
-    from ..tools import *
-    from ..Topologies import *
 
-
-class BaseShape(DunderSaveLoad, metaclass=makeMetaMagicProperty(ABCMeta)):
+class BaseShape(DunderSaveLoad, metaclass=ABCMeta):
     """
 
     """
@@ -27,7 +27,7 @@ class BaseShape(DunderSaveLoad, metaclass=makeMetaMagicProperty(ABCMeta)):
 
     def __getitem__(self, item):
         shapes = self.RAW_SHAPES[item]
-        return self.__class__(*shapes) if isinstance(item, slice) and shapes else self.SHAPES[item]
+        return type(self)(*shapes) if isinstance(item, slice) and shapes else self.SHAPES[item]
 
     def __hash__(self):
         return hash(self.SHAPES)
@@ -65,7 +65,7 @@ class UniversalShape(BaseShape):
             return shapes
 
 
-class BaseLayer(DunderSaveLoad, metaclass=makeMetaMagicProperty(ABCMeta)):
+class BaseLayer(DunderSaveLoad, metaclass=ABCMeta):
     """
 
     """
@@ -78,6 +78,14 @@ class BaseLayer(DunderSaveLoad, metaclass=makeMetaMagicProperty(ABCMeta)):
     def __str__(self):
         DEPS = ': '.join(f"{dName}:shape{getattr(self, dName).shape}" for dName in self.DEPS)
         return f"{self.__repr__()[:-1]}:\n{DEPS=}>"
+
+    # todo: add ignore to DunderSaveLoad
+    def __save__(self):
+        _input, _output, inputDelta, outputDelta = self.input, self.output, self.inputDelta, self.outputDelta
+        self.input = self.output = self.inputDelta = self.outputDelta = None
+        _return = super(BaseLayer, self).__save__()
+        self.input, self.output, self.inputDelta, self.outputDelta = _input, _output, inputDelta, outputDelta
+        return _return
 
     def __init__(self, shape: "BaseShape",
                  initializer: "Initializers.Base",
@@ -92,10 +100,10 @@ class BaseLayer(DunderSaveLoad, metaclass=makeMetaMagicProperty(ABCMeta)):
         self.optimizer = optimizer
         self.ACTIVATION_FUNCTION = activationFunction
 
-        self.input = np.zeros(self.SHAPE[0], dtype=np.float32)
-        self.output = np.zeros(self.SHAPE[-1], dtype=np.float32)
-        self.inputDelta = np.zeros(self.SHAPE[-1], dtype=np.float32)
-        self.outputDelta = np.zeros(self.SHAPE[0], dtype=np.float32)
+        self.input = None
+        self.output = None
+        self.inputDelta = None
+        self.outputDelta = None
 
         self.DEPS = self._defineDeps(*depArgs, **depKwargs)
         self._initializeDepOptimizer()
@@ -148,13 +156,13 @@ class BaseLayer(DunderSaveLoad, metaclass=makeMetaMagicProperty(ABCMeta)):
         """
 
 
-class BasePlot(metaclass=makeMetaMagicProperty(ABCMeta)):
+class BasePlot:
     """
 
     """
 
 
-class Network:
+class Network(DunderSaveLoad):
     """
 
     """
@@ -166,9 +174,6 @@ class Network:
     def __str__(self):
         layers = "\n\t\t".join(repr(layer) for layer in self.LAYERS)
         return f"{super(Network, self).__str__()}:\n\t\t{layers}"
-
-    def __save__(self):
-        pass
 
     def __init__(self, inputLayer: "BaseLayer", *layers: "BaseLayer", lossFunction: "LossFunction.Base"):
         assert len(layers) > 0
@@ -214,21 +219,25 @@ class Network:
         return self.INPUT_LAYER.backProp(_delta)
 
 
-class BaseNN(metaclass=makeMetaMagicProperty(ABCMeta)):
+class BaseNN(DunderSaveLoad, metaclass=ABCMeta):
     """
 
     """
     STAT_PRINT_INTERVAL = 1
     __optimizers = Optimizers(Optimizers.Adam(), ..., Optimizers.AdaGrad())
+    _dict = True
 
-    @MagicProperty
+    @property
     def optimizers(self):
         return self.__optimizers
 
-    @optimizers.setter
-    def optimizers(self, _optimizers: "Optimizers"):
-        self.__optimizers = _optimizers
-        self.NETWORK.changeOptimizer(self.__optimizers)
+    # todo: add ignore to DunderSaveLoad
+    def __save__(self):
+        trainDataBase, testDataBase = self.trainDataBase, self.testDataBase
+        self.trainDataBase = self.testDataBase = None
+        _return = super(BaseNN, self).__save__()
+        self.trainDataBase, self.testDataBase = trainDataBase, testDataBase
+        return _return
 
     def __repr__(self):
         Shape = self.SHAPE
@@ -237,12 +246,9 @@ class BaseNN(metaclass=makeMetaMagicProperty(ABCMeta)):
         return f"<{self.__class__.__name__}:Acc={acc[0]}%,{acc[1]}%: {Cost=:07.4f}: {Time=}: {Epochs=}: {Shape=}>"
 
     def __str__(self):
-        Optimizers = self.optimizers  # noqa
+        Optimizers = self.__optimizers  # noqa
         TrainDataBase, TestDataBase = self.trainDataBase, self.testDataBase
         return f"{self.__repr__()[1:-1]}:\n\t{Optimizers=}\n\t{TrainDataBase=}\n\t{TestDataBase=}\n\t{self.NETWORK}"
-
-    def __save__(self):
-        pass
 
     def __init__(self, shape: "BaseShape",
                  initializers: "Initializers" = None,
@@ -341,6 +347,8 @@ class BaseNN(metaclass=makeMetaMagicProperty(ABCMeta)):
               profile: bool = False,
               test: Union[bool, "DataBase"] = None):
         # todo: implement "runs"
+        assert isinstance(epochs, int) or epochs is None
+        assert isinstance(batchSize, int) or batchSize is None
         if epochs is not None: self.numEpochs = epochs
         if batchSize is not None: self.batchSize = batchSize
         if trainDataBase is not None: self.trainDataBase = trainDataBase

@@ -59,7 +59,8 @@ class DenseLayer(BaseLayer):  # todo: pre-set deltas after forwardPass
     def _wire(self) -> "np.ndarray":
         self.weight -= self.weightOptimizer(self.__gradWeight, self.weight)
         self.biases -= self.biasesOptimizer(self.__gradBiases, self.biases)
-        return self.delta
+        delta, self.delta, self.activeDerivedDelta = self.delta, None, None
+        return delta
 
 
 class DensePlot(BasePlot):

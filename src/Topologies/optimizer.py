@@ -36,7 +36,7 @@ class GradientDecent(BaseOptimizer):
 
     def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
         delta = grad(theta)
-        (local_dict := vars(self)).update(locals())
+        (local_dict := vars(self).copy()).update(locals())
         return ne.evaluate("delta * LEARNING_RATE", local_dict=local_dict)
 
 
@@ -56,7 +56,7 @@ class Decay(BaseOptimizer):
         delta = grad(theta)
         self.decayCounter += self.ONE
         locals()['ONE'] = self.ONE
-        (local_dict := vars(self)).update(locals())
+        (local_dict := vars(self).copy()).update(locals())
         return ne.evaluate("delta * LEARNING_RATE / (ONE + decayCounter * DECAY)", local_dict=local_dict)
 
 
@@ -74,7 +74,7 @@ class Momentum(BaseOptimizer):
 
     def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
         delta = grad(theta)
-        (local_dict := vars(self)).update(locals())
+        (local_dict := vars(self).copy()).update(locals())
         self.prevDelta = momentDelta = ne.evaluate("LEARNING_RATE * delta + MOMENT * prevDelta", local_dict=local_dict)
         return momentDelta
 
@@ -93,7 +93,7 @@ class NesterovMomentum(BaseOptimizer):
 
     def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
         delta = grad(theta - self.MOMENT * self.prevDelta)
-        (local_dict := vars(self)).update(locals())
+        (local_dict := vars(self).copy()).update(locals())
         self.prevDelta = momentDelta = ne.evaluate("LEARNING_RATE * delta + MOMENT * prevDelta", local_dict=local_dict)
         return momentDelta
 
@@ -112,9 +112,9 @@ class AdaGrad(BaseOptimizer):
 
     def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
         delta = grad(theta)
-        (local_dict := vars(self)).update(locals())
+        (local_dict := vars(self).copy()).update(locals())
         self.summationSquareDelta = ne.evaluate('summationSquareDelta + delta * delta', local_dict=local_dict)
-        (local_dict := vars(self)).update(locals())
+        (local_dict := vars(self).copy()).update(locals())
         return ne.evaluate('delta * LEARNING_RATE / sqrt(summationSquareDelta + EPSILON)', global_dict=local_dict)
 
 
@@ -154,20 +154,20 @@ class Adam(BaseOptimizer):
 
     def _optimize(self, grad: Callable[["np.ndarray"], "np.ndarray"], theta: "np.ndarray") -> "np.ndarray":
         delta = grad(theta)
-        (local_dict := vars(self)).update(locals())
+        (local_dict := vars(self).copy()).update(locals())
         self.weightedSummationDelta = ne.evaluate(
             "BETA1 * weightedSummationDelta + BETA1_BAR * delta", local_dict=local_dict)
         self.weightedSummationSquareDelta = ne.evaluate(
             "BETA2 * weightedSummationSquareDelta + BETA2_BAR * delta * delta", local_dict=local_dict)
 
-        (local_dict := vars(self)).update(locals())
+        (local_dict := vars(self).copy()).update(locals())
         weightedSummationDeltaHat = ne.evaluate(
             "weightedSummationDelta / (1 - BETA1 ** decayCounter)", local_dict=local_dict)
         weightedSummationSquareDeltaHat = ne.evaluate(
             "weightedSummationSquareDelta / (1 - BETA2 ** decayCounter)", local_dict=local_dict)
 
         self.decayCounter += self.ONE
-        (local_dict := vars(self)).update(locals())
+        (local_dict := vars(self).copy()).update(locals())
         return ne.evaluate(
             "LEARNING_RATE * weightedSummationDeltaHat / sqrt(weightedSummationSquareDeltaHat + EPSILON)",
             local_dict=local_dict)

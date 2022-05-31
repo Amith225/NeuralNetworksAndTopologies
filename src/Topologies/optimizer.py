@@ -140,10 +140,10 @@ class Adam(BaseOptimizer):
         super(Adam, self).__init__(learningRate)
         if beta1 is None: beta1 = .9
         self.BETA1 = np.float32(beta1)
-        self.BETA1_BAR = 1 - self.BETA1
+        self.BETA1_BAR = self.ONE - self.BETA1
         if beta2 is None: beta2 = .999
         self.BETA2 = np.float32(beta2)
-        self.BETA2_BAR = 1 - self.BETA2
+        self.BETA2_BAR = self.ONE - self.BETA2
         if epsilon is None: epsilon = 1e-7
         self.EPSILON = np.float32(epsilon)
         if decay is None: decay = NotImplemented  # todo: implement decay on decayCounter?

@@ -52,9 +52,8 @@ class Collections:
         return trueCollectables
 
 
-class Dunder:
-    def __init__(self, save):
-        self.save = save
+class Dunder(tuple):
+    __slots__ = {}
 
 
 class DunderSaveLoad:
@@ -89,12 +88,12 @@ class DunderSaveLoad:
             return {key: item for item, key in zip(cls.checkForDunderObjects(list(vals), _type), keys)}
         elif isinstance(_obj, list):
             return [cls.checkForDunderObjects(ob, _type) for ob in _obj]
-        elif isinstance(_obj, tuple):
+        elif isinstance(_obj, tuple) and not isinstance(_obj, Dunder):
             return tuple([cls.checkForDunderObjects(ob, _type) for ob in _obj])
         else:
             if _type == types[0] and isinstance(_obj, DunderSaveLoad):
                 return Dunder(_obj.__save__())
             elif _type == types[1] and isinstance(_obj, Dunder):
-                return load(*_obj.save)
+                return load(*_obj)
             else:
                 return _obj

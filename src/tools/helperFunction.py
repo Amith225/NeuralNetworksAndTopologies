@@ -2,10 +2,9 @@ import sys
 import time
 from typing import TYPE_CHECKING
 
-from .printCols import PrintCols
+import numpy as np
 
-if TYPE_CHECKING:
-    import numpy as np
+from .printCols import PrintCols
 
 
 def copyNumpyList(lis: list["np.ndarray"]):
@@ -34,25 +33,31 @@ def statPrinter(key, value, *, prefix='', suffix=PrintCols.CEND, end=' '):
 
 
 # fixme: improve
-def getSize(obj, seen=None, depth=0):
+def getSize(obj, seen=None, thresh=1024):
     """Recursively finds size of objects"""
     size = sys.getsizeof(obj)
     if seen is None: seen = set()
-    if (obj_id := id(obj)) in seen: return 0
-    # Important mark as seen *before* entering recursion to gracefully handle
-    # self-referential objects
+    if (obj_id := id(obj)) in seen: return 0, {}
     seen.add(obj_id)
+    tree = {}
     if isinstance(obj, dict):
         for k in obj.keys():
-            siz = getSize(obj[k], seen, depth + 1) + getSize(k, seen, depth + 1)
-            print('\t' * depth, 'dict', k, siz, sep=': ')
+            siz1, tre, siz2, tre2 = *getSize(obj[k], seen, thresh), *getSize(k, seen, thresh)  # noqa
+            tre.update(tre2)
+            siz = siz1 + siz2
+            if siz >= thresh: tree[k] = siz, tre
             size += siz
     elif hasattr(obj, '__dict__'):
-        size += getSize(obj.__dict__, seen, depth + 1)
+        siz, tree = getSize(obj.__dict__, seen, thresh)
+        size += siz
+    elif isinstance(obj, np.ndarray):
+        size = obj.nbytes
     elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
-        size += sum([getSize(i, seen) for i in obj], depth + 1)
-
-    return size
+        for j, i in enumerate(obj):
+            siz, tre = getSize(i, seen, thresh)
+            if siz >= thresh: tree[j] = siz, tre
+            size += siz
+    return size, tree
 
 
 def string_import(name):

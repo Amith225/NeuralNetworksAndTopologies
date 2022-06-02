@@ -32,7 +32,6 @@ def statPrinter(key, value, *, prefix='', suffix=PrintCols.CEND, end=' '):
     print(prefix + f"{key}:{value}" + suffix, end=end)
 
 
-# fixme: improve
 def getSize(obj, seen=None, thresh=1024):
     """Recursively finds size of objects"""
     size = sys.getsizeof(obj)

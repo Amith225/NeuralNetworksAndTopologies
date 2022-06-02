@@ -4,11 +4,7 @@
 # todo: auto train stop, inf train
 # todo: database save inputs, targets, labels separately
 # todo: string hyperparams
-# todo: look into "NamedTuple"
-# fixme: in DunderSaveLoad for __dict__ saves save only req stuff, maybe by subtracting the vars of base __dict__
 import pickle
-
-import dill
 
 from src import *
 from DataSets import dataSet

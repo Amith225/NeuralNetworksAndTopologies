@@ -52,8 +52,8 @@ class Collections:
         return trueCollectables
 
 
-class Dunder(tuple):
-    __slots__ = {}
+# NamedTuple to hint a DunderObject
+class Dunder(tuple): __slots__ = {}
 
 
 class DunderSaveLoad:
